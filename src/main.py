@@ -1,12 +1,20 @@
-from settings import eg_settings
+from settings import Settings
+from windows import App
+
 
 def main():
-    '''main function'''
+    """main function"""
+    SETTINGS_FILE = "./settings.json"
+    eg_settings = Settings(SETTINGS_FILE)
+    eg_app = App(eg_settings)
+
     print("Programm EyesGuard started!")
-    print(eg_settings)
-    print("Settings applied!")
-    eg_settings.save_settings_to_file()
+    eg_app.mainloop()
+
 
 # application entry point
 if __name__ == "__main__":
     main()
+
+
+# SETTINGS_FILE = './tests/data/test_config_invalid1.json'
