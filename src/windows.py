@@ -18,6 +18,7 @@ class App(customtkinter.CTk):
         self.settings = settings
         self.title("EyesGuard v2")
         self.status_wnd = StatusWnd(settings)
+        self.settings_wnd = SettingsWnd(settings)
 
         # tray icon
         self.image = Image.open("res/img/eyes_with_protection.png")
@@ -41,14 +42,15 @@ class App(customtkinter.CTk):
         self.quit()
         os._exit(0)
 
-    def show_settings_wnd(self):
-        """Open settings wnd"""
-        print("Show settings wnd")
-
     def show_status_wnd(self):
-        """Open status wnd"""
+        """Show status wnd"""
         print("Show status wnd")
         self.status_wnd.show()
+
+    def show_settings_wnd(self):
+        """Show settings wnd"""
+        print("Show settings wnd")
+        self.settings_wnd.show()
 
 
 class StatusWnd(customtkinter.CTkToplevel):
@@ -67,7 +69,7 @@ class StatusWnd(customtkinter.CTkToplevel):
             f"{wnd_width}x{wnd_height}+"
             f"{screen_width - wnd_width - border_x}+{screen_height - wnd_height - border_y}"
         )
-        self.title("EyesGuard v2 - Settings")
+        self.title("EyesGuard v2 - Status")
         self.attributes("-topmost", True)
         self.resizable(False, False)
         self.attributes("-toolwindow", True)
@@ -130,14 +132,14 @@ class StatusWnd(customtkinter.CTkToplevel):
         self.hide()
 
     def hide(self):
-        """Hide status window"""
+        """Hide window"""
         for i in range(100):
             self.attributes("-alpha", 1 - i / 100)
             time.sleep(0.006)
         self.withdraw()
 
     def show(self):
-        """Show status window"""
+        """Show window"""
         print("showing top level wnd")
 
         self.deiconify()
@@ -170,8 +172,49 @@ class StatusWnd(customtkinter.CTkToplevel):
             )
 
 
-class SettingsWindow:
-    pass
+class SettingsWnd(customtkinter.CTkToplevel):
+    """Settings window"""
+
+    def __init__(self, settings: Settings, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.settings = settings
+        wnd_width = 500
+        wnd_height = 400
+        border_x = 50
+        border_y = 50
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        self.geometry(
+            f"{wnd_width}x{wnd_height}+"
+            f"{screen_width - wnd_width - border_x}+{screen_height - wnd_height - border_y}"
+        )
+        self.title("EyesGuard v2 - Settings")
+        self.attributes("-topmost", True)
+        self.resizable(False, False)
+
+        self.protocol("WM_DELETE_WINDOW", self.hide)
+        self.withdraw()
+
+    def on_focus_out(self, event):
+        """Action in calse of loosing focus"""
+        self.hide()
+
+    def hide(self):
+        """Hide window"""
+        for i in range(100):
+            self.attributes("-alpha", 1 - i / 100)
+            time.sleep(0.006)
+        self.withdraw()
+
+    def show(self):
+        """Show window"""
+        print("showing top level wnd")
+
+        self.deiconify()
+
+        for i in range(100):
+            self.attributes("-alpha", i / 100)
+            time.sleep(0.006)
 
 
 class SplashWindow:
