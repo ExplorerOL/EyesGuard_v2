@@ -1,6 +1,7 @@
 """Module with settings window of application"""
-
+import re
 import time
+from tkinter import *
 
 import customtkinter
 from PIL import Image, ImageTk
@@ -51,19 +52,11 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
         self.navigation_frame_lbl_title = customtkinter.CTkLabel(
             self.navigation_frame,
-            text=" Image Example",
-            # image=self.image,
-            compound="left",
-            font=customtkinter.CTkFont(size=15, weight="bold"),
-        )
-        self.navigation_frame_lbl_title.grid(row=0, column=0, padx=20, pady=20)
-
-        self.navigation_frame_lbl_title = customtkinter.CTkLabel(
-            self.navigation_frame,
             text="   EyesGuard",
+            text_color="GreenYellow",
             image=self.img_eyes_with_protection,
             compound="left",
-            font=customtkinter.CTkFont(size=15, weight="bold"),
+            font=customtkinter.CTkFont(size=16, weight="bold"),
             # text_color="GreenYellow",
         )
         self.navigation_frame_lbl_title.grid(row=0, column=0, padx=20, pady=20)
@@ -75,6 +68,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
             border_spacing=10,
             border_width=1,
             text="Time settings",
+            font=("", 14, "bold"),
             fg_color="LightSteelBlue",
             text_color=("gray10", "gray90"),
             hover_color=("LightSkyBlue", "gray30"),
@@ -92,6 +86,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
             border_spacing=10,
             border_width=1,
             text="General",
+            font=("", 14, "bold"),
             fg_color="transparent",
             text_color=("gray10", "gray90"),
             hover_color=("LightSkyBlue", "gray30"),
@@ -102,27 +97,68 @@ class SettingsWnd(customtkinter.CTkToplevel):
         )
         self.btn_general_settings.grid(row=2, column=0, sticky="ew")
 
+        self.btn_about = customtkinter.CTkButton(
+            self.navigation_frame,
+            corner_radius=0,
+            height=40,
+            border_spacing=10,
+            border_width=1,
+            text="About",
+            font=("", 14, "bold"),
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+            hover_color=("LightSkyBlue", "gray30"),
+            border_color="Gray",
+            # image=self.image,
+            anchor="w",
+            # command=self.frame_2_button_event,
+        )
+        self.btn_about.grid(row=3, column=0, sticky="ew")
+
         # --- create time settings frame ---
         self.frame_time_settings = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.frame_time_settings.grid_columnconfigure(1, weight=1)
 
-        # working duratrion setting
-        self.lbl_working_duration = customtkinter.CTkLabel(
-            self.frame_time_settings, text="Working duration (minutes)", font=("", 14)
+        # work duratrion setting
+        self.lbl_work_duration = customtkinter.CTkLabel(
+            self.frame_time_settings, text="Work duration (minutes)", font=("", 14)
         )
-        self.lbl_working_duration.grid(row=0, column=0, padx=20, pady=10)
+        self.lbl_work_duration.grid(row=0, column=0, padx=20, pady=10)
 
-        self.input_working_duration = customtkinter.CTkEntry(
-            self.frame_time_settings, placeholder_text="45 min"
+        self.work_duration_value = StringVar()
+        self.work_duration_value.set(self.settings.get().work_duration)
+        verify_cmd_work_duration = (self.register(self.is_valid_duration_entry), "%P")
+        self.entry_work_duration = customtkinter.CTkEntry(
+            self.frame_time_settings,
+            textvariable=self.work_duration_value,
+            justify="center",
+            validate="key",
+            validatecommand=verify_cmd_work_duration,
         )
-        self.input_working_duration.grid(row=0, column=1, padx=(20, 20), pady=(20, 20), sticky="e")
+        self.entry_work_duration.grid(row=0, column=1, padx=(20, 20), pady=(20, 20), sticky="e")
 
-        self.home_frame_button_1 = customtkinter.CTkButton(self.frame_time_settings, text="btn1")
-        self.home_frame_button_1.grid(row=1, column=0, padx=20, pady=10)
-        self.home_frame_button_2 = customtkinter.CTkButton(
-            self.frame_time_settings, text="CTkButton", compound="right"
+        # break duratrion setting
+        self.lbl_break_duration = customtkinter.CTkLabel(
+            self.frame_time_settings, text="Break duration (minutes)", font=("", 14)
         )
-        self.home_frame_button_2.grid(row=2, column=0, padx=20, pady=10)
+        self.lbl_break_duration.grid(row=1, column=0, padx=20, pady=10)
+
+        self.break_duration_value = StringVar()
+        self.break_duration_value.set(self.settings.get().break_duration)
+        verify_cmd_break_duration = (self.register(self.is_valid_duration_entry), "%P")
+        self.entry_break_duration = customtkinter.CTkEntry(
+            self.frame_time_settings,
+            textvariable=self.break_duration_value,
+            justify="center",
+            validate="key",
+            validatecommand=verify_cmd_break_duration,
+        )
+        self.entry_break_duration.grid(row=1, column=1, padx=(20, 20), pady=(20, 20), sticky="e")
+
+        self.lbl_test = customtkinter.CTkLabel(
+            self.frame_time_settings, textvariable=self.break_duration_value, font=("", 14)
+        )
+        self.lbl_test.grid(row=2, column=0, padx=20, pady=10)
 
         # create second frame
         self.second_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -148,9 +184,20 @@ class SettingsWnd(customtkinter.CTkToplevel):
     def show(self):
         """Show window"""
         print("showing top level wnd")
-
+        self.update_wnd()
         self.deiconify()
 
         for i in range(100):
             self.attributes("-alpha", i / 100)
             time.sleep(0.006)
+
+    def is_valid_duration_entry(self, value: str):
+        print(value)
+        result = re.match("^[1-9][0-9]{0,1}$|^$", value) is not None
+        print(result)
+        return result
+
+    def update_wnd(self):
+        """Updating status window elements states"""
+        self.work_duration_value.set(self.settings.get().work_duration)
+        self.break_duration_value.set(self.settings.get().break_duration)
