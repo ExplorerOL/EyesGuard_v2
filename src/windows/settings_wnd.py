@@ -49,16 +49,16 @@ class SettingsWnd(customtkinter.CTkToplevel):
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
         self.navigation_frame.grid_rowconfigure(4, weight=1)
 
-        self.navigation_frame_label = customtkinter.CTkLabel(
+        self.navigation_frame_lbl_title = customtkinter.CTkLabel(
             self.navigation_frame,
             text=" Image Example",
             # image=self.image,
             compound="left",
             font=customtkinter.CTkFont(size=15, weight="bold"),
         )
-        self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
+        self.navigation_frame_lbl_title.grid(row=0, column=0, padx=20, pady=20)
 
-        self.navigation_frame_label = customtkinter.CTkLabel(
+        self.navigation_frame_lbl_title = customtkinter.CTkLabel(
             self.navigation_frame,
             text="   EyesGuard",
             image=self.img_eyes_with_protection,
@@ -66,15 +66,15 @@ class SettingsWnd(customtkinter.CTkToplevel):
             font=customtkinter.CTkFont(size=15, weight="bold"),
             # text_color="GreenYellow",
         )
-        self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
+        self.navigation_frame_lbl_title.grid(row=0, column=0, padx=20, pady=20)
 
-        self.home_button = customtkinter.CTkButton(
+        self.btn_time_settings = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
             height=40,
             border_spacing=10,
             border_width=1,
-            text="Home",
+            text="Time settings",
             fg_color="LightSteelBlue",
             text_color=("gray10", "gray90"),
             hover_color=("LightSkyBlue", "gray30"),
@@ -83,15 +83,15 @@ class SettingsWnd(customtkinter.CTkToplevel):
             anchor="w",
             # command=self.home_button_event,
         )
-        self.home_button.grid(row=1, column=0, sticky="ew")
+        self.btn_time_settings.grid(row=1, column=0, sticky="ew")
 
-        self.frame_2_button = customtkinter.CTkButton(
+        self.btn_general_settings = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
             height=40,
             border_spacing=10,
             border_width=1,
-            text="Frame 2",
+            text="General",
             fg_color="transparent",
             text_color=("gray10", "gray90"),
             hover_color=("LightSkyBlue", "gray30"),
@@ -100,19 +100,27 @@ class SettingsWnd(customtkinter.CTkToplevel):
             anchor="w",
             # command=self.frame_2_button_event,
         )
-        self.frame_2_button.grid(row=2, column=0, sticky="ew")
+        self.btn_general_settings.grid(row=2, column=0, sticky="ew")
 
-        # create home frame
-        self.home_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.home_frame.grid_columnconfigure(1, weight=1)
+        # --- create time settings frame ---
+        self.frame_time_settings = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.frame_time_settings.grid_columnconfigure(1, weight=1)
 
-        self.home_frame_large_image_label = customtkinter.CTkLabel(self.home_frame, text="1111")
-        self.home_frame_large_image_label.grid(row=0, column=0, padx=20, pady=10)
+        # working duratrion setting
+        self.lbl_working_duration = customtkinter.CTkLabel(
+            self.frame_time_settings, text="Working duration (minutes)", font=("", 14)
+        )
+        self.lbl_working_duration.grid(row=0, column=0, padx=20, pady=10)
 
-        self.home_frame_button_1 = customtkinter.CTkButton(self.home_frame, text="btn1")
+        self.input_working_duration = customtkinter.CTkEntry(
+            self.frame_time_settings, placeholder_text="45 min"
+        )
+        self.input_working_duration.grid(row=0, column=1, padx=(20, 20), pady=(20, 20), sticky="e")
+
+        self.home_frame_button_1 = customtkinter.CTkButton(self.frame_time_settings, text="btn1")
         self.home_frame_button_1.grid(row=1, column=0, padx=20, pady=10)
         self.home_frame_button_2 = customtkinter.CTkButton(
-            self.home_frame, text="CTkButton", compound="right"
+            self.frame_time_settings, text="CTkButton", compound="right"
         )
         self.home_frame_button_2.grid(row=2, column=0, padx=20, pady=10)
 
@@ -120,8 +128,9 @@ class SettingsWnd(customtkinter.CTkToplevel):
         self.second_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
 
         # self.home_button.configure(fg_color=("gray75", "gray25"))
-        self.home_frame.grid(row=0, column=1, sticky="nsew")
+        self.frame_time_settings.grid(row=0, column=1, sticky="nsew")
 
+        # actions after elements creation
         self.protocol("WM_DELETE_WINDOW", self.hide)
         self.withdraw()
 
