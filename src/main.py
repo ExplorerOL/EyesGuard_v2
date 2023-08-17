@@ -1,12 +1,12 @@
 from settings import Settings
-from windows import App
+from windows import MainWnd
 
 
 def main():
     """main function"""
     SETTINGS_FILE = "./settings.json"
     eg_settings = Settings(SETTINGS_FILE)
-    eg_app = App(eg_settings)
+    eg_app = MainWnd(eg_settings)
 
     print("Programm EyesGuard started!")
     eg_app.mainloop()

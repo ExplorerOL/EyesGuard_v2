@@ -10,7 +10,7 @@ from PIL import Image, ImageTk
 from settings import Settings
 
 
-class App(customtkinter.CTk):
+class MainWnd(customtkinter.CTk):
     """Main window of application"""
 
     def __init__(self, settings: Settings):
@@ -23,12 +23,12 @@ class App(customtkinter.CTk):
         # tray icon
         self.image = Image.open("res/img/eyes_with_protection.png")
         menu = (
-            pystray.MenuItem("Exit", self.exit_app),
-            pystray.MenuItem("Settings", self.show_settings_wnd),
             pystray.MenuItem("Status", self.show_status_wnd, default=True),
+            pystray.MenuItem("Settings", self.show_settings_wnd),
+            pystray.MenuItem("Exit", self.exit_app),
         )
-        self.icon = pystray.Icon("name", self.image, "My System Tray Icon1", menu)
-        self.icon.run_detached()
+        self.tray_icon = pystray.Icon("name", self.image, "My System Tray Icon1", menu)
+        self.tray_icon.run_detached()
 
         # hide main app wnd
         self.withdraw()
@@ -37,8 +37,8 @@ class App(customtkinter.CTk):
 
     def exit_app(self):
         """Exit from app"""
-        self.icon.visible = False
-        self.icon.stop()
+        self.tray_icon.visible = False
+        self.tray_icon.stop()
         self.quit()
         os._exit(0)
 
@@ -63,6 +63,7 @@ class StatusWnd(customtkinter.CTkToplevel):
         wnd_height = 250
         border_x = 50
         border_y = 50
+        self.attributes("-alpha", 0)
         screen_width = self.winfo_screenwidth()  # width of the screen
         screen_height = self.winfo_screenheight()  # height of the screen
         self.geometry(
@@ -140,7 +141,7 @@ class StatusWnd(customtkinter.CTkToplevel):
 
     def show(self):
         """Show window"""
-        print("showing top level wnd")
+        print("Showing status wnd")
 
         self.deiconify()
 
@@ -182,6 +183,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
         wnd_height = 400
         border_x = 50
         border_y = 150
+        self.attributes("-alpha", 0)
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         self.geometry(
@@ -196,9 +198,6 @@ class SettingsWnd(customtkinter.CTkToplevel):
         self.after(250, lambda: self.iconphoto(False, self.wnd_icon))
 
         self.configure(fg_color="LightSteelBlue")
-
-        self.protocol("WM_DELETE_WINDOW", self.hide)
-        self.withdraw()
 
         # window elements
         # images
@@ -287,6 +286,9 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
         # self.home_button.configure(fg_color=("gray75", "gray25"))
         self.home_frame.grid(row=0, column=1, sticky="nsew")
+
+        self.protocol("WM_DELETE_WINDOW", self.hide)
+        self.withdraw()
 
     def on_focus_out(self, event):
         """Action in calse of loosing focus"""
