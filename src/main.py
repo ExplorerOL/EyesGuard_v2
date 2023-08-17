@@ -1,5 +1,5 @@
 from settings import Settings
-from windows import MainWnd
+from windows.main_wnd import MainWnd
 
 
 def main():
