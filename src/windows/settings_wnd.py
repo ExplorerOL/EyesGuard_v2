@@ -43,6 +43,8 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
         # set grid layout 1x2
         self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=0)
+        # self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
         # create navigation frame
@@ -198,7 +200,32 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
         self.lbl_about_text = "\nAuthor: Dmitry Vorobjev\nE-mail: eyesguard@yandex.ru\n© GPL v3 licence\n2023"
         self.lbl_about = customtkinter.CTkLabel(self.frame_about, text=self.lbl_about_text, justify="left")
-        self.lbl_about.grid(row=2, column=0, padx=20, pady=10)
+        self.lbl_about.grid(row=1, column=0, padx=20, pady=10, sticky="e")
+
+        # --- create left footer frame ---
+        self.frame_footer_left = customtkinter.CTkFrame(
+            self, corner_radius=0, fg_color="SteelBlue", border_width=1, border_color="red"
+        )
+        # self.frame_footer.grid_rowconfigure(1, weight=1)
+        # self.frame_footer.grid_columnconfigure(2, weight=0)
+        self.frame_footer_left.grid(row=1, column=0, sticky="nsew")
+
+        self.btn_applyl = customtkinter.CTkButton(self.frame_footer_left, text="CTkButton1")
+        self.btn_applyl.grid(row=0, column=0, padx=20, pady=10)
+
+        # --- create footer frame ---
+        self.frame_footer = customtkinter.CTkFrame(
+            self, corner_radius=0, fg_color="transparent", border_width=1, border_color="red"
+        )
+        self.frame_footer.grid_rowconfigure(1, weight=1)
+        # self.frame_footer.grid_columnconfigure(2, weight=0)
+        self.frame_footer.grid(row=1, column=1, sticky="nsew")
+
+        self.btn_apply = customtkinter.CTkButton(self.frame_footer, text="CTkBun2", width=50)
+        self.btn_apply.grid(row=0, column=0, padx=30, pady=10)
+
+        self.btn_apply2 = customtkinter.CTkButton(self.frame_footer, text="CTkBn2", width=50)
+        self.btn_apply2.grid(row=0, column=1, padx=30, pady=10)
 
         # actions after elements creation
         self.protocol("WM_DELETE_WINDOW", self.hide)
