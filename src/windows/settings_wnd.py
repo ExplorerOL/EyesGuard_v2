@@ -53,7 +53,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
         self.navigation_frame_lbl_title = customtkinter.CTkLabel(
             self.navigation_frame,
             text="   EyesGuard",
-            text_color="GreenYellow",
+            text_color="White",
             image=self.img_eyes_with_protection,
             compound="left",
             font=customtkinter.CTkFont(size=16, weight="bold"),
@@ -165,6 +165,9 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
         # self.home_button.configure(fg_color=("gray75", "gray25"))
         self.frame_time_settings.grid(row=0, column=1, sticky="nsew")
+
+        # --- create general settings frame ---
+        self.frame_general_settings = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
 
         # actions after elements creation
         self.protocol("WM_DELETE_WINDOW", self.hide)
