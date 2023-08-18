@@ -48,7 +48,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
         # create navigation frame
         self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="SteelBlue")
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
-        self.navigation_frame.grid_rowconfigure(4, weight=1)
+        self.navigation_frame.grid_rowconfigure(10, weight=1)
 
         self.navigation_frame_lbl_title = customtkinter.CTkLabel(
             self.navigation_frame,
@@ -56,10 +56,20 @@ class SettingsWnd(customtkinter.CTkToplevel):
             text_color="White",
             image=self.img_eyes_with_protection,
             compound="left",
-            font=customtkinter.CTkFont(size=16, weight="bold"),
+            font=customtkinter.CTkFont(size=18, weight="bold"),
             # text_color="GreenYellow",
         )
-        self.navigation_frame_lbl_title.grid(row=0, column=0, padx=20, pady=20)
+        self.navigation_frame_lbl_title.grid(row=0, column=0, padx=20, pady=5)
+
+        self.navigation_frame_lbl_description = customtkinter.CTkLabel(
+            self.navigation_frame,
+            text="cares about your vision",
+            text_color="GreenYellow",
+            compound="center",
+            font=customtkinter.CTkFont(size=13, weight="bold"),
+            # text_color="GreenYellow",
+        )
+        self.navigation_frame_lbl_description.grid(row=1, column=0, padx=0, pady=1)
 
         self.btn_time_settings = customtkinter.CTkButton(
             self.navigation_frame,
@@ -72,12 +82,12 @@ class SettingsWnd(customtkinter.CTkToplevel):
             fg_color="LightSteelBlue",
             text_color=("gray10", "gray90"),
             hover_color=("LightSkyBlue", "gray30"),
-            border_color="Gray",
+            border_color="LightSteelBlue",
             # mage=self.image,
             anchor="w",
-            # command=self.home_button_event,
+            command=self.event_btn_time_settings,
         )
-        self.btn_time_settings.grid(row=1, column=0, sticky="ew")
+        self.btn_time_settings.grid(row=2, column=0, sticky="ew")
 
         self.btn_general_settings = customtkinter.CTkButton(
             self.navigation_frame,
@@ -90,12 +100,12 @@ class SettingsWnd(customtkinter.CTkToplevel):
             fg_color="transparent",
             text_color=("gray10", "gray90"),
             hover_color=("LightSkyBlue", "gray30"),
-            border_color="Gray",
+            border_color="LightSteelBlue",
             # image=self.image,
             anchor="w",
-            # command=self.frame_2_button_event,
+            command=self.event_btn_general_settings,
         )
-        self.btn_general_settings.grid(row=2, column=0, sticky="ew")
+        self.btn_general_settings.grid(row=3, column=0, sticky="ew")
 
         self.btn_about = customtkinter.CTkButton(
             self.navigation_frame,
@@ -108,12 +118,12 @@ class SettingsWnd(customtkinter.CTkToplevel):
             fg_color="transparent",
             text_color=("gray10", "gray90"),
             hover_color=("LightSkyBlue", "gray30"),
-            border_color="Gray",
+            border_color="LightSteelBlue",
             # image=self.image,
             anchor="w",
-            # command=self.frame_2_button_event,
+            command=self.event_btn_about,
         )
-        self.btn_about.grid(row=3, column=0, sticky="ew")
+        self.btn_about.grid(row=4, column=0, sticky="ew")
 
         # --- create time settings frame ---
         self.frame_time_settings = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -121,7 +131,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
         # work duratrion setting
         self.lbl_work_duration = customtkinter.CTkLabel(
-            self.frame_time_settings, text="Work duration (minutes)", font=("", 14)
+            self.frame_time_settings, text="Work duration (minutes)", font=("", 13)
         )
         self.lbl_work_duration.grid(row=0, column=0, padx=20, pady=10)
 
@@ -135,11 +145,11 @@ class SettingsWnd(customtkinter.CTkToplevel):
             validate="key",
             validatecommand=verify_cmd_work_duration,
         )
-        self.entry_work_duration.grid(row=0, column=1, padx=(20, 20), pady=(20, 20), sticky="e")
+        self.entry_work_duration.grid(row=0, column=1, padx=20, pady=20, sticky="e")
 
         # break duratrion setting
         self.lbl_break_duration = customtkinter.CTkLabel(
-            self.frame_time_settings, text="Break duration (minutes)", font=("", 14)
+            self.frame_time_settings, text="Break duration (minutes)", font=("", 13)
         )
         self.lbl_break_duration.grid(row=1, column=0, padx=20, pady=10)
 
@@ -155,22 +165,44 @@ class SettingsWnd(customtkinter.CTkToplevel):
         )
         self.entry_break_duration.grid(row=1, column=1, padx=(20, 20), pady=(20, 20), sticky="e")
 
-        self.lbl_test = customtkinter.CTkLabel(
-            self.frame_time_settings, textvariable=self.break_duration_value, font=("", 14)
-        )
-        self.lbl_test.grid(row=2, column=0, padx=20, pady=10)
-
-        # create second frame
-        self.second_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-
-        # self.home_button.configure(fg_color=("gray75", "gray25"))
-        self.frame_time_settings.grid(row=0, column=1, sticky="nsew")
-
         # --- create general settings frame ---
         self.frame_general_settings = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.frame_time_settings.grid_columnconfigure(1, weight=1)
+        # sounds setting
+        self.chbox_sounds_value = customtkinter.StringVar(value=self.settings.get().sounds)
+        self.chbox_sounds = customtkinter.CTkCheckBox(
+            self.frame_general_settings,
+            text="Sounds enabled",
+            variable=self.chbox_sounds_value,
+            onvalue="on",
+            offvalue="off",
+            font=("", 13),
+        )
+        self.chbox_sounds.grid(row=0, column=0, padx=20, pady=10, sticky="ew")
+
+        # notifications setting
+        self.chbox_notifications_value = customtkinter.StringVar(value=self.settings.get().notifications)
+        self.chbox_notifications = customtkinter.CTkCheckBox(
+            self.frame_general_settings,
+            text="Notifications enabled",
+            variable=self.chbox_notifications_value,
+            onvalue="on",
+            offvalue="off",
+            font=("", 13),
+        )
+        self.chbox_notifications.grid(row=1, column=0, padx=20, pady=10, sticky="e")
+
+        # --- create frame about---
+        self.frame_about = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.frame_about.grid_columnconfigure(1, weight=1)
+
+        self.lbl_about_text = "\nAuthor: Dmitry Vorobjev\nE-mail: eyesguard@yandex.ru\n© GPL v3 licence\n2023"
+        self.lbl_about = customtkinter.CTkLabel(self.frame_about, text=self.lbl_about_text, justify="left")
+        self.lbl_about.grid(row=2, column=0, padx=20, pady=10)
 
         # actions after elements creation
         self.protocol("WM_DELETE_WINDOW", self.hide)
+        self.event_btn_time_settings()
         self.withdraw()
 
     def on_focus_out(self, event):
@@ -204,3 +236,38 @@ class SettingsWnd(customtkinter.CTkToplevel):
         """Updating status window elements states"""
         self.work_duration_value.set(self.settings.get().work_duration)
         self.break_duration_value.set(self.settings.get().break_duration)
+        self.chbox_sounds_value.set(value=self.settings.get().sounds)
+        self.chbox_notifications_value.set(value=self.settings.get().notifications)
+
+    def select_frame_by_name(self, name: str) -> None:
+        # set button color for selected button
+        self.btn_time_settings.configure(
+            fg_color="LightSteelBlue" if name == "frame_time_settings" else "transparent"
+        )
+        self.btn_general_settings.configure(
+            fg_color="LightSteelBlue" if name == "frame_general_settings" else "transparent"
+        )
+        self.btn_about.configure(fg_color="LightSteelBlue" if name == "frame_about" else "transparent")
+
+        # show selected frame
+        if name == "frame_time_settings":
+            self.frame_time_settings.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.frame_time_settings.grid_forget()
+        if name == "frame_general_settings":
+            self.frame_general_settings.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.frame_general_settings.grid_forget()
+        if name == "frame_about":
+            self.frame_about.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.frame_about.grid_forget()
+
+    def event_btn_time_settings(self) -> None:
+        self.select_frame_by_name("frame_time_settings")
+
+    def event_btn_general_settings(self) -> None:
+        self.select_frame_by_name("frame_general_settings")
+
+    def event_btn_about(self) -> None:
+        self.select_frame_by_name("frame_about")
