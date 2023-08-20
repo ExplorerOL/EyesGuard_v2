@@ -6,7 +6,7 @@ from tkinter import *
 import customtkinter
 from PIL import Image, ImageTk
 
-from settings import Settings
+from settings import Settings, SettingsData
 
 
 class SettingsWnd(customtkinter.CTkToplevel):
@@ -35,7 +35,6 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
         self.configure(fg_color="LightSteelBlue")
 
-        # window elements
         # images
         self.img_eyes_with_protection = customtkinter.CTkImage(
             Image.open("res/img/eyes_with_protection.png"), size=(50, 50)
@@ -43,14 +42,12 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
         # set grid layout 2x2
         self.grid_rowconfigure(0, weight=1)
-        # self.grid_rowconfigure(1, weight=0)
-        # self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
+        # window elements
         # create navigation frame
         self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="SteelBlue")
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
-        # self.navigation_frame.grid_rowconfigure(10, weight=1)
 
         self.navigation_frame_lbl_title = customtkinter.CTkLabel(
             self.navigation_frame,
@@ -204,28 +201,25 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
         # --- create left footer frame ---
         self.frame_footer_left = customtkinter.CTkFrame(
-            self, corner_radius=0, fg_color="SteelBlue", border_width=1, border_color="red"
+            self, corner_radius=0, fg_color="SteelBlue", border_width=1, border_color="red", height=50
         )
-        # self.frame_footer.grid_rowconfigure(1, weight=1)
-        # self.frame_footer.grid_columnconfigure(2, weight=0)
-        self.frame_footer_left.grid(row=1, column=0, sticky="nsew")
 
-        self.btn_applyl = customtkinter.CTkButton(self.frame_footer_left, text="CTkButton1")
-        self.btn_applyl.grid(row=0, column=0, padx=20, pady=10)
+        self.frame_footer_left.grid(row=1, column=0, sticky="sew")
 
-        # --- create footer frame ---
+        # --- create right footer frame ---
         self.frame_footer = customtkinter.CTkFrame(
-            self, corner_radius=0, fg_color="transparent", border_width=1, border_color="red"
+            self, corner_radius=0, fg_color="transparent", border_width=1, border_color="red", height=50
         )
-        self.frame_footer.grid_rowconfigure(1, weight=1)
-        # self.frame_footer.grid_columnconfigure(2, weight=0)
-        self.frame_footer.grid(row=1, column=1, sticky="nsew")
+        self.frame_footer.grid_rowconfigure(1, weight=0)
+        self.frame_footer.grid(row=1, column=1, sticky="sew")
 
-        self.btn_apply = customtkinter.CTkButton(self.frame_footer, text="CTkBun2", width=50)
+        self.btn_apply = customtkinter.CTkButton(
+            self.frame_footer, text="Apply", width=70, fg_color="Green", command=self.apply_ui_settings
+        )
         self.btn_apply.grid(row=0, column=0, padx=30, pady=10)
 
-        self.btn_apply2 = customtkinter.CTkButton(self.frame_footer, text="CTkBn2", width=50)
-        self.btn_apply2.grid(row=0, column=1, padx=30, pady=10)
+        self.discrad = customtkinter.CTkButton(self.frame_footer, text="Hide", width=50, command=self.hide)
+        self.discrad.grid(row=0, column=1, padx=30, pady=10)
 
         # actions after elements creation
         self.protocol("WM_DELETE_WINDOW", self.hide)
@@ -298,3 +292,27 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
     def event_btn_about(self) -> None:
         self.select_frame_by_name("frame_about")
+
+    def get_settings_from_widgets(self) -> SettingsData:
+        """Get data from all widgets with settings"""
+        ui_settings_data = SettingsData()
+        try:
+            ui_settings_data.work_duration = int(self.work_duration_value.get())
+            ui_settings_data.break_duration = int(self.break_duration_value.get())
+            ui_settings_data.sounds = str(self.chbox_sounds_value.get())
+            ui_settings_data.notifications = str(self.chbox_notifications.get())
+        except TypeError as error:
+            print("Error occuired while reading settings from ui: {error}")
+        print(f"Settings read from ui: {str(ui_settings_data)}")
+        print(int(self.break_duration_value.get()))
+        print(int(self.work_duration_value.get()))
+        print(self.chbox_sounds_value.get())
+        print(self.chbox_notifications_value.get())
+
+        return ui_settings_data
+
+    def apply_ui_settings(self):
+        """Get data from all widgets with settings, apply them ans save to file"""
+        new_settings = self.get_settings_from_widgets()
+        self.settings.apply_settings_from_ui(new_settings)
+        self.settings.save_settings_to_file()

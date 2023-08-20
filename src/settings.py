@@ -18,6 +18,22 @@ class SettingsData:
     notifications = "on"
     protection_status = "on"
 
+    def _settings_to_dict(self) -> dict:
+        # convertation object to dict
+        settings_dict = {}
+        for attr in dir(self):
+            if not attr.startswith("_"):
+                settings_dict[attr] = getattr(self, attr)
+        return settings_dict
+
+    def __repr__(self) -> dict:
+        # convertation object to string
+        return self._settings_to_dict()
+
+    def __str__(self) -> str:
+        # convertation object to string
+        return str(self._settings_to_dict())
+
 
 class SettingsDataValidator(BaseModel):
     """Validation model for settings"""
@@ -46,6 +62,10 @@ class Settings:
         return settings_dict
 
     def __repr__(self) -> str:
+        # convertation object to string
+        return str(self._settings_to_dict())
+
+    def __str__(self) -> str:
         # convertation object to string
         return str(self._settings_to_dict())
 
@@ -91,9 +111,22 @@ class Settings:
                     print(getattr(self._settings, attr))
 
     def apply_settings_from_file(self):
-        """Read, validate and apply settings"""
+        """Read, validate and apply settings from file"""
         settings_from_file_str = self._read_settings_from_file()
         settings_validated = self._validate_settings_str(settings_from_file_str)
+        self._apply_settings(settings_validated)
+
+    def apply_settings_from_ui(self, new_settings_data: SettingsData):
+        """Validate settings and write them to file"""
+        # new_settings_dict = self._settings_to_dict()
+        print(f"New settings from ui to apply: {new_settings_data}")
+        print(type(new_settings_data))
+        try:
+            settings_validated = SettingsDataValidator.model_validate(new_settings_data.__repr__())
+        except ValidationError as error:
+            print(error)
+            print(type(error))
+            return
         self._apply_settings(settings_validated)
 
     def save_settings_to_file(self):
