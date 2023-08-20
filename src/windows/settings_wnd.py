@@ -41,16 +41,16 @@ class SettingsWnd(customtkinter.CTkToplevel):
             Image.open("res/img/eyes_with_protection.png"), size=(50, 50)
         )
 
-        # set grid layout 1x2
+        # set grid layout 2x2
         self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=0)
+        # self.grid_rowconfigure(1, weight=0)
         # self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
         # create navigation frame
         self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="SteelBlue")
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
-        self.navigation_frame.grid_rowconfigure(10, weight=1)
+        # self.navigation_frame.grid_rowconfigure(10, weight=1)
 
         self.navigation_frame_lbl_title = customtkinter.CTkLabel(
             self.navigation_frame,
