@@ -167,6 +167,20 @@ class SettingsWnd(customtkinter.CTkToplevel):
         # --- create general settings frame ---
         self.frame_general_settings = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.frame_time_settings.grid_columnconfigure(1, weight=1)
+
+        # protextion status setting
+        self.chbox_protection_status_value = customtkinter.StringVar(
+            value=self.settings.get().protection_status
+        )
+        self.chbox_protection_status = customtkinter.CTkCheckBox(
+            self.frame_general_settings,
+            text="Protection status",
+            variable=self.chbox_protection_status_value,
+            onvalue="on",
+            offvalue="off",
+            font=("", 13),
+        )
+        self.chbox_protection_status.grid(row=0, column=0, padx=20, pady=10, sticky="ew")
         # sounds setting
         self.chbox_sounds_value = customtkinter.StringVar(value=self.settings.get().sounds)
         self.chbox_sounds = customtkinter.CTkCheckBox(
@@ -177,7 +191,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
             offvalue="off",
             font=("", 13),
         )
-        self.chbox_sounds.grid(row=0, column=0, padx=20, pady=10, sticky="ew")
+        self.chbox_sounds.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
         # notifications setting
         self.chbox_notifications_value = customtkinter.StringVar(value=self.settings.get().notifications)
@@ -189,7 +203,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
             offvalue="off",
             font=("", 13),
         )
-        self.chbox_notifications.grid(row=1, column=0, padx=20, pady=10, sticky="e")
+        self.chbox_notifications.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
         # --- create frame about---
         self.frame_about = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -201,27 +215,36 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
         # --- create left footer frame ---
         self.frame_footer_left = customtkinter.CTkFrame(
-            self, corner_radius=0, fg_color="SteelBlue", border_width=1, border_color="red", height=50
+            self, corner_radius=0, fg_color="SteelBlue", height=50
         )
 
         self.frame_footer_left.grid(row=1, column=0, sticky="sew")
 
         # --- create right footer frame ---
-        self.frame_footer = customtkinter.CTkFrame(
-            self, corner_radius=0, fg_color="transparent", border_width=1, border_color="red", height=50
+        self.frame_footer_right = customtkinter.CTkFrame(
+            self, corner_radius=0, fg_color="transparent", height=50
         )
-        self.frame_footer.grid_rowconfigure(1, weight=0)
-        self.frame_footer.grid(row=1, column=1, sticky="sew")
+        self.frame_footer_right.grid_columnconfigure(0, weight=1)
+        self.frame_footer_right.grid_columnconfigure(1, weight=1)
+        self.frame_footer_right.grid(row=1, column=1, sticky="new")
 
         self.btn_apply = customtkinter.CTkButton(
-            self.frame_footer, text="Apply", width=70, fg_color="Green", command=self.apply_ui_settings
+            self.frame_footer_right,
+            text="Apply",
+            width=50,
+            fg_color="Green",
+            hover_color="DarkGreen",
+            command=self.apply_ui_settings,
         )
-        self.btn_apply.grid(row=0, column=0, padx=30, pady=10)
+        self.btn_apply.grid(row=0, column=0, padx=30, pady=10, sticky="ew")
 
-        self.discrad = customtkinter.CTkButton(self.frame_footer, text="Hide", width=50, command=self.hide)
-        self.discrad.grid(row=0, column=1, padx=30, pady=10)
+        self.discrad = customtkinter.CTkButton(
+            self.frame_footer_right, text="Hide", width=50, command=self.hide
+        )
+        self.discrad.grid(row=0, column=1, padx=30, pady=10, sticky="ew")
 
         # actions after elements creation
+        self.bind("<FocusIn>", self.on_focus_in)
         self.protocol("WM_DELETE_WINDOW", self.hide)
         self.event_btn_time_settings()
         self.withdraw()
@@ -257,6 +280,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
         """Updating status window elements states"""
         self.work_duration_value.set(self.settings.get().work_duration)
         self.break_duration_value.set(self.settings.get().break_duration)
+        self.chbox_protection_status_value.set(value=self.settings.get().protection_status)
         self.chbox_sounds_value.set(value=self.settings.get().sounds)
         self.chbox_notifications_value.set(value=self.settings.get().notifications)
 
@@ -299,8 +323,9 @@ class SettingsWnd(customtkinter.CTkToplevel):
         try:
             ui_settings_data.work_duration = int(self.work_duration_value.get())
             ui_settings_data.break_duration = int(self.break_duration_value.get())
+            ui_settings_data.protection_status = str(self.chbox_protection_status_value.get())
             ui_settings_data.sounds = str(self.chbox_sounds_value.get())
-            ui_settings_data.notifications = str(self.chbox_notifications.get())
+            ui_settings_data.notifications = str(self.chbox_notifications_value.get())
         except TypeError as error:
             print("Error occuired while reading settings from ui: {error}")
         print(f"Settings read from ui: {str(ui_settings_data)}")
@@ -316,3 +341,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
         new_settings = self.get_settings_from_widgets()
         self.settings.apply_settings_from_ui(new_settings)
         self.settings.save_settings_to_file()
+
+    def on_focus_in(self, event):
+        """Actions on focus in window"""
+        self.update_wnd()
