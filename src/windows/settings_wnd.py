@@ -16,7 +16,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
         super().__init__(*args, **kwargs)
         self.settings = settings
         wnd_width = 500
-        wnd_height = 400
+        wnd_height = 350
         border_x = 50
         border_y = 150
         self.attributes("-alpha", 0)
@@ -38,6 +38,9 @@ class SettingsWnd(customtkinter.CTkToplevel):
         # images
         self.img_eyes_with_protection = customtkinter.CTkImage(
             Image.open("res/img/eyes_with_protection.png"), size=(50, 50)
+        )
+        self.img_eyes_without_protection = customtkinter.CTkImage(
+            Image.open("res/img/eyes_without_protection.png"), size=(50, 50)
         )
 
         # set grid layout 2x2
@@ -278,11 +281,17 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
     def update_wnd(self):
         """Updating status window elements states"""
+
         self.work_duration_value.set(self.settings.get().work_duration)
         self.break_duration_value.set(self.settings.get().break_duration)
         self.chbox_protection_status_value.set(value=self.settings.get().protection_status)
         self.chbox_sounds_value.set(value=self.settings.get().sounds)
         self.chbox_notifications_value.set(value=self.settings.get().notifications)
+        print(f"protection_status={self.chbox_protection_status_value.get()}")
+        if self.chbox_protection_status_value.get() == "on":
+            self.navigation_frame_lbl_title.configure(image=self.img_eyes_with_protection)
+        else:
+            self.navigation_frame_lbl_title.configure(image=self.img_eyes_without_protection)
 
     def select_frame_by_name(self, name: str) -> None:
         # set button color for selected button
