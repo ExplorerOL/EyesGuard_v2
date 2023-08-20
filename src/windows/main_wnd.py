@@ -15,10 +15,15 @@ class MainWnd(customtkinter.CTk):
 
     def __init__(self, settings: Settings):
         super().__init__()
+        customtkinter.set_appearance_mode("light")
+        customtkinter.set_default_color_theme("blue")
+
         self.settings = settings
         self.title("EyesGuard v2")
         self.status_wnd = StatusWnd(settings)
         self.settings_wnd = SettingsWnd(settings)
+        self.toplevel_window = None
+        self.break_wnd = None
 
         # tray icon
         self.image = Image.open("res/img/eyes_with_protection.png")
@@ -32,8 +37,6 @@ class MainWnd(customtkinter.CTk):
 
         # hide main app wnd
         self.withdraw()
-        self.toplevel_window = None
-        self.break_wnd = None
 
     def exit_app(self):
         """Exit from app"""
