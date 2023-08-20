@@ -97,7 +97,7 @@ class StatusWnd(customtkinter.CTkToplevel):
     def show(self):
         """Show window"""
         print("Showing status wnd")
-
+        self.update_wnd()
         self.deiconify()
 
         for i in range(100):
