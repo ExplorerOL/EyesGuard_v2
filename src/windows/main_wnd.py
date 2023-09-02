@@ -6,6 +6,7 @@ import pystray
 from PIL import Image
 
 from settings import Settings
+from windows.break_wnd import BreakWnd
 from windows.settings_wnd import SettingsWnd
 from windows.status_wnd import StatusWnd
 
@@ -20,8 +21,9 @@ class MainWnd(customtkinter.CTk):
 
         self.settings = settings
         self.title("EyesGuard v2")
-        self.status_wnd = StatusWnd(settings)
         self.settings_wnd = SettingsWnd(settings)
+        self.break_wnd = BreakWnd()
+        self.status_wnd = StatusWnd(self.settings, self.break_wnd)
         self.toplevel_window = None
         self.break_wnd = None
 

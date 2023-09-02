@@ -6,14 +6,16 @@ import customtkinter
 from PIL import Image
 
 from settings import Settings
+from windows.break_wnd import BreakWnd
 
 
 class StatusWnd(customtkinter.CTkToplevel):
     """Status window"""
 
-    def __init__(self, settings: Settings, *args, **kwargs):
+    def __init__(self, settings: Settings, break_wnd: BreakWnd, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.settings = settings
+        self.break_wnd = break_wnd
         wnd_width = 250
         wnd_height = 210
         border_x = 50
@@ -69,6 +71,7 @@ class StatusWnd(customtkinter.CTkToplevel):
             self,
             text="Take a break now",
             text_color="GreenYellow",
+            command=self.btn_take_break_action,
             height=30,
             width=150,
             corner_radius=50,
@@ -108,6 +111,10 @@ class StatusWnd(customtkinter.CTkToplevel):
         """Action for pressing changeing protection state button"""
         self.settings.change_protection_state()
         self.update_wnd()
+
+    def btn_take_break_action(self):
+        """Action for pressing button for taking a break"""
+        self.break_wnd.show()
 
     def update_wnd(self):
         """Updating status window elements states"""
