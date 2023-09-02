@@ -1,7 +1,7 @@
 """Module with settings window of application"""
 import re
 import time
-from tkinter import *
+from tkinter import StringVar
 
 import customtkinter
 from PIL import Image, ImageTk
@@ -42,6 +42,9 @@ class SettingsWnd(customtkinter.CTkToplevel):
         self.img_eyes_without_protection = customtkinter.CTkImage(
             Image.open("res/img/eyes_without_protection.png"), size=(50, 50)
         )
+        self.img_clock = customtkinter.CTkImage(Image.open("res/img/clock.png"), size=(25, 25))
+        self.img_gear = customtkinter.CTkImage(Image.open("res/img/gear.png"), size=(25, 25))
+        self.img_info = customtkinter.CTkImage(Image.open("res/img/info.png"), size=(25, 25))
 
         # set grid layout 2x2
         self.grid_rowconfigure(0, weight=1)
@@ -77,7 +80,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
             self.navigation_frame,
             corner_radius=0,
             height=40,
-            border_spacing=10,
+            border_spacing=5,
             border_width=1,
             text="Time settings",
             font=("", 14, "bold"),
@@ -87,7 +90,8 @@ class SettingsWnd(customtkinter.CTkToplevel):
             border_color="LightSteelBlue",
             # mage=self.image,
             anchor="w",
-            command=self.event_btn_time_settings,
+            command=self.event_btn_time_settings_click,
+            image=self.img_clock,
         )
         self.btn_time_settings.grid(row=2, column=0, sticky="ew")
 
@@ -95,7 +99,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
             self.navigation_frame,
             corner_radius=0,
             height=40,
-            border_spacing=10,
+            border_spacing=5,
             border_width=1,
             text="General",
             font=("", 14, "bold"),
@@ -105,7 +109,8 @@ class SettingsWnd(customtkinter.CTkToplevel):
             border_color="LightSteelBlue",
             # image=self.image,
             anchor="w",
-            command=self.event_btn_general_settings,
+            command=self.event_btn_general_settings_click,
+            image=self.img_gear,
         )
         self.btn_general_settings.grid(row=3, column=0, sticky="ew")
 
@@ -113,7 +118,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
             self.navigation_frame,
             corner_radius=0,
             height=40,
-            border_spacing=10,
+            border_spacing=5,
             border_width=1,
             text="About",
             font=("", 14, "bold"),
@@ -123,7 +128,8 @@ class SettingsWnd(customtkinter.CTkToplevel):
             border_color="LightSteelBlue",
             # image=self.image,
             anchor="w",
-            command=self.event_btn_about,
+            command=self.event_btn_about_click,
+            image=self.img_info,
         )
         self.btn_about.grid(row=4, column=0, sticky="ew")
 
@@ -249,7 +255,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
         # actions after elements creation
         self.bind("<FocusIn>", self.on_focus_in)
         self.protocol("WM_DELETE_WINDOW", self.hide)
-        self.event_btn_time_settings()
+        self.event_btn_time_settings_click()
         self.withdraw()
 
     def on_focus_out(self, event):
@@ -317,13 +323,13 @@ class SettingsWnd(customtkinter.CTkToplevel):
         else:
             self.frame_about.grid_forget()
 
-    def event_btn_time_settings(self) -> None:
+    def event_btn_time_settings_click(self) -> None:
         self.select_frame_by_name("frame_time_settings")
 
-    def event_btn_general_settings(self) -> None:
+    def event_btn_general_settings_click(self) -> None:
         self.select_frame_by_name("frame_general_settings")
 
-    def event_btn_about(self) -> None:
+    def event_btn_about_click(self) -> None:
         self.select_frame_by_name("frame_about")
 
     def get_settings_from_widgets(self) -> SettingsData:
