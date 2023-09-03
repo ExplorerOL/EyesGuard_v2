@@ -62,8 +62,8 @@ class Settings:
         return settings_dict
 
     def __repr__(self) -> str:
-        # convertation object to string
-        return str(self._settings_to_dict())
+        # convertation object to dict
+        return self._settings_to_dict()
 
     def __str__(self) -> str:
         # convertation object to string
@@ -155,4 +155,8 @@ class Settings:
 
     def get(self):
         """Return copy of settings object"""
+        return copy.copy(self._settings)
+
+    def read(self) -> SettingsData:
+        """Reading user settings"""
         return copy.copy(self._settings)

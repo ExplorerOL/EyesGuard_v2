@@ -1,3 +1,4 @@
+from control_alg import ControlAlg
 from settings import Settings
 from windows.main_wnd import MainWnd
 
@@ -8,6 +9,7 @@ def main():
     eg_settings = Settings(SETTINGS_FILE)
     eg_app = MainWnd(eg_settings)
 
+    eg_control_alg = ControlAlg(eg_settings)
     print("Programm EyesGuard started!")
     eg_app.mainloop()
 
