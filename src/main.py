@@ -1,4 +1,4 @@
-from control_alg import ControlAlg
+from control_alg import ControlAlg, CurrentState
 from settings import Settings
 from windows.main_wnd import MainWnd
 
@@ -7,9 +7,12 @@ def main():
     """main function"""
     SETTINGS_FILE = "./settings.json"
     eg_settings = Settings(SETTINGS_FILE)
-    eg_app = MainWnd(eg_settings)
+    current_state = CurrentState()
 
-    eg_control_alg = ControlAlg(eg_settings)
+    eg_app = MainWnd(eg_settings)
+    eg_control_alg = ControlAlg(settings=eg_settings, current_state=current_state)
+    eg_control_alg.start()
+
     print("Programm EyesGuard started!")
     eg_app.mainloop()
 
