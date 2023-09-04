@@ -144,7 +144,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
         self.lbl_work_duration.grid(row=0, column=0, padx=20, pady=10)
 
         self.work_duration_value = StringVar()
-        self.work_duration_value.set(self.settings.get().work_duration)
+        self.work_duration_value.set(self.settings.get_settings().work_duration)
         verify_cmd_work_duration = (self.register(self.is_valid_duration_entry), "%P")
         self.entry_work_duration = customtkinter.CTkEntry(
             self.frame_time_settings,
@@ -162,7 +162,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
         self.lbl_break_duration.grid(row=1, column=0, padx=20, pady=10)
 
         self.break_duration_value = StringVar()
-        self.break_duration_value.set(self.settings.get().break_duration)
+        self.break_duration_value.set(self.settings.get_settings().break_duration)
         verify_cmd_break_duration = (self.register(self.is_valid_duration_entry), "%P")
         self.entry_break_duration = customtkinter.CTkEntry(
             self.frame_time_settings,
@@ -179,7 +179,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
         # protextion status setting
         self.chbox_protection_status_value = customtkinter.StringVar(
-            value=self.settings.get().protection_status
+            value=self.settings.get_settings().protection_status
         )
         self.chbox_protection_status = customtkinter.CTkCheckBox(
             self.frame_general_settings,
@@ -191,7 +191,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
         )
         self.chbox_protection_status.grid(row=0, column=0, padx=20, pady=10, sticky="ew")
         # sounds setting
-        self.chbox_sounds_value = customtkinter.StringVar(value=self.settings.get().sounds)
+        self.chbox_sounds_value = customtkinter.StringVar(value=self.settings.get_settings().sounds)
         self.chbox_sounds = customtkinter.CTkCheckBox(
             self.frame_general_settings,
             text="Sounds enabled",
@@ -203,7 +203,9 @@ class SettingsWnd(customtkinter.CTkToplevel):
         self.chbox_sounds.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
         # notifications setting
-        self.chbox_notifications_value = customtkinter.StringVar(value=self.settings.get().notifications)
+        self.chbox_notifications_value = customtkinter.StringVar(
+            value=self.settings.get_settings().notifications
+        )
         self.chbox_notifications = customtkinter.CTkCheckBox(
             self.frame_general_settings,
             text="Notifications enabled",
@@ -288,11 +290,11 @@ class SettingsWnd(customtkinter.CTkToplevel):
     def update_wnd(self):
         """Updating status window elements states"""
 
-        self.work_duration_value.set(self.settings.get().work_duration)
-        self.break_duration_value.set(self.settings.get().break_duration)
-        self.chbox_protection_status_value.set(value=self.settings.get().protection_status)
-        self.chbox_sounds_value.set(value=self.settings.get().sounds)
-        self.chbox_notifications_value.set(value=self.settings.get().notifications)
+        self.work_duration_value.set(self.settings.get_settings().work_duration)
+        self.break_duration_value.set(self.settings.get_settings().break_duration)
+        self.chbox_protection_status_value.set(value=self.settings.get_settings().protection_status)
+        self.chbox_sounds_value.set(value=self.settings.get_settings().sounds)
+        self.chbox_notifications_value.set(value=self.settings.get_settings().notifications)
         print(f"protection_status={self.chbox_protection_status_value.get()}")
         if self.chbox_protection_status_value.get() == "on":
             self.navigation_frame_lbl_title.configure(image=self.img_eyes_with_protection)

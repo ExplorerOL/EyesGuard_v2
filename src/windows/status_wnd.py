@@ -118,7 +118,7 @@ class StatusWnd(customtkinter.CTkToplevel):
 
     def update_wnd(self):
         """Updating status window elements states"""
-        if self.settings.get().protection_status == "on":
+        if self.settings.get_settings().protection_status == "on":
             self.btn_change_protection_state.configure(
                 text="Protection active",
                 text_color="GreenYellow",
