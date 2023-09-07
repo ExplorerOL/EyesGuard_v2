@@ -256,13 +256,18 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
         # actions after elements creation
         self.bind("<FocusIn>", self.on_focus_in)
+        # self.bind("<FocusOut>", self.on_focus_out)
+        # self.entry_work_duration.bind("<FocusIn>", self.entry_on_focus_in)
         self.protocol("WM_DELETE_WINDOW", self.hide)
         self.event_btn_time_settings_click()
         self.withdraw()
 
+    def on_focus_in(self, event):
+        """Actions on focus at window"""
+        self.update_protection_status()
+
     def on_focus_out(self, event):
-        """Action in calse of loosing focus"""
-        self.hide()
+        """Actions on focus out of window"""
 
     def hide(self):
         """Hide window"""
@@ -287,19 +292,22 @@ class SettingsWnd(customtkinter.CTkToplevel):
         print(result)
         return result
 
-    def update_wnd(self):
-        """Updating status window elements states"""
-
-        self.work_duration_value.set(self.settings.get_settings().work_duration)
-        self.break_duration_value.set(self.settings.get_settings().break_duration)
-        self.chbox_protection_status_value.set(value=self.settings.get_settings().protection_status)
-        self.chbox_sounds_value.set(value=self.settings.get_settings().sounds)
-        self.chbox_notifications_value.set(value=self.settings.get_settings().notifications)
+    def update_protection_status(self):
+        """Updating protection status at settings window"""
         print(f"protection_status={self.chbox_protection_status_value.get()}")
+        self.chbox_protection_status_value.set(value=self.settings.get_settings().protection_status)
         if self.chbox_protection_status_value.get() == "on":
             self.navigation_frame_lbl_title.configure(image=self.img_eyes_with_protection)
         else:
             self.navigation_frame_lbl_title.configure(image=self.img_eyes_without_protection)
+
+    def update_wnd(self):
+        """Updating status window elements states"""
+        self.update_protection_status()
+        self.work_duration_value.set(self.settings.get_settings().work_duration)
+        self.break_duration_value.set(self.settings.get_settings().break_duration)
+        self.chbox_sounds_value.set(value=self.settings.get_settings().sounds)
+        self.chbox_notifications_value.set(value=self.settings.get_settings().notifications)
 
     def select_frame_by_name(self, name: str) -> None:
         # set button color for selected button
@@ -357,7 +365,3 @@ class SettingsWnd(customtkinter.CTkToplevel):
         """Get data from all widgets with settings, apply them ans save to file"""
         new_settings = self.get_settings_from_widgets()
         self.settings.apply_settings_from_ui(new_settings)
-
-    def on_focus_in(self, event):
-        """Actions on focus in window"""
-        self.update_wnd()
