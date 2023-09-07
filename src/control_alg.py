@@ -60,8 +60,9 @@ class CurrentState:
     def get_current_step(self) -> StepType:
         return self.__step_type
 
-    def set_current_step(self, step_type: StepType):
+    def set_current_step(self, step_type: StepType, step_duration: datetime.timedelta):
         self.__step_type = step_type
+        self.__step_duration_dt = step_duration
 
     def get_step_duration(self):
         return self.__step_duration_dt
@@ -72,6 +73,9 @@ class CurrentState:
     def increase_elapsed_time(self, time_delta: datetime.timedelta = datetime.timedelta(seconds=1)):
         self.__elapsed_time_dt += time_delta
 
+    def reset_elapsed_time(self):
+        self.__elapsed_time_dt = datetime.timedelta(seconds=0)
+
 
 class ControlAlg:
     """Class for time and break control"""
@@ -79,7 +83,7 @@ class ControlAlg:
     def __init__(self, settings: Settings, current_state: CurrentState, break_wnd: BreakWnd):
         self.current_state = current_state
         self.break_wnd = break_wnd
-        step_notified_duration_s = 60
+        step_notified_duration_s = 5
 
         self.steps: list[StepData] = []
 
@@ -96,11 +100,11 @@ class ControlAlg:
         print(StepType.work_mode)
         print(StepType.work_notified)
 
-        self.steps[StepType.work_mode].step_duration_dt = datetime.timedelta(seconds=60)
+        self.steps[StepType.work_mode].step_duration_dt = datetime.timedelta(seconds=15)
         self.steps[StepType.work_notified].step_duration_dt = datetime.timedelta(
             seconds=step_notified_duration_s
         )
-        self.steps[StepType.break_mode].step_duration_dt = step_notified_duration_s
+        self.steps[StepType.break_mode].step_duration_dt = datetime.timedelta(seconds=15)
         self.steps[StepType.break_notified].step_duration_dt = datetime.timedelta(
             seconds=step_notified_duration_s
         )
@@ -111,9 +115,11 @@ class ControlAlg:
             print(step.step_duration_dt)
 
         if self.user_settings.protection_status == "off":
-            self.current_state.set_current_step(StepType.off)
+            self.current_state.set_current_step(StepType.off, datetime.timedelta(seconds=0))
         else:
-            self.current_state.set_current_step(StepType.work_mode)
+            self.current_state.set_current_step(
+                StepType.work_mode, self.steps[StepType.break_mode].step_duration_dt
+            )
 
         print(self.current_state)
 
@@ -129,19 +135,31 @@ class ControlAlg:
             if self.settings.get_settings().protection_status == "off":
                 break
             for step in self.steps:
+                # exit from cycle if protection is off
                 if self.settings.get_settings().protection_status == "off":
                     break
+
                 if step.step_type == StepType.off:
                     continue
+
+                # skip cycle if step is off
+                self.step_actions(step, step.step_duration_dt)
                 print(f"Currents step: {step.step_type}")
                 print(f"Step duration: {step.step_duration_dt}")
+                self.wait_for_step_is_ended(step)
 
-                while True:
-                    if self.current_state.get_step_elapsed_time() < self.current_state.get_step_duration():
-                        self.current_state.increase_elapsed_time()
-                    else:
-                        break
-                    print(f"Currents step: {step.step_type}")
-                    print(f"Step duration: {step.step_duration_dt}")
-                    print(f"Step elapsed time: {self.current_state.get_step_elapsed_time()}")
-                    time.sleep(1)
+    def wait_for_step_is_ended(self, step: StepData):
+        while True:
+            print(f"Currents step: {step.step_type}")
+            print(f"Step duration: {self.current_state.get_step_duration()}")
+            print(f"Step elapsed time: {self.current_state.get_step_elapsed_time()}")
+            if self.current_state.get_step_elapsed_time() < self.current_state.get_step_duration():
+                self.current_state.increase_elapsed_time()
+            else:
+                break
+
+            time.sleep(1)
+
+    def step_actions(self, next_step: StepData, duration: datetime.timedelta):
+        self.current_state.reset_elapsed_time()
+        self.current_state.set_current_step(step_type=next_step, step_duration=duration)
