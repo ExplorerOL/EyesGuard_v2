@@ -7,10 +7,10 @@ def main():
     """main function"""
     SETTINGS_FILE = "./settings.json"
     eg_settings = Settings(SETTINGS_FILE)
-    current_state = CurrentState()
+    current_state = CurrentState(eg_settings)
 
     eg_app = MainWnd(eg_settings)
-    eg_control_alg = ControlAlg(settings=eg_settings, current_state=current_state)
+    eg_control_alg = ControlAlg(settings=eg_settings, current_state=current_state, break_wnd=eg_app.break_wnd)
     eg_control_alg.start()
 
     print("Programm EyesGuard started!")
