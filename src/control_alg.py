@@ -49,7 +49,7 @@ class CurrentState:
         }
         return self_dict
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> dict:
         # convertation object to dict
         return self.__self_to_dict()
 
@@ -57,7 +57,7 @@ class CurrentState:
         # convertation object to string
         return str(self.__self_to_dict())
 
-    def get_current_step(self) -> StepType:
+    def get_current_step_type(self) -> StepType:
         return self.__step_type
 
     def set_current_step(self, step_type: StepType, step_duration: datetime.timedelta):
@@ -135,6 +135,7 @@ class ControlAlg:
             if self.settings.get_settings().protection_status == "off":
                 break
             for step in self.steps:
+                print(f"Current step data: {step}, {step.step_type}, {step.step_duration_dt}")
                 # exit from cycle if protection is off
                 if self.settings.get_settings().protection_status == "off":
                     break
@@ -142,11 +143,11 @@ class ControlAlg:
                 if step.step_type == StepType.off:
                     continue
 
-                # skip cycle if step is off
                 self.step_actions(step, step.step_duration_dt)
-                print(f"Currents step: {step.step_type}")
-                print(f"Step duration: {step.step_duration_dt}")
                 self.wait_for_step_is_ended(step)
+                # skip cycle if step is off
+                # print(f"Currents step: {step.step_type}")
+                # print(f"Step duration: {step.step_duration_dt}")
 
     def wait_for_step_is_ended(self, step: StepData):
         while True:
@@ -162,4 +163,13 @@ class ControlAlg:
 
     def step_actions(self, next_step: StepData, duration: datetime.timedelta):
         self.current_state.reset_elapsed_time()
-        self.current_state.set_current_step(step_type=next_step, step_duration=duration)
+        self.current_state.set_current_step(step_type=next_step.step_type, step_duration=duration)
+        print(f"new current step {(self.current_state.get_current_step_type())}")
+        print(f"Type {type(self.current_state.get_current_step_type())}")
+
+        if self.current_state.get_current_step_type() == StepType.break_mode:
+            print("Control_alg: showing break window")
+            self.break_wnd.show()
+        if self.current_state.get_current_step_type() == StepType.work_mode:
+            print("Control_alg: hiding break window")
+            self.break_wnd.hide()
