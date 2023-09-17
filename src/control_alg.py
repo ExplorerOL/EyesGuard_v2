@@ -37,9 +37,9 @@ class ControlAlg:
             seconds=step_notified_duration_s
         )
         self.steps[StepType.break_mode].step_duration_dt = datetime.timedelta(seconds=15)
-        self.steps[StepType.break_notified].step_duration_dt = datetime.timedelta(
-            seconds=step_notified_duration_s
-        )
+        # self.steps[StepType.break_notified].step_duration_dt = datetime.timedelta(
+        #     seconds=step_notified_duration_s
+        # )
 
         print(self.steps)
         for step in self.steps:
@@ -91,10 +91,18 @@ class ControlAlg:
             else:
                 break
 
+            if self.current_state.get_current_step_type() == StepType.break_mode:
+                self.break_wnd.set_lbl_remaining_time_text(self.current_state.get_step_remaining_time())
+            #     self.break_wnd.pbar_break_progress.set(
+            #         self.current_state.get_step_elapsed_time().seconds
+            #         / self.current_state.get_step_duration().seconds
+            #     )
+
             time.sleep(1)
 
     def step_actions(self, next_step: StepData, duration: datetime.timedelta):
         self.current_state.reset_elapsed_time()
+        self.current_state.set_current_step(step_type=next_step.step_type, step_duration=duration)
         self.current_state.set_current_step(step_type=next_step.step_type, step_duration=duration)
         print(f"new current step {(self.current_state.get_current_step_type())}")
         print(f"Type {type(self.current_state.get_current_step_type())}")

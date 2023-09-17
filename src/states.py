@@ -12,7 +12,7 @@ class StepType(IntEnum):
     work_mode = 1
     work_notified = 2
     break_mode = 3
-    break_notified = 4
+    # break_notified = 4
 
 
 @dataclass
@@ -60,12 +60,16 @@ class CurrentState:
     def set_current_step(self, step_type: StepType, step_duration: datetime.timedelta):
         self.__step_type = step_type
         self.__step_duration_dt = step_duration
+        self.__elapsed_time_dt = datetime.timedelta(seconds=0)
 
     def get_step_duration(self):
         return self.__step_duration_dt
 
     def get_step_elapsed_time(self):
         return self.__elapsed_time_dt
+
+    def get_step_remaining_time(self):
+        return self.__step_duration_dt - self.__elapsed_time_dt
 
     def increase_elapsed_time(self, time_delta: datetime.timedelta = datetime.timedelta(seconds=1)):
         self.__elapsed_time_dt += time_delta

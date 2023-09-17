@@ -1,4 +1,5 @@
 """Module with break window of application"""
+import datetime
 import re
 import time
 from tkinter import StringVar
@@ -32,7 +33,8 @@ class BreakWnd(customtkinter.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
 
         self.remaining_break_time = StringVar()
-        self.remaining_break_time.set("Remaining break time: 123")
+
+        self.remaining_break_time.set(f"Remaining break time: 0 seconds")
         self.lbl_remain_time = customtkinter.CTkLabel(
             self,
             text="Remaining break time: ",
@@ -53,6 +55,9 @@ class BreakWnd(customtkinter.CTkToplevel):
 
     def hide(self):
         """Hide window"""
+        self.pbar_break_progress.stop()
+        self.pbar_break_progress.set(1)
+
         for i in range(100):
             self.attributes("-alpha", 1 - i / 100)
             time.sleep(0.006)
@@ -62,7 +67,9 @@ class BreakWnd(customtkinter.CTkToplevel):
         """Show window"""
         print("Break wnd: showing break window")
 
-        pbar_speed = 1 * 1.1 / self.current_state.get_step_duration().seconds
+        self.set_lbl_remaining_time_text(self.current_state.get_step_remaining_time())
+
+        pbar_speed = 1 * 1.4455 / self.current_state.get_step_duration().seconds
         print(f"pb speed = {pbar_speed}")
         self.pbar_break_progress.configure(determinate_speed=pbar_speed)
         self.pbar_break_progress.set(0)
@@ -72,3 +79,6 @@ class BreakWnd(customtkinter.CTkToplevel):
         for i in range(100):
             self.attributes("-alpha", i / 100)
             time.sleep(0.006)
+
+    def set_lbl_remaining_time_text(self, elapsed_time: datetime.timedelta):
+        self.remaining_break_time.set(f"Remaining break time: {elapsed_time.seconds} seconds")
