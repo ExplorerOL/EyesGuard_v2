@@ -24,8 +24,6 @@ class MainWnd(customtkinter.CTk):
         self.settings_wnd = SettingsWnd(settings)
         self.break_wnd = BreakWnd()
         self.status_wnd = StatusWnd(self.settings, self.break_wnd)
-        self.toplevel_window = None
-        self.break_wnd = None
 
         # tray icon
         self.image = Image.open("res/img/eyes_with_protection.png")
