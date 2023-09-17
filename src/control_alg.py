@@ -6,15 +6,16 @@ from threading import Thread, Timer
 
 from settings import Settings
 from states import CurrentState, StepData, StepType
-from windows.break_wnd import BreakWnd
+from windows.main_wnd import MainWnd
 
 
 class ControlAlg:
     """Class for time and break control"""
 
-    def __init__(self, settings: Settings, current_state: CurrentState, break_wnd: BreakWnd):
+    def __init__(self, settings: Settings, current_state: CurrentState, app: MainWnd):
         self.current_state = current_state
-        self.break_wnd = break_wnd
+        self.app = app
+        self.break_wnd = app.break_wnd
         step_notified_duration_s = 5
 
         self.steps: list[StepData] = []
@@ -113,3 +114,7 @@ class ControlAlg:
         if self.current_state.get_current_step_type() == StepType.work_mode:
             print("Control_alg: hiding break window")
             self.break_wnd.hide()
+        if self.current_state.get_current_step_type() == StepType.work_notified:
+            print("Control_alg: showing working notification")
+            self.app.show_notification("Attention!", "Break will start in 1 minute!")
+            time.sleep(5)

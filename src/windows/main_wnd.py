@@ -56,3 +56,7 @@ class MainWnd(customtkinter.CTk):
         """Show settings wnd"""
         print("Show settings wnd")
         self.settings_wnd.show()
+
+    def show_notification(self, title: str, text: str):
+        print(self.tray_icon.HAS_NOTIFICATION)
+        self.tray_icon.notify("Hello", "Msg")
