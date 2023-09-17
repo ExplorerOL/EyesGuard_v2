@@ -6,14 +6,18 @@ from tkinter import StringVar
 import customtkinter
 from PIL import Image, ImageTk
 
+from states import CurrentState
+
 # from settings import Settings, SettingsData
 
 
 class BreakWnd(customtkinter.CTkToplevel):
     """Break window"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, current_state: CurrentState, *args, **kwargs):
         super().__init__(*args, fg_color="#000000", **kwargs)
+        self.current_state = current_state
+
         ws = self.winfo_screenwidth()  # width of the screen
         hs = self.winfo_screenheight()  # height of the screen
         self.attributes("-alpha", 0)
@@ -56,11 +60,15 @@ class BreakWnd(customtkinter.CTkToplevel):
 
     def show(self):
         """Show window"""
-        print("showing top level wnd")
+        print("Break wnd: showing break window")
+
+        pbar_speed = 1 * 1.1 / self.current_state.get_step_duration().seconds
+        print(f"pb speed = {pbar_speed}")
+        self.pbar_break_progress.configure(determinate_speed=pbar_speed)
+        self.pbar_break_progress.set(0)
+        self.pbar_break_progress.start()
         self.deiconify()
 
         for i in range(100):
             self.attributes("-alpha", i / 100)
             time.sleep(0.006)
-
-        self.pbar_break_progress.start()

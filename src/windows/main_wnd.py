@@ -5,6 +5,7 @@ import customtkinter
 import pystray
 from PIL import Image
 
+from control_alg import CurrentState
 from settings import Settings
 from windows.break_wnd import BreakWnd
 from windows.settings_wnd import SettingsWnd
@@ -14,15 +15,16 @@ from windows.status_wnd import StatusWnd
 class MainWnd(customtkinter.CTk):
     """Main window of application"""
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, current_state: CurrentState):
         super().__init__()
         customtkinter.set_appearance_mode("light")
         customtkinter.set_default_color_theme("blue")
 
         self.settings = settings
+        self.current_state = current_state
         self.title("EyesGuard v2")
         self.settings_wnd = SettingsWnd(settings)
-        self.break_wnd = BreakWnd()
+        self.break_wnd = BreakWnd(self.current_state)
         self.status_wnd = StatusWnd(self.settings, self.break_wnd)
 
         # tray icon
