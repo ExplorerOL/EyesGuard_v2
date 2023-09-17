@@ -31,6 +31,9 @@ class BreakWnd(customtkinter.CTkToplevel):
         self.resizable(False, False)
 
         self.grid_rowconfigure(0, weight=1)
+        self.bg_image = customtkinter.CTkImage(Image.open("res/img/break_wnd_bg1.png"), size=(ws, hs))
+        self.bg_image_label = customtkinter.CTkLabel(self, image=self.bg_image, text="")
+        self.bg_image_label.grid(row=0, column=0, rowspan=2)
 
         self.remaining_break_time = StringVar()
 
