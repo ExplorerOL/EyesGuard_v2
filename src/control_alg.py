@@ -16,7 +16,7 @@ class ControlAlg:
         self.current_state = current_state
         self.app = app
         self.break_wnd = app.break_wnd
-        step_notified_duration_s = 5
+        self.step_notified_duration_td = datetime.timedelta(seconds=60)
 
         self.steps: list[StepData] = []
 
@@ -29,15 +29,17 @@ class ControlAlg:
 
         self.settings = settings
         self.user_settings = settings.get_settings()
-        print(self.user_settings)
-        print(StepType.work_mode)
-        print(StepType.work_notified)
+        print(f"User settings: = {self.user_settings}")
+        # print(StepType.work_mode)
+        # print(StepType.work_notified)
 
-        self.steps[StepType.work_mode].step_duration_dt = datetime.timedelta(seconds=15)
-        self.steps[StepType.work_notified].step_duration_dt = datetime.timedelta(
-            seconds=step_notified_duration_s
+        self.steps[StepType.work_mode].step_duration_td = (
+            datetime.timedelta(minutes=self.user_settings.work_duration) - self.step_notified_duration_td
         )
-        self.steps[StepType.break_mode].step_duration_dt = datetime.timedelta(seconds=15)
+        self.steps[StepType.work_notified].step_duration_td = self.step_notified_duration_td
+        self.steps[StepType.break_mode].step_duration_td = datetime.timedelta(
+            minutes=self.user_settings.break_duration
+        )
         # self.steps[StepType.break_notified].step_duration_dt = datetime.timedelta(
         #     seconds=step_notified_duration_s
         # )
@@ -45,20 +47,24 @@ class ControlAlg:
         print(self.steps)
         for step in self.steps:
             print(step.step_type)
-            print(step.step_duration_dt)
+            print(step.step_duration_td)
 
         if self.user_settings.protection_status == "off":
             self.current_state.set_current_step(StepType.off, datetime.timedelta(seconds=0))
         else:
             self.current_state.set_current_step(
-                StepType.work_mode, self.steps[StepType.break_mode].step_duration_dt
+                StepType.work_mode, self.steps[StepType.break_mode].step_duration_td
             )
 
         print(self.current_state)
 
+        self.thread_alg = None
+
     def start(self):
-        thread_alg = Thread(target=self.main_loop)
-        thread_alg.start()
+        self.update_alg_settings()
+        if self.thread_alg is None:
+            self.thread_alg = Thread(target=self.main_loop)
+            self.thread_alg.start()
 
     def stop(self):
         pass
@@ -68,7 +74,7 @@ class ControlAlg:
             if self.settings.get_settings().protection_status == "off":
                 break
             for step in self.steps:
-                print(f"Current step data: {step}, {step.step_type}, {step.step_duration_dt}")
+                print(f"Current step data: {step}, {step.step_type}, {step.step_duration_td}")
                 # exit from cycle if protection is off
                 if self.settings.get_settings().protection_status == "off":
                     break
@@ -76,7 +82,7 @@ class ControlAlg:
                 if step.step_type == StepType.off:
                     continue
 
-                self.step_actions(step, step.step_duration_dt)
+                self.step_actions(step, step.step_duration_td)
                 self.wait_for_step_is_ended(step)
                 # skip cycle if step is off
                 # print(f"Currents step: {step.step_type}")
@@ -114,7 +120,21 @@ class ControlAlg:
         if self.current_state.get_current_step_type() == StepType.work_mode:
             print("Control_alg: hiding break window")
             self.break_wnd.hide()
-        if self.current_state.get_current_step_type() == StepType.work_notified:
+        if (
+            self.current_state.get_current_step_type() == StepType.work_notified
+            and self.user_settings.notifications == "on"
+        ):
             print("Control_alg: showing working notification")
-            self.app.show_notification("Attention!", "Break will start in 1 minute!")
-            time.sleep(5)
+            self.app.show_notification("Break will start in 1 minute!", "Attention!")
+
+    def update_alg_settings(self):
+        self.user_settings = self.settings.get_settings()
+        print(self.user_settings)
+
+        self.steps[StepType.work_mode].step_duration_td = (
+            datetime.timedelta(minutes=self.user_settings.work_duration) - self.step_notified_duration_td
+        )
+        self.steps[StepType.work_notified].step_duration_td = self.step_notified_duration_td
+        self.steps[StepType.break_mode].step_duration_td = datetime.timedelta(
+            minutes=self.user_settings.break_duration
+        )

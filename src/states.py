@@ -20,14 +20,14 @@ class StepData:
     """Data for step control"""
 
     step_type: StepType = StepType.off
-    step_duration_dt: int = 0
+    step_duration_td: datetime.timedelta = datetime.timedelta(seconds=0)
 
 
 class CurrentState:
     """Data about current step"""
 
     def __init__(self, settings: Settings):
-        self.__step_type: int = StepType.off
+        self.__step_type: StepType = StepType.off
         self.__step_duration_dt: datetime.timedelta = datetime.timedelta(seconds=0)
         self.__elapsed_time_dt: datetime.timedelta = datetime.timedelta(seconds=0)
 
