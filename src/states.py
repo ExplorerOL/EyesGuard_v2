@@ -10,8 +10,9 @@ class StepType(IntEnum):
 
     off = 0
     work_mode = 1
-    work_notified = 2
-    break_mode = 3
+    work_notified_1 = 2
+    work_notified_2 = 3
+    break_mode = 4
     # break_notified = 4
 
 

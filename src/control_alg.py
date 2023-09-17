@@ -16,7 +16,8 @@ class ControlAlg:
         self.current_state = current_state
         self.app = app
         self.break_wnd = app.break_wnd
-        self.step_notified_duration_td = datetime.timedelta(seconds=60)
+        self.step_notification_1_time_td = datetime.timedelta(seconds=60)
+        self.step_notification_2_time_td = datetime.timedelta(seconds=5)
 
         self.steps: list[StepData] = []
 
@@ -33,10 +34,21 @@ class ControlAlg:
         # print(StepType.work_mode)
         # print(StepType.work_notified)
 
-        self.steps[StepType.work_mode].step_duration_td = (
-            datetime.timedelta(minutes=self.user_settings.work_duration) - self.step_notified_duration_td
-        )
-        self.steps[StepType.work_notified].step_duration_td = self.step_notified_duration_td
+        step_work_duration = datetime.timedelta(minutes=self.user_settings.work_duration)
+        self.steps[StepType.work_notified_2].step_duration_td = datetime.timedelta(seconds=5)
+        if step_work_duration > self.step_notification_1_time_td + self.step_notification_2_time_td:
+            print(
+                f"cond 1 {step_work_duration}  {self.step_notification_1_time_td + self.step_notification_2_time_td}"
+            )
+            self.steps[StepType.work_mode].step_duration_td = (
+                step_work_duration - self.step_notification_1_time_td - self.step_notification_2_time_td
+            )
+            self.steps[StepType.work_notified_1].step_duration_td = self.step_notification_1_time_td
+        else:
+            self.steps[StepType.work_mode].step_duration_td = (
+                step_work_duration - self.step_notification_2_time_td
+            )
+            self.steps[StepType.work_notified_1].step_duration_td = datetime.timedelta(seconds=0)
         self.steps[StepType.break_mode].step_duration_td = datetime.timedelta(
             minutes=self.user_settings.break_duration
         )
@@ -105,6 +117,18 @@ class ControlAlg:
             #         / self.current_state.get_step_duration().seconds
             #     )
 
+            tray_icon_tooltip_str = ""
+            if self.current_state.get_current_step_type() == StepType.work_mode:
+                tray_icon_tooltip_str = f"Время до перерыва: {self.current_state.get_step_remaining_time() + self.steps[StepType.work_notified_1].step_duration_td + self.steps[StepType.work_notified_2].step_duration_td}"
+
+            if self.current_state.get_current_step_type() == StepType.work_notified_1:
+                tray_icon_tooltip_str = f"Время до перерыва: {self.current_state.get_step_remaining_time() + self.steps[StepType.work_notified_2].step_duration_td}"
+
+            if self.current_state.get_current_step_type() == StepType.work_notified_2:
+                tray_icon_tooltip_str = f"Время до перерыва: {self.current_state.get_step_remaining_time()}"
+
+            self.app.tray_icon.title = tray_icon_tooltip_str
+
             time.sleep(1)
 
     def step_actions(self, next_step: StepData, duration: datetime.timedelta):
@@ -121,20 +145,37 @@ class ControlAlg:
             print("Control_alg: hiding break window")
             self.break_wnd.hide()
         if (
-            self.current_state.get_current_step_type() == StepType.work_notified
+            self.current_state.get_current_step_type() == StepType.work_notified_1
             and self.user_settings.notifications == "on"
         ):
             print("Control_alg: showing working notification")
             self.app.show_notification("Break will start in 1 minute!", "Attention!")
+        if (
+            self.current_state.get_current_step_type() == StepType.work_notified_2
+            and self.user_settings.notifications == "on"
+        ):
+            print("Control_alg: showing working notification")
+            self.app.show_notification("Break will start in 5 seconds!", "Attention!")
 
     def update_alg_settings(self):
         self.user_settings = self.settings.get_settings()
         print(self.user_settings)
 
-        self.steps[StepType.work_mode].step_duration_td = (
-            datetime.timedelta(minutes=self.user_settings.work_duration) - self.step_notified_duration_td
-        )
-        self.steps[StepType.work_notified].step_duration_td = self.step_notified_duration_td
+        #  обернуть в функцию
+        step_work_duration = datetime.timedelta(minutes=self.user_settings.work_duration)
+        if step_work_duration > self.step_notification_1_time_td + self.step_notification_2_time_td:
+            print(
+                f"cond 1 {step_work_duration}  {self.step_notification_1_time_td + self.step_notification_2_time_td}"
+            )
+            self.steps[StepType.work_mode].step_duration_td = (
+                step_work_duration - self.step_notification_1_time_td - self.step_notification_2_time_td
+            )
+            self.steps[StepType.work_notified_1].step_duration_td = self.step_notification_1_time_td
+        else:
+            self.steps[StepType.work_mode].step_duration_td = (
+                step_work_duration - self.step_notification_2_time_td
+            )
+            self.steps[StepType.work_notified_1].step_duration_td = datetime.timedelta(seconds=0)
         self.steps[StepType.break_mode].step_duration_td = datetime.timedelta(
             minutes=self.user_settings.break_duration
         )
