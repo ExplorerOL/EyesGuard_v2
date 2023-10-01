@@ -2,6 +2,7 @@ import datetime
 import time
 from dataclasses import dataclass
 from enum import IntEnum
+from threading import Thread, Timer
 
 from settings import Settings
 
@@ -60,14 +61,15 @@ class ControlAlg:
         print(self.steps)
         print(type(self.steps))
 
-        user_settings = settings.get_settings()
-        print(user_settings)
+        self.settings = settings
+        self.user_settings = settings.get_settings()
+        print(self.user_settings)
         print(StepType.work_mode)
         print(StepType.work_notified)
 
-        self.steps[StepType.work_mode].step_duration_s = user_settings.work_duration * 60
+        self.steps[StepType.work_mode].step_duration_s = self.user_settings.work_duration * 60
         self.steps[StepType.work_notified].step_duration_s = step_notified_duration_s
-        self.steps[StepType.break_mode].step_duration_s = user_settings.break_duration * 60
+        self.steps[StepType.break_mode].step_duration_s = self.user_settings.break_duration * 60
         self.steps[StepType.break_notified].step_duration_s = step_notified_duration_s
 
         print(self.steps)
@@ -75,7 +77,7 @@ class ControlAlg:
             print(step.step_type)
             print(step.step_duration_s)
 
-        if user_settings.protection_status == "off":
+        if self.user_settings.protection_status == "off":
             self.current_state.set_current_step(StepType.off)
         else:
             self.current_state.set_current_step(StepType.work_mode)
@@ -83,14 +85,21 @@ class ControlAlg:
         print(self.current_state)
 
     def start(self):
-        self.main_loop()
+        thread_alg = Thread(target=self.main_loop)
+        thread_alg.start()
 
     def stop(self):
         pass
 
     def main_loop(self):
         while True:
+            if self.settings.get_settings().protection_status == "off":
+                break
             for step in self.steps:
+                if self.settings.get_settings().protection_status == "off":
+                    break
+                if step.step_type == StepType.off:
+                    continue
                 print(f"Currents step: {step.step_type}")
                 print(f"Elapsed time: {step.step_duration_s}")
-                time.sleep(1000)
+                time.sleep(1)
