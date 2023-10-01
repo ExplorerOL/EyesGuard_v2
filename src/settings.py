@@ -128,6 +128,7 @@ class Settings:
             print(type(error))
             return
         self._apply_settings(settings_validated)
+        self.save_settings_to_file()
 
     def save_settings_to_file(self):
         """Save settings to file"""

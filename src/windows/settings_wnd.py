@@ -357,7 +357,6 @@ class SettingsWnd(customtkinter.CTkToplevel):
         """Get data from all widgets with settings, apply them ans save to file"""
         new_settings = self.get_settings_from_widgets()
         self.settings.apply_settings_from_ui(new_settings)
-        self.settings.save_settings_to_file()
 
     def on_focus_in(self, event):
         """Actions on focus in window"""
