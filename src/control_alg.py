@@ -117,18 +117,34 @@ class ControlAlg:
             #         / self.current_state.get_step_duration().seconds
             #     )
 
-            time_until_break_tooltip_string = "Time until break: "
+            remaining_time_actual: datetime.timedelta = datetime.timedelta(seconds=0)
+            remaining_time_full = (
+                self.steps[StepType.work_mode].step_duration_td
+                + self.steps[StepType.work_notified_1].step_duration_td
+                + self.steps[StepType.work_notified_2].step_duration_td
+            )
+
             if self.current_state.get_current_step_type() == StepType.work_mode:
-                time_until_break_tooltip_string += f"{self.current_state.get_step_remaining_time() + self.steps[StepType.work_notified_1].step_duration_td + self.steps[StepType.work_notified_2].step_duration_td}"
+                remaining_time_actual = (
+                    self.current_state.get_step_remaining_time()
+                    + self.steps[StepType.work_notified_1].step_duration_td
+                    + self.steps[StepType.work_notified_2].step_duration_td
+                )
 
             if self.current_state.get_current_step_type() == StepType.work_notified_1:
-                time_until_break_tooltip_string += f"{self.current_state.get_step_remaining_time() + self.steps[StepType.work_notified_2].step_duration_td}"
+                remaining_time_actual = (
+                    self.current_state.get_step_remaining_time()
+                    + self.steps[StepType.work_notified_2].step_duration_td
+                )
 
             if self.current_state.get_current_step_type() == StepType.work_notified_2:
-                time_until_break_tooltip_string += f"{self.current_state.get_step_remaining_time()}"
+                remaining_time_actual = self.current_state.get_step_remaining_time()
+
+            time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_actual}"
 
             self.app.tray_icon.title = time_until_break_tooltip_string
             self.app.status_wnd.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
+            self.app.status_wnd.pbar_time_until_break.set(1 - remaining_time_actual / remaining_time_full)
 
             time.sleep(1)
 

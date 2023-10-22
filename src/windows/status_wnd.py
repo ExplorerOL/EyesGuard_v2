@@ -47,10 +47,10 @@ class StatusWnd(customtkinter.CTkToplevel):
 
         # progress bar time until break
         self.pbar_time_until_break = customtkinter.CTkProgressBar(
-            self, orientation="horizontal", height=20, fg_color="GreenYellow"
+            self, orientation="horizontal", height=20, fg_color="#3B8ED0", progress_color="GreenYellow"
         )
         self.pbar_time_until_break.grid(row=1, column=0, padx=20, pady=(0, 10), sticky="ew")
-
+        print(f' ---------------- progress_color = {self.pbar_time_until_break.cget("progress_color")}')
         # button change protection state
         self.btn_change_protection_state = customtkinter.CTkButton(
             self,
