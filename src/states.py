@@ -35,10 +35,10 @@ class CurrentState:
         user_settings = settings.get_settings_copy()
         if user_settings.protection_status == "on":
             self.__step_type = StepType.work_mode
-            self.__step_duration_dt = datetime.timedelta(minutes=user_settings.work_duration)
+            # self.__step_duration_dt = datetime.timedelta(minutes=user_settings.work_duration)
         else:
             self.__step_type = StepType.off_mode
-            self.__step_duration_dt = datetime.timedelta(minutes=60)
+            # self.__step_duration_dt = datetime.timedelta(minutes=60)
 
         print(f"Init current state: {self}")
 

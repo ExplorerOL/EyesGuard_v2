@@ -32,6 +32,7 @@ class ControlAlg:
         self.step_notification_1_time_td = datetime.timedelta(seconds=60)
         self.step_notification_2_time_td = datetime.timedelta(seconds=5)
         self.step_work_duration_td = datetime.timedelta(minutes=self.settings.user_settings.work_duration)
+        print(f"step_work_duration_td {self.step_work_duration_td}")
 
         self.steps_data_list[StepType.off_mode].step_duration_td = self.step_off_duration_td
         self.steps_data_list[StepType.work_notified_2].step_duration_td = self.step_notification_2_time_td
@@ -76,7 +77,7 @@ class ControlAlg:
         self.thread_alg = None
 
     def start(self):
-        self.update_alg_settings()
+        self._update_alg_settings()
         if self.thread_alg is None:
             self.thread_alg = Thread(target=self.main_loop)
             self.thread_alg.start()
@@ -86,63 +87,78 @@ class ControlAlg:
 
     def main_loop(self):
         while True:
-            self.wait_for_current_step_is_ended()
-            self.do_current_step_actions()
-            self.set_new_step_in_sequence()
+            self._do_current_step_actions()
+            self._wait_for_current_step_is_ended()
+            self._set_new_step_in_sequence()
 
-    def wait_for_current_step_is_ended(self):
+    def _wait_for_current_step_is_ended(self):
         while True:
-            print(f"Currents step: {self.current_state.get_current_step_type()}")
+            # print info
+            print(f"Currents step type: {self.current_state.get_current_step_type()}")
             print(f"Step duration: {self.current_state.get_current_step_duration()}")
             print(f"Step elapsed time: {self.current_state.get_step_elapsed_time()}")
+            self._change_step_if_protection_mode_was_changed()
+
             if self.current_state.get_step_elapsed_time() < self.current_state.get_current_step_duration():
                 self.current_state.increase_elapsed_time()
+                # self._update_time_until_break()
             else:
                 break
 
-            # if self.settings.user_settings.protection_status == "off":
+            # actions during step is in progress
+            match self.current_state.get_current_step_type():
+                case StepType.break_mode:
+                    self.break_wnd.set_lbl_remaining_time_text(self.current_state.get_step_remaining_time())
 
-            if self.current_state.get_current_step_type() == StepType.break_mode:
-                self.break_wnd.set_lbl_remaining_time_text(self.current_state.get_step_remaining_time())
-            #     self.break_wnd.pbar_break_progress.set(
-            #         self.current_state.get_step_elapsed_time().seconds
-            #         / self.current_state.get_step_duration().seconds
+            # TODO - case for updating time
+            # case StepType.work_notified_1:
+            #     remaining_time_actual = (
+            #         self.current_state.get_step_remaining_time()
+            #         + self.steps_data_list[StepType.work_notified_2].step_duration_td
             #     )
 
-            remaining_time_actual: datetime.timedelta = datetime.timedelta(seconds=0)
-            remaining_time_full = (
-                self.steps_data_list[StepType.work_mode].step_duration_td
-                + self.steps_data_list[StepType.work_notified_1].step_duration_td
-                + self.steps_data_list[StepType.work_notified_2].step_duration_td
-            )
+            # case StepType.work_notified_2:
+            #     remaining_time_actual = self.current_state.get_step_remaining_time()
 
-            if self.current_state.get_current_step_type() == StepType.work_mode:
-                remaining_time_actual = (
-                    self.current_state.get_step_remaining_time()
-                    + self.steps_data_list[StepType.work_notified_1].step_duration_td
-                    + self.steps_data_list[StepType.work_notified_2].step_duration_td
-                )
-
-            if self.current_state.get_current_step_type() == StepType.work_notified_1:
-                remaining_time_actual = (
-                    self.current_state.get_step_remaining_time()
-                    + self.steps_data_list[StepType.work_notified_2].step_duration_td
-                )
-
-            if self.current_state.get_current_step_type() == StepType.work_notified_2:
-                remaining_time_actual = self.current_state.get_step_remaining_time()
-
-            time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_actual}"
-
-            self.app.tray_icon.title = time_until_break_tooltip_string
-            self.app.status_wnd.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
-            self.app.status_wnd.pbar_time_until_break.set(1 - remaining_time_actual / remaining_time_full)
-
-            self.change_step_if_protection_mode_was_changed()
-
+            # case StepType.work_mode:
+            #     remaining_time_actual = (
+            #         self.current_state.get_step_remaining_time()
+            #         + self.steps_data_list[StepType.work_notified_1].step_duration_td
+            #         + self.steps_data_list[StepType.work_notified_2].step_duration_td
+            #     )
+            self._update_time_until_break()
             time.sleep(1)
 
-    def change_step_if_protection_mode_was_changed(self):
+    def _update_time_until_break(self):
+        """Updating time until break info"""
+
+        remaining_time_actual: datetime.timedelta = self.current_state.get_step_remaining_time()
+        print(remaining_time_actual)
+        match self.current_state.get_current_step_type():
+            case StepType.work_mode:
+                remaining_time_actual += (
+                    self.steps_data_list[StepType.work_notified_1].step_duration_td
+                    + self.steps_data_list[StepType.work_notified_2].step_duration_td
+                )
+            case StepType.work_notified_1:
+                remaining_time_actual += self.steps_data_list[StepType.work_notified_2].step_duration_td
+
+        print("Updating time")
+        remaining_time_for_work_full = (
+            self.steps_data_list[StepType.work_mode].step_duration_td
+            + self.steps_data_list[StepType.work_notified_1].step_duration_td
+            + self.steps_data_list[StepType.work_notified_2].step_duration_td
+        )
+
+        time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_actual}"
+
+        self.app.tray_icon.title = time_until_break_tooltip_string
+        self.app.status_wnd.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
+        self.app.status_wnd.pbar_time_until_break.set(
+            1 - remaining_time_actual / remaining_time_for_work_full
+        )
+
+    def _change_step_if_protection_mode_was_changed(self):
         if (
             self.settings.user_settings.protection_status == "off"
             and self.current_state.get_current_step_type() != StepType.off_mode
@@ -157,42 +173,35 @@ class ControlAlg:
             self._set_current_step(step_type=StepType.work_mode)
             self.app.settings_wnd.update_wnd()
 
-    # def _set_current_step(self, new_step: StepType):
-    #     self.current_state.set_current_step_data(
-    #         step_type=new_step, step_duration=self.steps[new_step].step_duration_td
-    #     )
-
-    def do_current_step_actions(self):
+    def _do_current_step_actions(self):
         self.current_state.reset_elapsed_time()
-        # self.current_state.set_current_step(step_type=next_step.step_type, step_duration=duration)
-        print(f"new current step {(self.current_state.get_current_step_type())}")
+        print(f"New current step {(self.current_state.get_current_step_type())}")
         print(f"Type {type(self.current_state.get_current_step_type())}")
-
-        if self.current_state.get_current_step_type() == StepType.break_mode:
-            print("Control_alg: showing break window")
-            self.break_wnd.show()
-        if self.current_state.get_current_step_type() == StepType.work_mode:
-            print("Control_alg: hiding break window")
-            self.break_wnd.hide()
-        if (
-            self.current_state.get_current_step_type() == StepType.work_notified_1
-            and self.user_settings.notifications == "on"
-        ):
-            print("Control_alg: showing working notification")
-            self.app.show_notification("Break will start in 1 minute!", "Attention!")
-        if (
-            self.current_state.get_current_step_type() == StepType.work_notified_2
-            and self.user_settings.notifications == "on"
-        ):
-            print("Control_alg: showing working notification")
-            self.app.show_notification("Break will start in 5 seconds!", "Attention!")
 
         match self.current_state.get_current_step_type():
             case StepType.off_mode:
                 print("Control_alg: showing off mode notification")
                 self.app.show_notification("Eyes Guard is in suspended mode!", "Attention!")
 
-    def update_alg_settings(self):
+            case StepType.break_mode:
+                print("Control_alg: showing break window")
+                self.break_wnd.show()
+
+            case StepType.work_notified_1:
+                if self.user_settings.notifications == "on":
+                    print("Control_alg: showing working notification 1")
+                    self.app.show_notification("Break will start in 1 minute!", "Attention!")
+
+            case StepType.work_notified_2:
+                if self.user_settings.notifications == "on":
+                    print("Control_alg: showing working notification 2")
+                    self.app.show_notification("Break will start in 5 seconds!", "Attention!")
+
+            case StepType.work_mode:
+                print("Control_alg: hiding break window")
+                self.break_wnd.hide()
+
+    def _update_alg_settings(self):
         self.user_settings = self.settings.get_settings_copy()
         print(self.user_settings)
 
@@ -215,7 +224,7 @@ class ControlAlg:
             minutes=self.user_settings.break_duration
         )
 
-    def set_new_step_in_sequence(self):
+    def _set_new_step_in_sequence(self):
         current_step_type = self.current_state.get_current_step_type()
 
         # steps transitions
