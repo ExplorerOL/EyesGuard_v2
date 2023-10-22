@@ -154,22 +154,25 @@ class ControlAlg:
             self.app.status_wnd.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
             self.app.status_wnd.pbar_time_until_break.set(1 - remaining_time_actual / remaining_time_full)
 
-            self.check_if_protection_mode_was_changed()
+            self.was_protection_mode_changed()
 
             time.sleep(1)
 
-    def check_if_protection_mode_was_changed(self):
+    def was_protection_mode_changed(self) -> bool:
         if (
             self.settings.user_settings.protection_status == "off"
             and self.current_state.get_current_step_type() != StepType.off
         ):
             self._set_current_step(new_step=StepType.off)
+            return True
 
         if (
             self.settings.user_settings.protection_status == "on"
             and self.current_state.get_current_step_type() == StepType.off
         ):
             self._set_current_step(new_step=StepType.work_mode)
+            return True
+        return False
 
     def _set_current_step(self, new_step: StepType):
         self.current_state.set_current_step_data(
