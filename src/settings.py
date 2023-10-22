@@ -54,23 +54,27 @@ class Settings:
         self.apply_settings_from_file()
 
     def _settings_to_dict(self) -> dict:
-        # convertation object to dict
+        """Convertation settings object to dict"""
+
         settings_dict = {}
         for attr in dir(self._settings):
             if not attr.startswith("_"):
                 settings_dict[attr] = getattr(self._settings, attr)
         return settings_dict
 
-    def __repr__(self) -> str:
-        # convertation object to dict
+    def __repr__(self) -> dict:
+        """Convertation settings object to view in terminal"""
+
         return self._settings_to_dict()
 
     def __str__(self) -> str:
-        # convertation object to string
+        """Convertation object to string"""
+
         return str(self._settings_to_dict())
 
-    def _read_settings_from_file(self) -> str:
-        """reading settings from file on disk"""
+    def _read_settings_from_file(self) -> str | None:
+        """Reading settings from file on disk"""
+
         settings_str = None
         try:
             settings_str = self._settings_file.read_text("utf-8")
@@ -87,8 +91,9 @@ class Settings:
     def _write_settings_to_file(self, settings: SettingsData) -> None:
         """writing settings from file on disk"""
 
-    def _validate_settings_str(self, settings_str: str) -> None:
+    def _validate_settings_str(self, settings_str: str) -> SettingsDataValidator | None:
         """validation settings"""
+
         print(settings_str)
         if settings_str is not None:
             try:
@@ -102,7 +107,8 @@ class Settings:
         return None
 
     def _apply_settings(self, validated_settings: SettingsDataValidator) -> None:
-        """apply given settings to the app"""
+        """Apply given settings to the app"""
+
         if validated_settings is not None:
             for attr in dir(self._settings):
                 if not attr.startswith("_"):
@@ -112,6 +118,7 @@ class Settings:
 
     def apply_settings_from_file(self):
         """Read, validate and apply settings from file"""
+
         settings_from_file_str = self._read_settings_from_file()
         settings_validated = self._validate_settings_str(settings_from_file_str)
         self._apply_settings(settings_validated)
@@ -132,6 +139,7 @@ class Settings:
 
     def save_settings_to_file(self):
         """Save settings to file"""
+
         settings_dict = self._settings_to_dict()
         print(settings_dict)
         print(type(settings_dict))
@@ -148,6 +156,7 @@ class Settings:
 
     def change_protection_state(self):
         """Change protection status"""
+
         if self._settings.protection_status == "on":
             self._settings.protection_status = "off"
         else:
@@ -156,4 +165,5 @@ class Settings:
 
     def get_settings(self) -> SettingsData:
         """Return copy of settings object"""
+
         return copy.copy(self._settings)
