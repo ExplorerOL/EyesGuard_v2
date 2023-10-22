@@ -32,7 +32,7 @@ class CurrentState:
         self.__step_duration_dt: datetime.timedelta = datetime.timedelta(seconds=0)
         self.__elapsed_time_dt: datetime.timedelta = datetime.timedelta(seconds=0)
 
-        user_settings = settings.get_settings()
+        user_settings = settings.get_settings_copy()
         if user_settings.protection_status == "on":
             self.__step_type = StepType.work_mode
             self.__step_duration_dt = datetime.timedelta(minutes=user_settings.work_duration)
@@ -58,7 +58,7 @@ class CurrentState:
     def get_current_step_type(self) -> StepType:
         return self.__step_type
 
-    def set_current_step(self, step_type: StepType, step_duration: datetime.timedelta):
+    def set_current_step_data(self, step_type: StepType, step_duration: datetime.timedelta):
         self.__step_type = step_type
         self.__step_duration_dt = step_duration
         self.__elapsed_time_dt = datetime.timedelta(seconds=0)

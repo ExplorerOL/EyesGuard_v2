@@ -163,7 +163,13 @@ class Settings:
             self._settings.protection_status = "on"
         self.save_settings_to_file()
 
-    def get_settings(self) -> SettingsData:
+    def get_settings_copy(self) -> SettingsData:
         """Return copy of settings object"""
+
+        return copy.copy(self._settings)
+
+    @property
+    def user_settings(self) -> SettingsData:
+        """Return of settings object"""
 
         return copy.copy(self._settings)
