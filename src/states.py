@@ -8,7 +8,7 @@ from settings import Settings
 class StepType(IntEnum):
     """Types of programm steps"""
 
-    off = 0
+    off_mode = 0
     work_mode = 1
     work_notified_1 = 2
     work_notified_2 = 3
@@ -20,7 +20,7 @@ class StepType(IntEnum):
 class StepData:
     """Data for step control"""
 
-    step_type: StepType = StepType.off
+    step_type: StepType = StepType.off_mode
     step_duration_td: datetime.timedelta = datetime.timedelta(seconds=0)
 
 
@@ -28,7 +28,7 @@ class CurrentState:
     """Data about current step"""
 
     def __init__(self, settings: Settings):
-        self.__step_type: StepType = StepType.off
+        self.__step_type: StepType = StepType.off_mode
         self.__step_duration_dt: datetime.timedelta = datetime.timedelta(seconds=0)
         self.__elapsed_time_dt: datetime.timedelta = datetime.timedelta(seconds=0)
 
@@ -36,6 +36,10 @@ class CurrentState:
         if user_settings.protection_status == "on":
             self.__step_type = StepType.work_mode
             self.__step_duration_dt = datetime.timedelta(minutes=user_settings.work_duration)
+        else:
+            self.__step_type = StepType.off_mode
+            self.__step_duration_dt = datetime.timedelta(minutes=60)
+
         print(f"Init current state: {self}")
 
     def __self_to_dict(self) -> dict:
@@ -63,7 +67,7 @@ class CurrentState:
         self.__step_duration_dt = step_duration
         self.__elapsed_time_dt = datetime.timedelta(seconds=0)
 
-    def get_step_duration(self):
+    def get_current_step_duration(self):
         return self.__step_duration_dt
 
     def get_step_elapsed_time(self):

@@ -38,7 +38,7 @@ class ControlAlg:
         # print(StepType.work_mode)
         # print(StepType.work_notified)
 
-        self.steps[StepType.off].step_duration_td = self.step_off_duration_td
+        self.steps[StepType.off_mode].step_duration_td = self.step_off_duration_td
         self.steps[StepType.work_notified_2].step_duration_td = self.step_notification_2_time_td
         if self.step_work_duration_td > self.step_notification_1_time_td + self.step_notification_2_time_td:
             print(
@@ -89,29 +89,16 @@ class ControlAlg:
 
     def main_loop(self):
         while True:
-            # if self.settings.get_settings_copy().protection_status == "off":
-            #     break
-            for step in self.steps:
-                print(f"Current step data: {step}, {step.step_type}, {step.step_duration_td}")
-                # exit from cycle if protection is off
-                # if self.settings.user_settings.protection_status == "off":
-                #     break
+            self.wait_for_current_step_is_ended()
+            self.do_current_step_actions()
+            self.set_new_step_in_sequence()
 
-                # if step.step_type == StepType.off:
-                #     continue
-
-                self.step_actions(step, step.step_duration_td)
-                self.wait_for_step_is_ended(step)
-                # skip cycle if step is off
-                # print(f"Currents step: {step.step_type}")
-                # print(f"Step duration: {step.step_duration_dt}")
-
-    def wait_for_step_is_ended(self, step: StepData):
+    def wait_for_current_step_is_ended(self):
         while True:
-            print(f"Currents step: {step.step_type}")
-            print(f"Step duration: {self.current_state.get_step_duration()}")
+            print(f"Currents step: {self.current_state.get_current_step_type()}")
+            print(f"Step duration: {self.current_state.get_current_step_duration()}")
             print(f"Step elapsed time: {self.current_state.get_step_elapsed_time()}")
-            if self.current_state.get_step_elapsed_time() < self.current_state.get_step_duration():
+            if self.current_state.get_step_elapsed_time() < self.current_state.get_current_step_duration():
                 self.current_state.increase_elapsed_time()
             else:
                 break
@@ -154,34 +141,33 @@ class ControlAlg:
             self.app.status_wnd.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
             self.app.status_wnd.pbar_time_until_break.set(1 - remaining_time_actual / remaining_time_full)
 
-            self.was_protection_mode_changed()
+            self.change_step_if_protection_mode_was_changed()
 
             time.sleep(1)
 
-    def was_protection_mode_changed(self) -> bool:
+    def change_step_if_protection_mode_was_changed(self) -> bool:
         if (
             self.settings.user_settings.protection_status == "off"
-            and self.current_state.get_current_step_type() != StepType.off
+            and self.current_state.get_current_step_type() != StepType.off_mode
         ):
-            self._set_current_step(new_step=StepType.off)
+            self._set_current_step(step_type=StepType.off_mode)
             return True
 
         if (
             self.settings.user_settings.protection_status == "on"
-            and self.current_state.get_current_step_type() == StepType.off
+            and self.current_state.get_current_step_type() == StepType.off_mode
         ):
-            self._set_current_step(new_step=StepType.work_mode)
+            self._set_current_step(step_type=StepType.work_mode)
             return True
         return False
 
-    def _set_current_step(self, new_step: StepType):
-        self.current_state.set_current_step_data(
-            step_type=new_step, step_duration=self.steps[new_step].step_duration_td
-        )
+    # def _set_current_step(self, new_step: StepType):
+    #     self.current_state.set_current_step_data(
+    #         step_type=new_step, step_duration=self.steps[new_step].step_duration_td
+    #     )
 
-    def step_actions(self, new_step: StepData, duration: datetime.timedelta):
+    def do_current_step_actions(self):
         self.current_state.reset_elapsed_time()
-        self.current_state.set_current_step_data(step_type=new_step.step_type, step_duration=duration)
         # self.current_state.set_current_step(step_type=next_step.step_type, step_duration=duration)
         print(f"new current step {(self.current_state.get_current_step_type())}")
         print(f"Type {type(self.current_state.get_current_step_type())}")
@@ -206,7 +192,7 @@ class ControlAlg:
             self.app.show_notification("Break will start in 5 seconds!", "Attention!")
 
         match self.current_state.get_current_step_type():
-            case StepType.off:
+            case StepType.off_mode:
                 print("Control_alg: showing off mode notification")
                 self.app.show_notification("Eyes Guard is in suspended mode!", "Attention!")
 
@@ -231,4 +217,29 @@ class ControlAlg:
             self.steps[StepType.work_notified_1].step_duration_td = datetime.timedelta(seconds=0)
         self.steps[StepType.break_mode].step_duration_td = datetime.timedelta(
             minutes=self.user_settings.break_duration
+        )
+
+    def set_new_step_in_sequence(self):
+        current_step_type = self.current_state.get_current_step_type()
+
+        # steps transitions
+        match current_step_type:
+            case StepType.off_mode:
+                new_step_type = StepType.work_mode
+            case StepType.work_mode:
+                new_step_type = StepType.work_notified_1
+            case StepType.work_notified_1:
+                new_step_type = StepType.work_notified_2
+            case StepType.work_notified_2:
+                new_step_type = StepType.break_mode
+            case StepType.break_mode:
+                new_step_type = StepType.work_mode
+
+        self._set_current_step(new_step_type)
+
+    def _set_current_step(self, step_type: StepType) -> None:
+        """settind step data in current state by step type"""
+
+        self.current_state.set_current_step_data(
+            step_type=step_type, step_duration=self.steps[step_type].step_duration_td
         )
