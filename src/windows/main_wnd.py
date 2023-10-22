@@ -34,7 +34,7 @@ class MainWnd(customtkinter.CTk):
             pystray.MenuItem("Settings", self.show_settings_wnd),
             pystray.MenuItem("Exit", self.exit_app),
         )
-        self.tray_icon = pystray.Icon("name", self.image, "My System Tray Icon1", menu)
+        self.tray_icon = pystray.Icon("name", self.image, "Eyes Guard", menu)
         self.tray_icon.run_detached()
 
         # hide main app wnd

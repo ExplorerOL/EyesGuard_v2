@@ -117,17 +117,18 @@ class ControlAlg:
             #         / self.current_state.get_step_duration().seconds
             #     )
 
-            tray_icon_tooltip_str = ""
+            time_until_break_tooltip_string = "Time until break: "
             if self.current_state.get_current_step_type() == StepType.work_mode:
-                tray_icon_tooltip_str = f"Время до перерыва: {self.current_state.get_step_remaining_time() + self.steps[StepType.work_notified_1].step_duration_td + self.steps[StepType.work_notified_2].step_duration_td}"
+                time_until_break_tooltip_string += f"{self.current_state.get_step_remaining_time() + self.steps[StepType.work_notified_1].step_duration_td + self.steps[StepType.work_notified_2].step_duration_td}"
 
             if self.current_state.get_current_step_type() == StepType.work_notified_1:
-                tray_icon_tooltip_str = f"Время до перерыва: {self.current_state.get_step_remaining_time() + self.steps[StepType.work_notified_2].step_duration_td}"
+                time_until_break_tooltip_string += f"{self.current_state.get_step_remaining_time() + self.steps[StepType.work_notified_2].step_duration_td}"
 
             if self.current_state.get_current_step_type() == StepType.work_notified_2:
-                tray_icon_tooltip_str = f"Время до перерыва: {self.current_state.get_step_remaining_time()}"
+                time_until_break_tooltip_string += f"{self.current_state.get_step_remaining_time()}"
 
-            self.app.tray_icon.title = tray_icon_tooltip_str
+            self.app.tray_icon.title = time_until_break_tooltip_string
+            self.app.status_wnd.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
 
             time.sleep(1)
 
