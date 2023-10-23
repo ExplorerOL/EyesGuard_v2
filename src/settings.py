@@ -49,17 +49,17 @@ class Settings:
     """class for managing user settings"""
 
     def __init__(self, file_name: str):
-        self._settings = SettingsData()
-        self._settings_file = Path(file_name)
+        self.__settings = SettingsData()
+        self.__settings_file = Path(file_name)
         self.apply_settings_from_file()
 
     def _settings_to_dict(self) -> dict:
         """Convertation settings object to dict"""
 
         settings_dict = {}
-        for attr in dir(self._settings):
+        for attr in dir(self.__settings):
             if not attr.startswith("_"):
-                settings_dict[attr] = getattr(self._settings, attr)
+                settings_dict[attr] = getattr(self.__settings, attr)
         return settings_dict
 
     def __repr__(self) -> dict:
@@ -77,7 +77,7 @@ class Settings:
 
         settings_str = None
         try:
-            settings_str = self._settings_file.read_text("utf-8")
+            settings_str = self.__settings_file.read_text("utf-8")
         except FileNotFoundError as error:
             print(error)
             print(type(error))
@@ -110,11 +110,11 @@ class Settings:
         """Apply given settings to the app"""
 
         if validated_settings is not None:
-            for attr in dir(self._settings):
+            for attr in dir(self.__settings):
                 if not attr.startswith("_"):
-                    setattr(self._settings, attr, getattr(validated_settings, attr))
+                    setattr(self.__settings, attr, getattr(validated_settings, attr))
                     print(attr)
-                    print(getattr(self._settings, attr))
+                    print(getattr(self.__settings, attr))
 
     def apply_settings_from_file(self):
         """Read, validate and apply settings from file"""
@@ -152,24 +152,24 @@ class Settings:
 
         settings_json = settings_validated.model_dump_json(indent=4)
         print(settings_json)
-        self._settings_file.write_text(settings_json, encoding="utf-8")
+        self.__settings_file.write_text(settings_json, encoding="utf-8")
 
     def change_protection_state(self):
         """Change protection status"""
 
-        if self._settings.protection_status == "on":
-            self._settings.protection_status = "off"
+        if self.__settings.protection_status == "on":
+            self.__settings.protection_status = "off"
         else:
-            self._settings.protection_status = "on"
+            self.__settings.protection_status = "on"
         self.save_settings_to_file()
 
     def get_settings_copy(self) -> SettingsData:
         """Return copy of settings object"""
 
-        return copy.copy(self._settings)
+        return copy.copy(self.__settings)
 
     @property
     def user_settings(self) -> SettingsData:
         """Return of settings object"""
 
-        return copy.copy(self._settings)
+        return self.__settings
