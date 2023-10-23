@@ -7,3 +7,8 @@ Command for running tests:
 ```
 python -X utf8 -m pytest .\tests\
 ```
+
+Command for building .exe:
+```
+auto-py-to-exe
+```

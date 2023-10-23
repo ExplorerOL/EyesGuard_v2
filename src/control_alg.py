@@ -124,10 +124,11 @@ class ControlAlg:
             #         + self.steps_data_list[StepType.work_notified_1].step_duration_td
             #         + self.steps_data_list[StepType.work_notified_2].step_duration_td
             #     )
-            self._update_time_until_break()
+            self.__update_time_until_break()
+            self.__update_alg_settings()
             time.sleep(1)
 
-    def _update_time_until_break(self):
+    def __update_time_until_break(self):
         """Updating time until break info"""
 
         remaining_time_actual: datetime.timedelta = self.current_state.get_step_remaining_time()
@@ -200,7 +201,7 @@ class ControlAlg:
                 self.break_wnd.hide()
 
     def __update_alg_settings(self):
-        self.user_settings = self.settings.get_settings_copy()
+        self.user_settings = self.settings.user_settings
         print(self.user_settings)
 
         #  обернуть в функцию
@@ -247,6 +248,14 @@ class ControlAlg:
         self.steps_data_list[StepType.work_notified_1].step_duration_td = self.step_notification_1_time_td
         self.steps_data_list[StepType.work_notified_2].step_duration_td = self.step_notification_2_time_td
         self.steps_data_list[StepType.break_mode].step_duration_td = self.step_break_duration
+
+        self.__update_current_state()
+
+    def __update_current_state(self):
+        current_step = self.current_state.get_current_step_type()
+        self.current_state.set_current_step_data(
+            step_type=current_step, step_duration=self.steps_data_list[current_step].step_duration_td
+        )
 
     def _set_new_step_in_sequence(self):
         current_step_type = self.current_state.get_current_step_type()
