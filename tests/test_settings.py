@@ -60,10 +60,10 @@ def test_write_valid_settings_to_file():
     file_to_write = "tests/data/settings_written_file.json"
     Path(file_to_write).unlink(missing_ok=True)
     settings = Settings(file_to_write)
-    settings.__settings.work_duration = 90
-    settings.__settings.break_duration = 91
-    settings.__settings.sounds = "off"
-    settings.__settings.notifications = "off"
+    settings.__user_settings.work_duration = 90
+    settings.__user_settings.break_duration = 91
+    settings.__user_settings.sounds = "off"
+    settings.__user_settings.notifications = "off"
 
     settings.save_settings_to_file()
 
@@ -79,10 +79,10 @@ def test_write_invalid_settings_to_file():
     Path(file_to_write).unlink(missing_ok=True)
     settings = Settings(file_to_write)
     try:
-        settings.__settings.work_duration = 111
-        settings.__settings.break_duration = 91
-        settings.__settings.sounds = "off"
-        settings.__settings.notifications = "off"
+        settings.__user_settings.work_duration = 111
+        settings.__user_settings.break_duration = 91
+        settings.__user_settings.sounds = "off"
+        settings.__user_settings.notifications = "off"
     except ValidationError as error:
         print(error)
 

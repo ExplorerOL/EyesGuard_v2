@@ -1,6 +1,7 @@
 """Module for settings management in application"""
 
 import copy
+import datetime
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -9,7 +10,16 @@ from pydantic import BaseModel, Field, ValidationError
 
 
 @dataclass
-class SettingsData:
+class SystemSettingsData:
+    """class for storing system settings"""
+
+    step_off_mode_duration = datetime.timedelta(minutes=60)
+    step_notification_1_duration = datetime.timedelta(seconds=55)
+    step_notification_2_duration = datetime.timedelta(seconds=5)
+
+
+@dataclass
+class UserSettingsData:
     """class for storing user settings"""
 
     work_duration = 45
@@ -49,7 +59,8 @@ class Settings:
     """class for managing user settings"""
 
     def __init__(self, file_name: str):
-        self.__settings = SettingsData()
+        self.__user_settings = UserSettingsData()
+        self.__system_settings = SystemSettingsData()
         self.__settings_file = Path(file_name)
         self.apply_settings_from_file()
 
@@ -57,9 +68,9 @@ class Settings:
         """Convertation settings object to dict"""
 
         settings_dict = {}
-        for attr in dir(self.__settings):
+        for attr in dir(self.__user_settings):
             if not attr.startswith("_"):
-                settings_dict[attr] = getattr(self.__settings, attr)
+                settings_dict[attr] = getattr(self.__user_settings, attr)
         return settings_dict
 
     def __repr__(self) -> dict:
@@ -88,7 +99,7 @@ class Settings:
             return None
         return settings_str
 
-    def _write_settings_to_file(self, settings: SettingsData) -> None:
+    def _write_settings_to_file(self, settings: UserSettingsData) -> None:
         """writing settings from file on disk"""
 
     def _validate_settings_str(self, settings_str: str) -> SettingsDataValidator | None:
@@ -110,11 +121,11 @@ class Settings:
         """Apply given settings to the app"""
 
         if validated_settings is not None:
-            for attr in dir(self.__settings):
+            for attr in dir(self.__user_settings):
                 if not attr.startswith("_"):
-                    setattr(self.__settings, attr, getattr(validated_settings, attr))
+                    setattr(self.__user_settings, attr, getattr(validated_settings, attr))
                     print(attr)
-                    print(getattr(self.__settings, attr))
+                    print(getattr(self.__user_settings, attr))
 
     def apply_settings_from_file(self):
         """Read, validate and apply settings from file"""
@@ -123,7 +134,7 @@ class Settings:
         settings_validated = self._validate_settings_str(settings_from_file_str)
         self._apply_settings(settings_validated)
 
-    def apply_settings_from_ui(self, new_settings_data: SettingsData):
+    def apply_settings_from_ui(self, new_settings_data: UserSettingsData):
         """Validate settings and write them to file"""
         # new_settings_dict = self._settings_to_dict()
         print(f"New settings from ui to apply: {new_settings_data}")
@@ -157,19 +168,25 @@ class Settings:
     def change_protection_state(self):
         """Change protection status"""
 
-        if self.__settings.protection_status == "on":
-            self.__settings.protection_status = "off"
+        if self.__user_settings.protection_status == "on":
+            self.__user_settings.protection_status = "off"
         else:
-            self.__settings.protection_status = "on"
+            self.__user_settings.protection_status = "on"
         self.save_settings_to_file()
 
-    def get_settings_copy(self) -> SettingsData:
+    def get_settings_copy(self) -> UserSettingsData:
         """Return copy of settings object"""
 
-        return copy.copy(self.__settings)
+        return copy.copy(self.__user_settings)
 
     @property
-    def user_settings(self) -> SettingsData:
-        """Return of settings object"""
+    def user_settings(self) -> UserSettingsData:
+        """Return of user settings object"""
 
-        return self.__settings
+        return self.__user_settings
+
+    @property
+    def system_settings(self) -> SystemSettingsData:
+        """Return of system settings object"""
+
+        return self.__system_settings

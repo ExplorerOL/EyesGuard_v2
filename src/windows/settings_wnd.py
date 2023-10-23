@@ -6,7 +6,7 @@ from tkinter import StringVar
 import customtkinter
 from PIL import Image, ImageTk
 
-from settings import Settings, SettingsData
+from settings import Settings, UserSettingsData
 
 
 class SettingsWnd(customtkinter.CTkToplevel):
@@ -342,9 +342,9 @@ class SettingsWnd(customtkinter.CTkToplevel):
     def event_btn_about_click(self) -> None:
         self.select_frame_by_name("frame_about")
 
-    def get_settings_from_widgets(self) -> SettingsData:
+    def get_settings_from_widgets(self) -> UserSettingsData:
         """Get data from all widgets with settings"""
-        ui_settings_data = SettingsData()
+        ui_settings_data = UserSettingsData()
         try:
             ui_settings_data.work_duration = int(self.work_duration_value.get())
             ui_settings_data.break_duration = int(self.break_duration_value.get())
