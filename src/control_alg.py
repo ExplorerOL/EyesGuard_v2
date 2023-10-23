@@ -132,8 +132,21 @@ class ControlAlg:
         """Updating time until break info"""
 
         remaining_time_actual: datetime.timedelta = self.current_state.get_step_remaining_time()
+        remaining_time_for_work_full = (
+            self.steps_data_list[StepType.work_mode].step_duration_td
+            + self.steps_data_list[StepType.work_notified_1].step_duration_td
+            + self.steps_data_list[StepType.work_notified_2].step_duration_td
+        )
         print(remaining_time_actual)
         match self.current_state.get_current_step_type():
+            case StepType.off_mode:
+                remaining_time_actual += self.steps_data_list[StepType.work_mode].step_duration_td
+                remaining_time_for_work_full = (
+                    self.steps_data_list[StepType.off_mode].step_duration_td
+                    + self.steps_data_list[StepType.work_mode].step_duration_td
+                    + self.steps_data_list[StepType.work_notified_1].step_duration_td
+                    + self.steps_data_list[StepType.work_notified_2].step_duration_td
+                )
             case StepType.work_mode:
                 remaining_time_actual += (
                     self.steps_data_list[StepType.work_notified_1].step_duration_td
@@ -143,11 +156,6 @@ class ControlAlg:
                 remaining_time_actual += self.steps_data_list[StepType.work_notified_2].step_duration_td
 
         print("Updating time")
-        remaining_time_for_work_full = (
-            self.steps_data_list[StepType.work_mode].step_duration_td
-            + self.steps_data_list[StepType.work_notified_1].step_duration_td
-            + self.steps_data_list[StepType.work_notified_2].step_duration_td
-        )
 
         time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_actual}"
 
@@ -249,6 +257,7 @@ class ControlAlg:
         self.steps_data_list[StepType.work_notified_2].step_duration_td = self.step_notification_2_time_td
         self.steps_data_list[StepType.break_mode].step_duration_td = self.step_break_duration
 
+        # settings autorefresh not working
         self.__update_current_state()
 
     def __update_current_state(self):
@@ -256,6 +265,13 @@ class ControlAlg:
         self.current_state.set_current_step_data(
             step_type=current_step, step_duration=self.steps_data_list[current_step].step_duration_td
         )
+        # if (
+        #     self.current_state.get_current_step_duration
+        #     != self.steps_data_list[current_step].step_duration_td
+        # ):
+        #     self.current_state.set_current_step_data(
+        #         step_type=current_step, step_duration=self.steps_data_list[current_step].step_duration_td
+        #     )
 
     def _set_new_step_in_sequence(self):
         current_step_type = self.current_state.get_current_step_type()
