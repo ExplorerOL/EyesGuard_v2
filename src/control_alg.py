@@ -4,21 +4,22 @@ from dataclasses import dataclass
 from enum import IntEnum
 from threading import Thread, Timer
 
+from model import EGModel
 from settings import Settings
 from states import CurrentState, StepData, StepType
-from windows.main_wnd import MainWnd
+from windows.main_wnd import EGView
 
 
-class ControlAlg:
+class EGController:
     """Class for time and break control"""
 
-    def __init__(self, settings: Settings, current_state: CurrentState, app: MainWnd):
-        self.current_state = current_state
+    def __init__(self, model: EGModel, app: EGView):
+        self.current_state = model.current_state
         self.app = app
         self.break_wnd = app.break_wnd
 
-        self.settings = settings
-        self.user_settings = settings.get_settings_copy()
+        self.settings = model.settings
+        self.user_settings = self.settings.get_settings_copy()
         print(f"User settings: = {self.user_settings}")
 
         self.steps_data_list: list[StepData] = []

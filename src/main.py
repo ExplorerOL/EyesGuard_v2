@@ -1,24 +1,22 @@
-from control_alg import ControlAlg
+from control_alg import EGController
 from model import EGModel
 from settings import Settings
 from states import CurrentState
-from windows.main_wnd import MainWnd
+from windows.main_wnd import EGView
 
 
 def main():
     """main function"""
     SETTINGS_FILE = "./settings.json"
-    # eg_settings = Settings(SETTINGS_FILE)
-    # current_state = CurrentState(eg_settings)
 
     eg_model = EGModel(SETTINGS_FILE)
+    eg_view = EGView()
 
-    eg_app = MainWnd(eg_model.settings, current_state=eg_model.current_state)
-    eg_control_alg = ControlAlg(settings=eg_model.settings, current_state=eg_model.current_state, app=eg_app)
-    eg_control_alg.start()
+    eg_controller = EGController(model=eg_model, app=eg_view)
+    eg_controller.start()
 
     print("Programm EyesGuard started!")
-    eg_app.mainloop()
+    eg_view.mainloop()
 
 
 # application entry point
