@@ -19,7 +19,7 @@ class EGController:
         self.view = view
         self.view.init_all_views(self.model)
 
-        self.break_wnd = view.break_wnd
+        self.break_wnd = view.wnd_break
 
         self.user_settings = self.model.settings.get_settings_copy()
         print(f"User settings: = {self.user_settings}")
@@ -131,8 +131,8 @@ class EGController:
         time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_actual}"
 
         self.view.tray_icon.title = time_until_break_tooltip_string
-        self.view.status_wnd.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
-        self.view.status_wnd.pbar_time_until_break.set(
+        self.view.wnd_status.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
+        self.view.wnd_status.pbar_time_until_break.set(
             1 - remaining_time_actual / remaining_time_for_work_full
         )
 
@@ -142,14 +142,14 @@ class EGController:
             and self.model.current_state.get_current_step_type() != StepType.off_mode
         ):
             self._set_current_step(step_type=StepType.off_mode)
-            self.view.settings_wnd.update_wnd()
+            self.view.wnd_settings.update()
 
         if (
             self.model.settings.user_settings.protection_status == "on"
             and self.model.current_state.get_current_step_type() == StepType.off_mode
         ):
             self._set_current_step(step_type=StepType.work_mode)
-            self.view.settings_wnd.update_wnd()
+            self.view.wnd_settings.update()
 
     def _do_current_step_actions(self):
         self.model.current_state.reset_elapsed_time()

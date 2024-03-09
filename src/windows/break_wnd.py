@@ -87,6 +87,6 @@ class BreakWnd(customtkinter.CTkToplevel):
     def set_lbl_remaining_time_text(self, elapsed_time: datetime.timedelta):
         self.remaining_break_time.set(f"Remaining break time: {elapsed_time.seconds} seconds")
 
-    def update_view(self, current_state: CurrentState):
+    def update(self, current_state: CurrentState):
         self.current_state = current_state
         self.set_lbl_remaining_time_text(self.current_state.get_step_remaining_time())

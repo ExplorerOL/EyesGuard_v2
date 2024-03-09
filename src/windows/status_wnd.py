@@ -116,7 +116,7 @@ class StatusWnd(customtkinter.CTkToplevel):
         """Action for pressing button for taking a break"""
         self.break_wnd.show()
 
-    def update_view(self, user_settings: UserSettingsData):
+    def update(self, user_settings: UserSettingsData):
         """Updating status window elements states"""
 
         if user_settings.protection_status == "on":

@@ -25,9 +25,9 @@ class EGView(customtkinter.CTk):
         self.settings = Settings()
         self.current_state = CurrentState(self.settings)
         self.title("EyesGuard v2")
-        self.settings_wnd = SettingsWnd(self.settings)
-        self.break_wnd = BreakWnd(self.current_state)
-        self.status_wnd = StatusWnd(self.settings, self.break_wnd)
+        self.wnd_settings = SettingsWnd(self.settings)
+        self.wnd_break = BreakWnd(self.current_state)
+        self.wnd_status = StatusWnd(self.settings, self.wnd_break)
 
         # tray icon
         self.image = Image.open("res/img/eyes_with_protection.png")
@@ -52,18 +52,18 @@ class EGView(customtkinter.CTk):
     def show_status_wnd(self):
         """Show status wnd"""
         print("Show status wnd")
-        self.status_wnd.show()
+        self.wnd_status.show()
 
     def show_settings_wnd(self):
         """Show settings wnd"""
         print("Show settings wnd")
-        self.settings_wnd.show()
+        self.wnd_settings.show()
 
     def show_notification(self, title: str, text: str):
         self.tray_icon.notify(title, text)
 
     def init_all_views(self, model: EGModel):
         """Init all data at windows"""
-        self.status_wnd.update_view(model.settings.user_settings)
-        self.settings_wnd.update_wnd(model.settings.user_settings)
-        self.break_wnd.update_view(model.current_state)
+        self.wnd_status.update(model.settings.user_settings)
+        self.wnd_settings.update(model.settings.user_settings)
+        self.wnd_break.update(model.current_state)

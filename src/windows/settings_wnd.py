@@ -302,7 +302,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
         else:
             self.navigation_frame_lbl_title.configure(image=self.img_eyes_without_protection)
 
-    def update_wnd(self, user_settings: UserSettingsData):
+    def update(self, user_settings: UserSettingsData):
         """Updating status window elements states"""
         self.update_protection_status()
         self.work_duration_value.set(str(user_settings.work_duration))
