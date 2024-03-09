@@ -15,13 +15,12 @@ class EGController:
 
     def __init__(self, model: EGModel, view: EGView):
 
-        # self.model.current_state = model.current_state
         self.model = model
         self.view = view
+        self.view.init_all_views(self.model)
 
         self.break_wnd = view.break_wnd
 
-        # self.model.settings = model.settings
         self.user_settings = self.model.settings.get_settings_copy()
         print(f"User settings: = {self.user_settings}")
 

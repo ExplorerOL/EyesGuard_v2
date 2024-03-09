@@ -5,7 +5,7 @@ import time
 import customtkinter
 from PIL import Image
 
-from settings import Settings
+from settings import Settings, UserSettingsData
 from windows.break_wnd import BreakWnd
 
 
@@ -83,7 +83,7 @@ class StatusWnd(customtkinter.CTkToplevel):
 
         self.bind("<FocusOut>", self.on_focus_out)
         self.protocol("WM_DELETE_WINDOW", self.hide)
-        self.update_wnd()
+        # self.update_view()
         self.withdraw()
 
     def on_focus_out(self, event):
@@ -100,7 +100,7 @@ class StatusWnd(customtkinter.CTkToplevel):
     def show(self):
         """Show window"""
         print("Showing status wnd")
-        self.update_wnd()
+        # self.update_view()
         self.deiconify()
 
         for i in range(100):
@@ -110,15 +110,16 @@ class StatusWnd(customtkinter.CTkToplevel):
     def btn_change_protection_state_action(self):
         """Action for pressing changeing protection state button"""
         self.settings.change_protection_state()
-        self.update_wnd()
+        # self.update_view()
 
     def btn_take_break_action(self):
         """Action for pressing button for taking a break"""
         self.break_wnd.show()
 
-    def update_wnd(self):
+    def update_view(self, user_settings: UserSettingsData):
         """Updating status window elements states"""
-        if self.settings.get_settings_copy().protection_status == "on":
+
+        if user_settings.protection_status == "on":
             self.btn_change_protection_state.configure(
                 text="Protection active",
                 text_color="GreenYellow",
