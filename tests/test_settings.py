@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from src.settings import Settings
+from src.settings import Settings, UserSettingsData
 
 settings_default_str = "{'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', 'sounds': 'on', 'work_duration': 45}"
 
@@ -56,36 +56,38 @@ def test_read_settings_from_invalid_file(settings_file_name):
     assert settings_str == settings_default_str
 
 
-def test_write_valid_settings_to_file():
+def test_write_default_user_settings_to_file():
     file_to_write = "tests/data/settings_written_file.json"
     Path(file_to_write).unlink(missing_ok=True)
+
+    user_settings = UserSettingsData()
     settings = Settings(file_to_write)
-    settings.__user_settings.work_duration = 90
-    settings.__user_settings.break_duration = 91
-    settings.__user_settings.sounds = "off"
-    settings.__user_settings.notifications = "off"
+    settings.apply_settings_from_ui(new_settings_data=user_settings)
 
     settings.save_settings_to_file()
 
     written_file_content = Path(file_to_write).read_text()
     print(f"Written file content = {written_file_content}")
 
-    expected_file_content = '{\n    "work_duration": 90,\n    "break_duration": 91,\n    "sounds": "off",\n    "notifications": "off",\n    "protection_status": "on"\n}'
+    expected_file_content = '{\n    "work_duration": 45,\n    "break_duration": 15,\n    "sounds": "on",\n    "notifications": "on",\n    "protection_status": "on"\n}'
     assert written_file_content == expected_file_content, "Written content and expected content are not same!"
 
 
 def test_write_invalid_settings_to_file():
     file_to_write = "tests/data/settings_written_file.json"
     Path(file_to_write).unlink(missing_ok=True)
+
+    user_settings = UserSettingsData()
+    user_settings.work_duration = 111
+    user_settings.break_duration = 91
+    user_settings.sounds = "off"
+    user_settings.notifications = "off"
     settings = Settings(file_to_write)
-    try:
-        settings.__user_settings.work_duration = 111
-        settings.__user_settings.break_duration = 91
-        settings.__user_settings.sounds = "off"
-        settings.__user_settings.notifications = "off"
-    except ValidationError as error:
-        print(error)
+    settings.apply_settings_from_ui(new_settings_data=user_settings)
 
     settings.save_settings_to_file()
 
-    assert not Path(file_to_write).is_file(), "Settings file was erroneously saved!"
+    written_file_content = Path(file_to_write).read_text()
+    print(f"Written file content = {written_file_content}")
+    expected_file_content = '{\n    "work_duration": 45,\n    "break_duration": 15,\n    "sounds": "on",\n    "notifications": "on",\n    "protection_status": "on"\n}'
+    assert written_file_content == expected_file_content, "Written content and expected content are not same!"
