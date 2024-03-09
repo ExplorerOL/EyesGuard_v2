@@ -7,8 +7,8 @@ def main():
     """main function"""
     SETTINGS_FILE = "./settings.json"
 
-    eg_model = EGModel(SETTINGS_FILE)
     eg_view = EGView()
+    eg_model = EGModel(SETTINGS_FILE)
     eg_controller = EGController(model=eg_model, view=eg_view)
 
     eg_controller.start()

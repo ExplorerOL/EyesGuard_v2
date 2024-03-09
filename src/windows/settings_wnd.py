@@ -1,4 +1,5 @@
 """Module with settings window of application"""
+
 import re
 import time
 from tkinter import StringVar
@@ -279,7 +280,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
     def show(self):
         """Show window"""
         print("showing top level wnd")
-        self.update_wnd()
+        # self.update_wnd()
         self.deiconify()
 
         for i in range(100):
@@ -301,13 +302,13 @@ class SettingsWnd(customtkinter.CTkToplevel):
         else:
             self.navigation_frame_lbl_title.configure(image=self.img_eyes_without_protection)
 
-    def update_wnd(self):
+    def update_wnd(self, user_settings: UserSettingsData):
         """Updating status window elements states"""
         self.update_protection_status()
-        self.work_duration_value.set(self.settings.get_settings_copy().work_duration)
-        self.break_duration_value.set(self.settings.get_settings_copy().break_duration)
-        self.chbox_sounds_value.set(value=self.settings.get_settings_copy().sounds)
-        self.chbox_notifications_value.set(value=self.settings.get_settings_copy().notifications)
+        self.work_duration_value.set(str(user_settings.work_duration))
+        self.break_duration_value.set(str(user_settings.break_duration))
+        self.chbox_sounds_value.set(value=user_settings.sounds)
+        self.chbox_notifications_value.set(value=user_settings.notifications)
 
     def select_frame_by_name(self, name: str) -> None:
         # set button color for selected button

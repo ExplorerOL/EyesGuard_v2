@@ -22,8 +22,8 @@ class SystemSettingsData:
 class UserSettingsData:
     """class for storing user settings"""
 
-    work_duration = 45
-    break_duration = 15
+    work_duration: int = 45
+    break_duration: int = 15
     sounds = "on"
     notifications = "on"
     protection_status = "on"

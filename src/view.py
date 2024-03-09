@@ -61,3 +61,10 @@ class EGView(customtkinter.CTk):
 
     def show_notification(self, title: str, text: str):
         self.tray_icon.notify(title, text)
+
+    def init_all_views(self, model: EGModel):
+        # settings = model.settings
+        current_state = model.current_state
+        self.settings_wnd.update_wnd(model.settings.user_settings)
+        break_wnd = BreakWnd(self.current_state)
+        status_wnd = StatusWnd(self.settings, self.break_wnd)
