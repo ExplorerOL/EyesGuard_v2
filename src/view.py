@@ -6,7 +6,7 @@ import customtkinter
 import pystray
 from PIL import Image
 
-from control_alg import CurrentState
+from controller import CurrentState
 from model import EGModel
 from settings import Settings
 from windows.break_wnd import BreakWnd

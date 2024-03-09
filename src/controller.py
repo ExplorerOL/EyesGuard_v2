@@ -7,16 +7,16 @@ from threading import Thread, Timer
 from model import EGModel
 from settings import Settings
 from states import CurrentState, StepData, StepType
-from windows.main_wnd import EGView
+from view import EGView
 
 
 class EGController:
     """Class for time and break control"""
 
-    def __init__(self, model: EGModel, app: EGView):
+    def __init__(self, model: EGModel, view: EGView):
         self.current_state = model.current_state
-        self.app = app
-        self.break_wnd = app.break_wnd
+        self.app = view
+        self.break_wnd = view.break_wnd
 
         self.settings = model.settings
         self.user_settings = self.settings.get_settings_copy()
