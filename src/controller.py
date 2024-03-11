@@ -11,15 +11,12 @@ from states import StepData, StepType
 class EGController:
     """Class for time and break control"""
 
-    def __init__(self, model: EGModel):
+    def __init__(self):
+        pass
 
-        # self.model = None
+    def set_model(self, model: EGModel):
+        """Assigning model to controller"""
         self.model = model
-        # self.view = view
-        # self.view.init_all_views(self.model)
-
-        # self.break_wnd = view.wnd_break
-
         self.user_settings = self.model.settings.get_settings_copy()
         print(f"User settings: = {self.user_settings}")
 
@@ -38,10 +35,6 @@ class EGController:
         print(self.model.current_state)
 
         self.thread_alg = None
-
-    def set_model(self, model: EGModel):
-        """Assigning model to controller"""
-        self.model = model
 
     def start(self):
         """Start controller"""

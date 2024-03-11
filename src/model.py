@@ -1,3 +1,5 @@
+# For preventing circular import
+# https://stackoverflow.com/questions/744373/what-happens-when-using-mutual-or-circular-cyclic-imports/67673741#67673741
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
