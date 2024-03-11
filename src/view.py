@@ -6,8 +6,8 @@ import customtkinter
 import pystray
 from PIL import Image
 
-from controller import CurrentState
-from model import EGModel
+from controller import EGController
+from model import CurrentState, EGModel
 from settings import Settings
 from windows.break_wnd import BreakWnd
 from windows.settings_wnd import SettingsWnd
@@ -41,6 +41,10 @@ class EGView(customtkinter.CTk):
 
         # hide main app wnd
         self.withdraw()
+
+    def set_controller(self, controller: EGController):
+        """Assigning controller to view"""
+        self.controller = controller
 
     def exit_app(self):
         """Exit from app"""

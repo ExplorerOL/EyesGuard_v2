@@ -1,25 +1,24 @@
 import datetime
 import time
-from dataclasses import dataclass
-from enum import IntEnum
-from threading import Thread, Timer
+from threading import Thread
 
 from model import EGModel
-from settings import Settings
-from states import CurrentState, StepData, StepType
-from view import EGView
+from states import StepData, StepType
+
+# from view import EGView
 
 
 class EGController:
     """Class for time and break control"""
 
-    def __init__(self, model: EGModel, view: EGView):
+    def __init__(self, model: EGModel):
 
+        # self.model = None
         self.model = model
-        self.view = view
-        self.view.init_all_views(self.model)
+        # self.view = view
+        # self.view.init_all_views(self.model)
 
-        self.break_wnd = view.wnd_break
+        # self.break_wnd = view.wnd_break
 
         self.user_settings = self.model.settings.get_settings_copy()
         print(f"User settings: = {self.user_settings}")
@@ -40,7 +39,12 @@ class EGController:
 
         self.thread_alg = None
 
+    def set_model(self, model: EGModel):
+        """Assigning model to controller"""
+        self.model = model
+
     def start(self):
+        """Start controller"""
         self.__update_alg_settings()
         if self.thread_alg is None:
             self.thread_alg = Thread(target=self.main_loop)
@@ -75,9 +79,10 @@ class EGController:
             # actions during step is in progress
             match self.model.current_state.get_current_step_type():
                 case StepType.break_mode:
-                    self.break_wnd.set_lbl_remaining_time_text(
-                        self.model.current_state.get_step_remaining_time()
-                    )
+                    pass
+                    # self.break_wnd.set_lbl_remaining_time_text(
+                    #     self.model.current_state.get_step_remaining_time()
+                    # )
 
             # TODO - case for updating time
             # case StepType.work_notified_1:
@@ -130,11 +135,11 @@ class EGController:
 
         time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_actual}"
 
-        self.view.tray_icon.title = time_until_break_tooltip_string
-        self.view.wnd_status.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
-        self.view.wnd_status.pbar_time_until_break.set(
-            1 - remaining_time_actual / remaining_time_for_work_full
-        )
+        # self.view.tray_icon.title = time_until_break_tooltip_string
+        # self.view.wnd_status.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
+        # self.view.wnd_status.pbar_time_until_break.set(
+        #     1 - remaining_time_actual / remaining_time_for_work_full
+        # )
 
     def _change_step_if_protection_mode_was_changed(self):
         if (
@@ -142,14 +147,14 @@ class EGController:
             and self.model.current_state.get_current_step_type() != StepType.off_mode
         ):
             self._set_current_step(step_type=StepType.off_mode)
-            self.view.wnd_settings.update()
+            # self.view.wnd_settings.update()
 
         if (
             self.model.settings.user_settings.protection_status == "on"
             and self.model.current_state.get_current_step_type() == StepType.off_mode
         ):
             self._set_current_step(step_type=StepType.work_mode)
-            self.view.wnd_settings.update()
+            # self.view.wnd_settings.update()
 
     def _do_current_step_actions(self):
         self.model.current_state.reset_elapsed_time()
@@ -159,25 +164,25 @@ class EGController:
         match self.model.current_state.get_current_step_type():
             case StepType.off_mode:
                 print("Control_alg: showing off mode notification")
-                self.view.show_notification("Eyes Guard is in suspended mode!", "Attention!")
+                # self.view.show_notification("Eyes Guard is in suspended mode!", "Attention!")
 
             case StepType.break_mode:
                 print("Control_alg: showing break window")
-                self.break_wnd.show()
+                # self.break_wnd.show()
 
             case StepType.work_notified_1:
                 if self.user_settings.notifications == "on":
                     print("Control_alg: showing working notification 1")
-                    self.view.show_notification("Break will start in 1 minute!", "Attention!")
+                    # self.view.show_notification("Break will start in 1 minute!", "Attention!")
 
             case StepType.work_notified_2:
                 if self.user_settings.notifications == "on":
                     print("Control_alg: showing working notification 2")
-                    self.view.show_notification("Break will start in 5 seconds!", "Attention!")
+                    # self.view.show_notification("Break will start in 5 seconds!", "Attention!")
 
             case StepType.work_mode:
                 print("Control_alg: hiding break window")
-                self.break_wnd.hide()
+                # self.break_wnd.hide()
 
     def __update_alg_settings(self):
         self.user_settings = self.model.settings.user_settings
