@@ -7,6 +7,7 @@ import pystray
 from PIL import Image
 
 from controller import EGController
+from logger import logger
 from model import CurrentState, EGModel
 from settings import Settings
 from windows.break_wnd import BreakWnd
@@ -41,10 +42,12 @@ class EGView(customtkinter.CTk):
 
         # hide main app wnd
         self.withdraw()
+        logger.trace("View: object was created")
 
     def set_controller(self, controller: EGController):
         """Assigning controller to view"""
         self.controller = controller
+        logger.trace("View: controller was set")
 
     def exit_app(self):
         """Exit from app"""
@@ -68,6 +71,6 @@ class EGView(customtkinter.CTk):
 
     def init_all_views(self, model: EGModel):
         """Init all data at windows"""
-        self.wnd_status.update(model.settings.user_settings)
-        self.wnd_settings.update(model.settings.user_settings)
+        self.wnd_status.update(model.set_model.user_settings)
+        self.wnd_settings.update(model.set_model.user_settings)
         self.wnd_break.update(model.current_state)

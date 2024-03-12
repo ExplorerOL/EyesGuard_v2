@@ -56,7 +56,8 @@ class CurrentState:
         # convertation object to string
         return str(self.__self_to_dict())
 
-    def get_current_step_type(self) -> StepType:
+    @property
+    def current_step_type(self) -> StepType:
         return self.__step_type
 
     def set_current_step_data(
@@ -66,10 +67,12 @@ class CurrentState:
         self.__step_duration_dt = step_duration
         # self.__elapsed_time_dt = datetime.timedelta(seconds=0)
 
-    def get_current_step_duration(self):
+    @property
+    def current_step_duration(self):
         return self.__step_duration_dt
 
-    def get_step_elapsed_time(self):
+    @property
+    def current_step_elapsed_time(self):
         return self.__elapsed_time_dt
 
     def get_step_remaining_time(self):

@@ -5,21 +5,22 @@ from view import EGView
 
 
 def main():
-    """main function"""
+    """Main function"""
+
     logger.trace(f"Function started")
 
-    eg_controller = EGController()
-    eg_model = EGModel()
-    eg_view = EGView()
+    controller = EGController()
+    model = EGModel()
+    view = EGView()
 
-    eg_controller.set_model(model=eg_model)
-    eg_model.set_view(view=eg_view)
-    eg_view.set_controller(controller=eg_controller)
+    controller.set_model(model=model)
+    model.set_view(view=view)
+    view.set_controller(controller=controller)
 
-    eg_controller.start()
+    controller.start()
     logger.info("Program EyesGuard started!")
 
-    eg_view.mainloop()
+    view.mainloop()
 
 
 # application entry point
