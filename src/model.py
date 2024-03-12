@@ -63,18 +63,17 @@ class EGModel:
 
         logger.info(self.current_state)
 
-        self.__init_view()
-
         logger.trace("Model object was created")
 
     def set_view(self, view: EGView) -> None:
         """Assigning controller to view"""
+        logger.trace("Model: set_view started")
 
         # import placed here for breaking circular import
         # from view import EGView
 
         self.view = view
-        logger.trace("Model: view was set")
+        self.__init_view()
 
     @property
     def model(self) -> EGModel:
@@ -102,5 +101,6 @@ class EGModel:
 
     def __init_view(self):
         """View initialization with model data"""
+        logger.trace("Model: __init_view function started")
         if self.view is not None:
             self.view.init_all_views(self.model)

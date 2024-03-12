@@ -14,6 +14,7 @@ from tkinter import StringVar
 import customtkinter
 from PIL import Image, ImageTk
 
+from logger import logger
 from settings import Settings, UserSettingsData
 
 
@@ -313,6 +314,9 @@ class SettingsWnd(customtkinter.CTkToplevel):
 
     def update(self, user_settings: UserSettingsData):
         """Updating status window elements states"""
+        logger.trace("Settings wnd: update function started")
+        logger.debug(f"New settings: {user_settings}")
+
         self.update_protection_status()
         self.work_duration_value.set(str(user_settings.work_duration))
         self.break_duration_value.set(str(user_settings.break_duration))

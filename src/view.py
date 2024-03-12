@@ -71,6 +71,7 @@ class EGView(customtkinter.CTk):
 
     def init_all_views(self, model: EGModel):
         """Init all data at windows"""
+        logger.trace("View: init_all_views function started")
         self.wnd_status.update(model.settings.user_settings)
         self.wnd_settings.update(model.settings.user_settings)
         self.wnd_break.update(model.current_state)
