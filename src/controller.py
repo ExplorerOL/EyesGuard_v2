@@ -4,6 +4,7 @@ from threading import Thread
 
 from logger import logger
 from model import EGModel
+from settings import UserSettingsData
 from states import StepData, StepType
 
 # from view import EGView
@@ -218,3 +219,7 @@ class EGController:
         self.model.current_state.set_current_step_data(
             step_type=step_type, step_duration=self.steps_data_list[step_type].step_duration_td
         )
+
+    def apply_view_settings(self, user_settings: UserSettingsData) -> None:
+        logger.trace("Controller: applying view settings")
+        self.model.model_user_settings = user_settings

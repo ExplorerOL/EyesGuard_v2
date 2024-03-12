@@ -1,5 +1,12 @@
 """Module with status window of application"""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from view import EGView
+
 import time
 
 import customtkinter
@@ -12,10 +19,12 @@ from windows.break_wnd import BreakWnd
 class StatusWnd(customtkinter.CTkToplevel):
     """Status window"""
 
-    def __init__(self, settings: Settings, break_wnd: BreakWnd, *args, **kwargs):
+    def __init__(self, view: EGView, settings: Settings, break_wnd: BreakWnd, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.settings = settings
         self.break_wnd = break_wnd
+        self.view = view
+
         wnd_width = 250
         wnd_height = 210
         border_x = 50

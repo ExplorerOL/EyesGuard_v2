@@ -1,5 +1,12 @@
 """Module with break window of application"""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from view import EGView
+
 import datetime
 import re
 import time
@@ -16,9 +23,10 @@ from states import CurrentState
 class BreakWnd(customtkinter.CTkToplevel):
     """Break window"""
 
-    def __init__(self, current_state: CurrentState, *args, **kwargs):
+    def __init__(self, view: EGView, current_state: CurrentState, *args, **kwargs):
         super().__init__(*args, fg_color="#000000", **kwargs)
         self.current_state = current_state
+        self.view = view
 
         ws = self.winfo_screenwidth()  # width of the screen
         hs = self.winfo_screenheight()  # height of the screen

@@ -1,5 +1,12 @@
 """Module with settings window of application"""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from view import EGView
+
 import re
 import time
 from tkinter import StringVar
@@ -13,8 +20,10 @@ from settings import Settings, UserSettingsData
 class SettingsWnd(customtkinter.CTkToplevel):
     """Settings window"""
 
-    def __init__(self, settings: Settings, *args, **kwargs):
+    def __init__(self, view: EGView, settings: Settings, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.view = view
         self.settings = settings
         wnd_width = 500
         wnd_height = 350
@@ -343,26 +352,7 @@ class SettingsWnd(customtkinter.CTkToplevel):
     def event_btn_about_click(self) -> None:
         self.select_frame_by_name("frame_about")
 
-    def get_settings_from_widgets(self) -> UserSettingsData:
-        """Get data from all widgets with settings"""
-        ui_settings_data = UserSettingsData()
-        try:
-            ui_settings_data.work_duration = int(self.work_duration_value.get())
-            ui_settings_data.break_duration = int(self.break_duration_value.get())
-            ui_settings_data.protection_status = str(self.chbox_protection_status_value.get())
-            ui_settings_data.sounds = str(self.chbox_sounds_value.get())
-            ui_settings_data.notifications = str(self.chbox_notifications_value.get())
-        except TypeError as error:
-            print("Error occuired while reading settings from ui: {error}")
-        print(f"Settings read from ui: {str(ui_settings_data)}")
-        print(int(self.break_duration_value.get()))
-        print(int(self.work_duration_value.get()))
-        print(self.chbox_sounds_value.get())
-        print(self.chbox_notifications_value.get())
-
-        return ui_settings_data
-
     def apply_ui_settings(self):
-        """Get data from all widgets with settings, apply them ans save to file"""
-        new_settings = self.get_settings_from_widgets()
-        self.settings.apply_settings_from_ui(new_settings)
+        """Coll method of view for applying new settings"""
+        # new_settings = self.get_settings_from_widgets()
+        self.view.apply_view_settings()
