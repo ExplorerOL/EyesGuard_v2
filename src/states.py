@@ -2,6 +2,7 @@ import datetime
 from dataclasses import dataclass
 from enum import IntEnum
 
+from logger import logger
 from settings import Settings
 
 
@@ -79,7 +80,9 @@ class CurrentState:
         return self.__step_duration_dt - self.__elapsed_time_dt
 
     def increase_elapsed_time(self, time_delta: datetime.timedelta = datetime.timedelta(seconds=1)):
+        logger.trace("CurrentState: increase_elapsed_time")
         self.__elapsed_time_dt += time_delta
+        logger.debug(f"__elapsed_time_dt: {self.__elapsed_time_dt}")
 
     def reset_elapsed_time(self):
         self.__elapsed_time_dt = datetime.timedelta(seconds=0)
