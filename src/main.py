@@ -1,14 +1,15 @@
 from controller import EGController
+from logger import logger
 from model import EGModel
 from view import EGView
 
 
 def main():
     """main function"""
-    SETTINGS_FILE = "./settings.json"
+    logger.trace(f"Function started")
 
     eg_controller = EGController()
-    eg_model = EGModel(SETTINGS_FILE)
+    eg_model = EGModel()
     eg_view = EGView()
 
     eg_controller.set_model(model=eg_model)
@@ -16,7 +17,7 @@ def main():
     eg_view.set_controller(controller=eg_controller)
 
     eg_controller.start()
-    print("Programm EyesGuard started!")
+    logger.info("Program EyesGuard started!")
 
     eg_view.mainloop()
 
