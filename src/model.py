@@ -63,11 +63,11 @@ class EGModel:
 
         logger.info(self.current_state)
 
-        logger.trace("Model object was created")
+        logger.trace("EGModel: object was created")
 
     def set_view(self, view: EGView) -> None:
         """Assigning controller to view"""
-        logger.trace("Model: set_view started")
+        logger.trace("EGModel: set_view started")
 
         # import placed here for breaking circular import
         # from view import EGView
@@ -77,30 +77,30 @@ class EGModel:
 
     @property
     def model(self) -> EGModel:
-        logger.trace("Model: getting model data")
+        logger.trace("EGModel: getting model data")
         return self
 
     @property
     def model_settings(self) -> Settings:
-        logger.trace("Model: getting settings")
+        logger.trace("EGModel: getting settings")
         return self.settings
 
     @model_settings.setter
     def model_settings(self, settings: Settings) -> None:
-        logger.trace("Model: saving new settings")
+        logger.trace("EGModel: saving new settings")
 
     @property
     def model_user_settings(self) -> UserSettingsData:
-        logger.trace("Model: getting user settings")
+        logger.trace("EGModel: getting user settings")
         return self.settings.user_settings
 
     @model_user_settings.setter
     def model_user_settings(self, user_settings: UserSettingsData) -> None:
-        logger.trace("Model: saving new settings")
+        logger.trace("EGModel: saving new settings")
         self.settings.apply_settings_from_ui(user_settings)
 
     def __init_view(self):
         """View initialization with model data"""
-        logger.trace("Model: __init_view function started")
+        logger.trace("EGModel: __init_view function started")
         if self.view is not None:
             self.view.init_all_views(self.model)

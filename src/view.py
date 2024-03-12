@@ -42,16 +42,16 @@ class EGView(customtkinter.CTk):
 
         # hide main app wnd
         self.withdraw()
-        logger.trace("View: object was created")
+        logger.trace("EGView: object was created")
 
     def __show_status_wnd(self):
         """Show status wnd"""
-        logger.trace("View: show status wnd")
+        logger.trace("EGView: show status wnd")
         self.wnd_status.show()
 
     def __show_settings_wnd(self):
         """Show settings wnd"""
-        logger.trace("View: show settings wnd")
+        logger.trace("EGView: show settings wnd")
         self.wnd_settings.show()
 
     def __show_notification(self, title: str, text: str):
@@ -60,7 +60,7 @@ class EGView(customtkinter.CTk):
     def set_controller(self, controller: EGController):
         """Assigning controller to view"""
         self.controller = controller
-        logger.trace("View: controller was set")
+        logger.trace("EGView: controller was set")
 
     def exit_app(self):
         """Exit from app"""
@@ -71,13 +71,13 @@ class EGView(customtkinter.CTk):
 
     def init_all_views(self, model: EGModel):
         """Init all data at windows"""
-        logger.trace("View: init_all_views function started")
+        logger.trace("EGView: init_all_views function started")
         self.wnd_status.update(model.settings.user_settings)
         self.wnd_settings.update(model.settings.user_settings)
         self.wnd_break.update(model.current_state)
 
     def apply_view_settings(self):
-        logger.trace("View: applying new settings")
+        logger.trace("EGView: applying new settings")
         self.controller.apply_view_settings(self.__get_settings_from_widgets())
 
     def __get_settings_from_widgets(self) -> UserSettingsData:

@@ -14,11 +14,11 @@ class EGController:
     """Class for time and break control"""
 
     def __init__(self):
-        logger.trace("Controller: object was created")
+        logger.trace("EGController: object was created")
 
     def set_model(self, model: EGModel):
         """Assigning model to controller"""
-        logger.trace("Controller: set_model")
+        logger.trace("EGController: set_model")
         self.model = model
         self.__update_current_state()
         self.thread_alg = None
@@ -36,14 +36,14 @@ class EGController:
     def main_loop(self):
         """Controller main loop in separated thread"""
 
-        logger.trace("Controller: main loop started")
+        logger.trace("EGController: main loop started")
         while True:
             self.__do_current_step_actions()
             self.__wait_for_current_step_is_ended()
             self.__set_new_step_in_sequence()
 
     def __wait_for_current_step_is_ended(self):
-        logger.trace("Controller: __wait_for_current_step_is_ended")
+        logger.trace("EGController: __wait_for_current_step_is_ended")
         while True:
             # print info
             logger.info(f"Current step type: {self.model.current_state.current_step_type}")
@@ -91,7 +91,7 @@ class EGController:
 
     def __update_time_until_break(self):
         """Updating time until break info"""
-        logger.trace("Controller: __update_time_until_break")
+        logger.trace("EGController: __update_time_until_break")
 
         remaining_time_actual: datetime.timedelta = self.model.current_state.get_step_remaining_time()
         remaining_time_for_work_full = (
@@ -128,7 +128,7 @@ class EGController:
         # )
 
     def __change_step_if_protection_mode_was_changed(self):
-        logger.trace("Controller: __change_step_if_protection_mode_was_changed")
+        logger.trace("EGController: __change_step_if_protection_mode_was_changed")
         # if (
         #     self.model.set_model.user_settings.protection_status == "off"
         #     and self.model.current_state.current_step_type() != StepType.off_mode
@@ -143,7 +143,7 @@ class EGController:
         #     self._set_current_step(step_type=StepType.work_mode)
 
     def __do_current_step_actions(self):
-        logger.trace("Controller: __do_current_step_actions")
+        logger.trace("EGController: __do_current_step_actions")
         # self.model.current_state.reset_elapsed_time()
         # print(f"New current step {(self.model.current_state.current_step_type())}")
         # print(f"Type {type(self.model.current_state.current_step_type())}")
@@ -172,7 +172,7 @@ class EGController:
         #         # self.break_wnd.hide()
 
     def __update_model_settings(self):
-        logger.trace("Controller: __update_model_settings")
+        logger.trace("EGController: __update_model_settings")
         # self.model.settings.user_settings = self.model.settings.user_settings
         # self.model.(self.model)
         # print(self.model.set_model.user_settings)
@@ -198,7 +198,7 @@ class EGController:
             )
 
     def __set_new_step_in_sequence(self):
-        logger.trace("Controller: __set_new_step_in_sequence")
+        logger.trace("EGController: __set_new_step_in_sequence")
 
         # current_step_type = self.model.current_state.current_step_type()
 
@@ -225,5 +225,5 @@ class EGController:
         )
 
     def apply_view_settings(self, user_settings: UserSettingsData) -> None:
-        logger.trace("Controller: applying view settings")
+        logger.trace("EGController: applying view settings")
         self.model.model_user_settings = user_settings
