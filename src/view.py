@@ -10,9 +10,9 @@ from controller import EGController
 from logger import logger
 from model import CurrentState, EGModel
 from settings import Settings, UserSettingsData
-from windows.break_wnd import BreakWnd
-from windows.settings_wnd import SettingsWnd
-from windows.status_wnd import StatusWnd
+from windows.wnd_break import WndBreak
+from windows.wnd_settings import WndSettings
+from windows.wnd_status import WndStatus
 
 
 class EGView(customtkinter.CTk):
@@ -26,9 +26,9 @@ class EGView(customtkinter.CTk):
         self.settings = Settings()
         self.current_state = CurrentState(self.settings)
         self.title("EyesGuard v2")
-        self.wnd_settings = SettingsWnd(self, self.settings)
-        self.wnd_break = BreakWnd(self, self.current_state)
-        self.wnd_status = StatusWnd(self, self.settings, self.wnd_break)
+        self.wnd_settings = WndSettings(self, self.settings)
+        self.wnd_break = WndBreak(self, self.current_state)
+        self.wnd_status = WndStatus(self, self.settings, self.wnd_break)
 
         # tray icon
         self.image = Image.open("res/img/eyes_with_protection.png")

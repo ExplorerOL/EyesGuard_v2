@@ -18,7 +18,7 @@ from logger import logger
 from settings import Settings, UserSettingsData
 
 
-class SettingsWnd(customtkinter.CTkToplevel):
+class WndSettings(customtkinter.CTkToplevel):
     """Settings window"""
 
     def __init__(self, view: EGView, settings: Settings, *args, **kwargs):

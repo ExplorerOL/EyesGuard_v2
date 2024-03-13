@@ -20,7 +20,7 @@ from states import CurrentState
 # from settings import Settings, SettingsData
 
 
-class BreakWnd(customtkinter.CTkToplevel):
+class WndBreak(customtkinter.CTkToplevel):
     """Break window"""
 
     def __init__(self, view: EGView, current_state: CurrentState, *args, **kwargs):

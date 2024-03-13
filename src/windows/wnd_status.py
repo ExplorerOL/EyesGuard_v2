@@ -13,16 +13,16 @@ import customtkinter
 from PIL import Image
 
 from settings import Settings, UserSettingsData
-from windows.break_wnd import BreakWnd
+from windows.wnd_break import WndBreak
 
 
-class StatusWnd(customtkinter.CTkToplevel):
+class WndStatus(customtkinter.CTkToplevel):
     """Status window"""
 
-    def __init__(self, view: EGView, settings: Settings, break_wnd: BreakWnd, *args, **kwargs):
+    def __init__(self, view: EGView, settings: Settings, break_wnd: WndBreak, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.settings = settings
-        self.break_wnd = break_wnd
+        self.wnd_break = break_wnd
         self.view = view
 
         wnd_width = 250
@@ -123,7 +123,7 @@ class StatusWnd(customtkinter.CTkToplevel):
 
     def btn_take_break_action(self):
         """Action for pressing button for taking a break"""
-        self.break_wnd.show()
+        self.wnd_break.show()
 
     def update(self, user_settings: UserSettingsData):
         """Updating status window elements states"""
