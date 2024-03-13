@@ -81,7 +81,7 @@ class BreakWnd(customtkinter.CTkToplevel):
 
         self.set_lbl_remaining_time_text(self.current_state.get_step_remaining_time())
 
-        pbar_speed = 1 * 1.4455 / self.current_state.current_step_duration().seconds
+        pbar_speed = 1 * 1.4455 / self.current_state.current_step_duration.seconds
         print(f"pb speed = {pbar_speed}")
         self.pbar_break_progress.configure(determinate_speed=pbar_speed)
         self.pbar_break_progress.set(0)

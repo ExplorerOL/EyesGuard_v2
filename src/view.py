@@ -54,7 +54,8 @@ class EGView(customtkinter.CTk):
         logger.trace("EGView: show settings wnd")
         self.wnd_settings.show()
 
-    def __show_notification(self, title: str, text: str):
+    def show_notification(self, title: str, text: str):
+        logger.trace("EGView: show_notification")
         self.tray_icon.notify(title, text)
 
     def set_controller(self, controller: EGController):
@@ -99,3 +100,9 @@ class EGView(customtkinter.CTk):
         # print(self.chbox_notifications_value.get())
 
         return ui_settings_data
+
+    def show_wnd_break(self):
+        self.wnd_break.show()
+
+    def hide_wnd_break(self):
+        self.wnd_break.hide()

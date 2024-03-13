@@ -108,32 +108,34 @@ class EGModel:
 
     def do_current_step_actions(self):
         logger.trace("EGModel: __do_current_step_actions")
-        # self.model.current_state.reset_elapsed_time()
-        # print(f"New current step {(self.model.current_state.current_step_type())}")
-        # print(f"Type {type(self.model.current_state.current_step_type())}")
+        self.model.current_state.reset_elapsed_time()
+        logger.debug(f"New current step {(self.current_state.current_step_type)}")
+        logger.debug(f"Type {type(self.current_state.current_step_type)}")
 
-        # match self.model.current_state.current_step_type():
-        #     case StepType.off_mode:
-        #         print("Control_alg: showing off mode notification")
-        #         # self.view.show_notification("Eyes Guard is in suspended mode!", "Attention!")
+        match self.model.current_state.current_step_type:
+            case StepType.off_mode:
+                logger.trace("EGModel: off_mode actions")
+                self.view.show_notification("Eyes Guard is in suspended mode!", "Attention!")
 
-        #     case StepType.break_mode:
-        #         print("Control_alg: showing break window")
-        #         # self.break_wnd.show()
+            case StepType.break_mode:
+                logger.trace("EGModel: break_mode actions")
+                self.view.show_wnd_break()
 
-        #     case StepType.work_notified_1:
-        #         if self.model.set_model.user_settings.notifications == "on":
-        #             print("Control_alg: showing working notification 1")
-        #             # self.view.show_notification("Break will start in 1 minute!", "Attention!")
+            case StepType.work_notified_1:
+                logger.trace("EGModel: work_notified_1 actions")
+                if self.settings.user_settings.notifications == "on":
+                    pass
+                    # self.view.show_notification("Break will start in 1 minute!", "Attention!")
 
-        #     case StepType.work_notified_2:
-        #         if self.model.set_model.user_settings.notifications == "on":
-        #             print("Control_alg: showing working notification 2")
-        #             # self.view.show_notification("Break will start in 5 seconds!", "Attention!")
+            case StepType.work_notified_2:
+                logger.trace("EGModel: work_notified_2 actions")
+                if self.settings.user_settings.notifications == "on":
+                    self.view.show_notification("Break will start in 5 seconds!", "Attention!")
 
-        #     case StepType.work_mode:
-        #         print("Control_alg: hiding break window")
-        #         # self.break_wnd.hide()
+            case StepType.work_mode:
+                logger.trace("EGModel: work_mode actions")
+                self.view.hide_wnd_break()
+                # self.break_wnd.hide()
 
     def wait_for_current_step_is_ended(self):
         logger.trace("EGModel: __wait_for_current_step_is_ended")
