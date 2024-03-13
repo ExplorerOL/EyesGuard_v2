@@ -33,11 +33,6 @@ class CurrentState:
         self.__step_duration_dt: datetime.timedelta = datetime.timedelta(seconds=0)
         self.__elapsed_time_dt: datetime.timedelta = datetime.timedelta(seconds=0)
 
-        if settings.user_settings.protection_status == "on":
-            self.__step_type = StepType.work_mode
-        else:
-            self.__step_type = StepType.off_mode
-
         print(f"Init current state: {self}")
 
     def __self_to_dict(self) -> dict:

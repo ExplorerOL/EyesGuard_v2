@@ -266,10 +266,10 @@ class EGModel:
     def set_new_step_in_sequence(self):
         logger.trace("EGController: __set_new_step_in_sequence")
 
-        current_step_type = self.model.current_state.current_step_type
+        # current_step_type = self.model.current_state.current_step_type
 
         # steps transitions
-        match current_step_type:
+        match self.current_state.current_step_type:
             case StepType.off_mode:
                 new_step_type = StepType.work_mode
             case StepType.work_mode:
@@ -281,6 +281,7 @@ class EGModel:
             case StepType.break_mode:
                 new_step_type = StepType.work_mode
 
+        logger.debug(f"EGModel: new step = {new_step_type}")
         self.__set_current_step(new_step_type)
 
     def __set_current_step(self, step_type: StepType) -> None:
@@ -290,6 +291,9 @@ class EGModel:
         self.model.current_state.set_current_step_data(
             step_type=step_type, step_duration=self.model.steps_data_list[step_type].step_duration_td
         )
+        logger.debug(f"Step_type: {self.model.current_state.current_step_type}")
+        logger.debug(f"Step_duration: {self.model.current_state.current_step_duration}")
+        logger.debug(f"Steps data list: {self.model.steps_data_list[step_type]}")
 
     def apply_new_settings(self, user_settings: UserSettingsData) -> None:
         logger.trace("EGModel: applying view settings")
