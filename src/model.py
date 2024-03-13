@@ -291,6 +291,6 @@ class EGModel:
             step_type=step_type, step_duration=self.model.steps_data_list[step_type].step_duration_td
         )
 
-    def apply_view_settings(self, user_settings: UserSettingsData) -> None:
+    def apply_new_settings(self, user_settings: UserSettingsData) -> None:
         logger.trace("EGModel: applying view settings")
         self.model.model_user_settings = user_settings

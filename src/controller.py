@@ -2,6 +2,7 @@ from threading import Thread
 
 from logger import logger
 from model import EGModel
+from settings import UserSettingsData
 
 # from view import EGView
 
@@ -19,7 +20,7 @@ class EGController:
         self.thread_alg = None
 
     def start(self):
-        """Start controller"""
+        """Start controller in separated thread"""
         if self.thread_alg is None:
             self.thread_alg = Thread(target=self.main_loop)
             self.thread_alg.start()
@@ -35,3 +36,7 @@ class EGController:
             self.model.do_current_step_actions()
             self.model.wait_for_current_step_is_ended()
             self.model.set_new_step_in_sequence()
+
+    def apply_view_settings(self, user_settings: UserSettingsData) -> None:
+        logger.trace("EGModel: applying view settings")
+        self.model.apply_new_settings(user_settings)
