@@ -7,6 +7,7 @@ import customtkinter
 import pystray
 from PIL import Image
 
+import data.wnd_values as wnd_values
 from controller import EGController
 from logger import logger
 from model import CurrentState, EGModel
@@ -114,5 +115,5 @@ class EGView(customtkinter.CTk):
     def update_wnd_break_values(self, current_state: CurrentState) -> None:
         self.__wnd_break.update_values(current_state)
 
-    def update_try_icon_tooltip(self, time_until_break_tooltip_string: str) -> None:
-        self.tray_icon.title = time_until_break_tooltip_string
+    def update_tray_icon_values(self, tray_icon_values: wnd_values.TryIconValues) -> None:
+        self.tray_icon.title = tray_icon_values.tooltip_str

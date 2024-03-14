@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from view import EGView
 
-# import dataclasses.wnd_values
 import datetime
 import time
 
+import data.wnd_values as wnd_values
 from logger import logger
 from settings import Settings, UserSettingsData
 from states import CurrentState, StepData, StepType
@@ -220,7 +220,9 @@ class EGModel:
         logger.debug("Updating time")
 
         time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_actual}"
-        self.view.update_try_icon_tooltip(time_until_break_tooltip_string)
+        tray_icon_values = wnd_values.TryIconValues()
+        tray_icon_values.tooltip_str = time_until_break_tooltip_string
+        self.view.update_tray_icon_values(tray_icon_values)
 
         # self.view.tray_icon.title = time_until_break_tooltip_string
         # self.view.wnd_status.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
