@@ -9,6 +9,7 @@ class WndSettingsValues:
 @dataclass
 class TryIconValues:
     tooltip_str: str = ""
+    protection_status: str = ""
 
 
 @dataclass

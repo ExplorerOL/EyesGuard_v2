@@ -11,7 +11,7 @@ import data.wnd_values as wnd_values
 from controller import Controller
 from logger import logger
 from model import CurrentState, Model
-from settings import Settings, UserSettingsData
+from settings import OnOffValue, Settings, UserSettingsData
 from windows.wnd_break import WndBreak
 from windows.wnd_settings import WndSettings
 from windows.wnd_status import WndStatus
@@ -33,14 +33,15 @@ class View(customtkinter.CTk):
         self.title("EyesGuard v2")
 
         # tray icon
-        self.image = Image.open("res/img/eyes_with_protection.png")
+        self.image_protection_active = Image.open("res/img/eyes_with_protection.png")
+        self.image_protection_suspended = Image.open("res/img/eyes_without_protection.png")
         menu = (
             pystray.MenuItem("Status", self.__show_status_wnd, default=True),
             pystray.MenuItem("Settings", self.__show_settings_wnd),
             pystray.MenuItem("Exit", self.exit_app),
         )
-        self.tray_icon = pystray.Icon("name", self.image, "Eyes Guard", menu)
-        self.tray_icon.run_detached()
+        self.__tray_icon = pystray.Icon("name", self.image_protection_active, "Eyes Guard", menu)
+        self.__tray_icon.run_detached()
 
         # hide main app wnd
         self.withdraw()
@@ -58,7 +59,7 @@ class View(customtkinter.CTk):
 
     def show_notification(self, title: str, text: str):
         logger.trace("View: show_notification")
-        self.tray_icon.notify(title, text)
+        self.__tray_icon.notify(title, text)
 
     def set_controller(self, controller: Controller):
         """Assigning controller to view"""
@@ -67,8 +68,8 @@ class View(customtkinter.CTk):
 
     def exit_app(self):
         """Exit from app"""
-        self.tray_icon.visible = False
-        self.tray_icon.stop()
+        self.__tray_icon.visible = False
+        self.__tray_icon.stop()
         self.quit()
         os._exit(0)
 
@@ -118,8 +119,12 @@ class View(customtkinter.CTk):
     def update_wnd_break_values(self, new_values: wnd_values.WndBreakValues) -> None:
         self.__wnd_break.update_values(new_values)
 
-    def update_tray_icon_values(self, tray_icon_values: wnd_values.TryIconValues) -> None:
-        self.tray_icon.title = tray_icon_values.tooltip_str
+    def update_tray_icon_values(self, new_tray_icon_values: wnd_values.TryIconValues) -> None:
+        self.__tray_icon.title = new_tray_icon_values.tooltip_str
+        if new_tray_icon_values.protection_status == OnOffValue.on.value:
+            self.__tray_icon.icon = self.image_protection_active
+        else:
+            self.__tray_icon.icon = self.image_protection_suspended
 
     def change_protection_state(self):
         self.controller.change_protection_state()

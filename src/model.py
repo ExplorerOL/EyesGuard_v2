@@ -102,6 +102,7 @@ class Model:
         time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_to_display}"
         new_tray_icon_values = wnd_values.TryIconValues()
         new_tray_icon_values.tooltip_str = time_until_break_tooltip_string
+        new_tray_icon_values.protection_status = self.__settings.user_settings.protection_status
         self.__view.update_tray_icon_values(new_tray_icon_values)
 
     def __update_wnd_status_values(self):
