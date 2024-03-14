@@ -12,7 +12,7 @@ import time
 
 import data.wnd_values as wnd_values
 from logger import logger
-from settings import Settings, UserSettingsData
+from settings import OnOffValue, Settings, UserSettingsData
 from states import CurrentState, StepData, StepType
 
 SETTINGS_FILE = "./settings/settings.json"
@@ -302,7 +302,21 @@ class Model:
         self.__set_current_step(new_step_type)
 
     def apply_new_settings(self, user_settings: UserSettingsData) -> None:
-        logger.trace("Model: applying view settings")
+        logger.trace("Model: apply_new_settings")
         self.model.model_user_settings = user_settings
         self.__init_steps()
         self.__set_current_step(self.current_state.current_step_type)
+
+    def change_protection_state(self):
+        new_user_settings = self.model_user_settings
+        if new_user_settings.protection_status == OnOffValue.on.value:
+            new_user_settings.protection_status = OnOffValue.off.value
+        else:
+            new_user_settings.protection_status = OnOffValue.on.value
+        self.model_user_settings = new_user_settings
+        self.__init_steps()
+
+        if new_user_settings.protection_status == OnOffValue.off.value:
+            self.__set_current_step(StepType.off_mode)
+        else:
+            self.__set_current_step(StepType.work_mode)

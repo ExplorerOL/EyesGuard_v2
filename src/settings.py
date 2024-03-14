@@ -3,10 +3,16 @@
 import copy
 import datetime
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError
+
+
+class OnOffValue(Enum):
+    on = "on"
+    off = "off"
 
 
 @dataclass
@@ -24,9 +30,9 @@ class UserSettingsData:
 
     work_duration: int = 45
     break_duration: int = 15
-    sounds = "on"
-    notifications = "on"
-    protection_status = "on"
+    sounds = OnOffValue.on.value
+    notifications = OnOffValue.on.value
+    protection_status = OnOffValue.on.value
 
     def _settings_to_dict(self) -> dict:
         # convertation object to dict
@@ -100,8 +106,8 @@ class Settings:
             return None
         return settings_str
 
-    def _write_settings_to_file(self, settings: UserSettingsData) -> None:
-        """writing settings from file on disk"""
+    # def _write_settings_to_file(self, settings: UserSettingsData) -> None:
+    #     """writing settings from file on disk"""
 
     def _validate_settings_str(self, settings_str: str) -> SettingsDataValidator | None:
         """validation settings"""
@@ -161,19 +167,10 @@ class Settings:
             print(error)
             print(type(error))
             return
-
+        settings_validated.protection_status = OnOffValue.on.value
         settings_json = settings_validated.model_dump_json(indent=4)
         print(settings_json)
         self.__settings_file.write_text(settings_json, encoding="utf-8")
-
-    def change_protection_state(self):
-        """Change protection status"""
-
-        if self.__user_settings.protection_status == "on":
-            self.__user_settings.protection_status = "off"
-        else:
-            self.__user_settings.protection_status = "on"
-        self.save_settings_to_file()
 
     def get_settings_copy(self) -> UserSettingsData:
         """Return copy of settings object"""

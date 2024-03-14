@@ -29,7 +29,7 @@ class View(customtkinter.CTk):
         self.__current_state = CurrentState(self.__settings)
         self.__wnd_settings = WndSettings(self, self.__settings)
         self.__wnd_break = WndBreak(self, self.__current_state)
-        self.__wnd_status = WndStatus(self, self.__settings, self.__wnd_break)
+        self.__wnd_status = WndStatus(self)
         self.title("EyesGuard v2")
 
         # tray icon
@@ -117,3 +117,6 @@ class View(customtkinter.CTk):
 
     def update_tray_icon_values(self, tray_icon_values: wnd_values.TryIconValues) -> None:
         self.tray_icon.title = tray_icon_values.tooltip_str
+
+    def change_protection_state(self):
+        self.controller.change_protection_state()

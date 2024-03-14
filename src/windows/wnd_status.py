@@ -13,6 +13,7 @@ import customtkinter
 from PIL import Image
 
 import data.wnd_values as wnd_values
+from logger import logger
 from settings import Settings, UserSettingsData
 from windows.wnd_break import WndBreak
 
@@ -20,10 +21,10 @@ from windows.wnd_break import WndBreak
 class WndStatus(customtkinter.CTkToplevel):
     """Status window"""
 
-    def __init__(self, view: View, settings: Settings, break_wnd: WndBreak, *args, **kwargs):
+    def __init__(self, view: View, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.settings = settings
-        self.wnd_break = break_wnd
+        # self.settings = settings
+        # self.wnd_break = break_wnd
         self.view = view
 
         wnd_width = 250
@@ -60,13 +61,15 @@ class WndStatus(customtkinter.CTkToplevel):
             self, orientation="horizontal", height=20, fg_color="#3B8ED0", progress_color="GreenYellow"
         )
         self.pbar_time_until_break.grid(row=1, column=0, padx=20, pady=(0, 10), sticky="ew")
-        print(f' ---------------- progress_color = {self.pbar_time_until_break.cget("progress_color")}')
+        logger.debug(
+            f' ---------------- progress_color = {self.pbar_time_until_break.cget("progress_color")}'
+        )
         # button change protection state
         self.btn_change_protection_state = customtkinter.CTkButton(
             self,
             text="Protection active",
             text_color="GreenYellow",
-            command=self.btn_change_protection_state_action,
+            command=self.__btn_change_protection_state_action,
             height=30,
             width=120,
             corner_radius=50,
@@ -81,7 +84,7 @@ class WndStatus(customtkinter.CTkToplevel):
             self,
             text="Take a break now",
             text_color="GreenYellow",
-            command=self.btn_take_break_action,
+            command=self.__btn_take_break_action,
             height=30,
             width=150,
             corner_radius=50,
@@ -117,14 +120,14 @@ class WndStatus(customtkinter.CTkToplevel):
             self.attributes("-alpha", i / 100)
             time.sleep(0.006)
 
-    def btn_change_protection_state_action(self):
+    def __btn_change_protection_state_action(self):
         """Action for pressing changeing protection state button"""
-        self.settings.change_protection_state()
+        self.view.change_protection_state()
         # self.update_view()
 
-    def btn_take_break_action(self):
+    def __btn_take_break_action(self):
         """Action for pressing button for taking a break"""
-        self.wnd_break.show()
+        # self.wnd_break.show()
 
     def update(self, user_settings: UserSettingsData):
         """Updating status window elements states"""

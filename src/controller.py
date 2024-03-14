@@ -40,3 +40,6 @@ class Controller:
     def apply_view_user_settings(self, user_settings: UserSettingsData) -> None:
         logger.trace("EGModel: applying view settings")
         self.model.apply_new_settings(user_settings)
+
+    def change_protection_state(self):
+        self.model.change_protection_state()
