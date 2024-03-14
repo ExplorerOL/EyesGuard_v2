@@ -29,7 +29,13 @@ class EGModel:
         logger.info(f"User settings: = {self.__settings.user_settings}")
 
         self.steps_data_list: list[StepData] = []
+        self.__init_steps()
 
+        logger.info(self.__current_state)
+
+        logger.trace("EGModel: object was created")
+
+    def __init_steps(self):
         for step_type in StepType:
             self.steps_data_list.insert(step_type, StepData())
             self.steps_data_list[step_type].step_type = step_type
@@ -64,10 +70,6 @@ class EGModel:
         for step in self.steps_data_list:
             logger.info(f"{step.step_type=}")
             logger.info(step.step_duration_td)
-
-        logger.info(self.__current_state)
-
-        logger.trace("EGModel: object was created")
 
     def set_view(self, view: EGView) -> None:
         """Assigning controller to view"""
@@ -330,3 +332,5 @@ class EGModel:
     def apply_new_settings(self, user_settings: UserSettingsData) -> None:
         logger.trace("EGModel: applying view settings")
         self.model.model_user_settings = user_settings
+        self.__init_steps()
+        self.__set_current_step(self.current_state.current_step_type)
