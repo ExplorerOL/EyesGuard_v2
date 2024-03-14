@@ -96,7 +96,7 @@ class Model:
         """Updating tray icon values"""
         logger.trace("Controller: __update_tray_icon_values")
 
-        remaining_time_to_display = self.__calculate_remaining_time_to_display()
+        remaining_time_to_display = self.__calculate_remaining_time_for_work()
         # logger.debug("Updating time")
 
         time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_to_display}"
@@ -108,8 +108,8 @@ class Model:
         """Updating status window values"""
         logger.trace("Controller: __update_wnd_status_values")
 
-        remaining_time_to_display = self.__calculate_remaining_time_to_display()
-        remaining_time_for_work_full = self.__calculate_remaining_time_for_work()
+        remaining_time_to_display = self.__calculate_remaining_time_for_work()
+        remaining_time_for_work_full = self.__calculate_time_for_work()
         # logger.debug("Updating time")
 
         time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_to_display}"
@@ -141,12 +141,16 @@ class Model:
         )
         self.__view.update_wnd_break_values(new_wnd_break_values)
 
-    def __calculate_remaining_time_to_display(self) -> datetime.timedelta:
+    def __calculate_remaining_time_for_work(self) -> datetime.timedelta:
         remaining_time_actual: datetime.timedelta = self.model.__current_state.current_step_remaining_time
         logger.debug(remaining_time_actual)
         match self.model.__current_state.current_step_type:
             case StepType.off_mode:
-                remaining_time_actual += self.model.steps_data_list[StepType.work_mode].step_duration_td
+                remaining_time_actual += (
+                    self.model.steps_data_list[StepType.work_mode].step_duration_td
+                    + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
+                    + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
+                )
 
             case StepType.work_mode:
                 remaining_time_actual += (
@@ -157,27 +161,28 @@ class Model:
                 remaining_time_actual += self.model.steps_data_list[StepType.work_notified_2].step_duration_td
         return remaining_time_actual
 
-    def __calculate_remaining_time_for_work(self) -> datetime.timedelta:
+    def __calculate_time_for_work(self) -> datetime.timedelta:
         # remaining_time_actual: datetime.timedelta = self.model.__current_state.current_step_remaining_time
-        remaining_time_for_work_full = (
+        time_for_work = (
             self.model.steps_data_list[StepType.work_mode].step_duration_td
             + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
             + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
         )
         match self.model.__current_state.current_step_type:
             case StepType.off_mode:
-                remaining_time_for_work_full = (
+                time_for_work = (
                     self.model.steps_data_list[StepType.off_mode].step_duration_td
                     + self.model.steps_data_list[StepType.work_mode].step_duration_td
                     + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
                     + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
                 )
-        return remaining_time_for_work_full
+        return time_for_work
 
     def __set_current_step(self, step_type: StepType) -> None:
         """settind step data in current state by step type"""
         logger.trace("Model: __set_current_step")
 
+        self.model.__current_state.reset_elapsed_time()
         self.model.__current_state.set_current_step_data(
             step_type=step_type, step_duration=self.model.steps_data_list[step_type].step_duration_td
         )
@@ -226,7 +231,7 @@ class Model:
 
     def do_current_step_actions(self):
         logger.trace("Model: __do_current_step_actions")
-        self.model.__current_state.reset_elapsed_time()
+        # self.model.__current_state.reset_elapsed_time()
         logger.debug(f"New current step {(self.__current_state.current_step_type)}")
         logger.debug(f"New step type {type(self.__current_state.current_step_type)}")
         logger.debug(f"New step duration {self.__current_state.current_step_duration}")
@@ -255,6 +260,9 @@ class Model:
 
             case StepType.work_mode:
                 logger.trace("Model: work_mode actions")
+                if self.model_user_settings.protection_status == OnOffValue.off.value:
+                    self.change_protection_state()
+
                 self.__view.hide_wnd_break()
                 # self.break_wnd.hide()
 
@@ -309,9 +317,9 @@ class Model:
 
     def apply_new_settings(self, user_settings: UserSettingsData) -> None:
         logger.trace("Model: apply_new_settings")
-        self.model.model_user_settings = user_settings
+        self.model_user_settings = user_settings
         self.__init_steps()
-        self.__set_current_step(self.current_state.current_step_type)
+        self.__set_current_step(StepType.work_mode)
 
     def change_protection_state(self):
         logger.trace("Model: change_protection_state")
