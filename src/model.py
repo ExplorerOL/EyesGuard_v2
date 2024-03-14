@@ -127,6 +127,7 @@ class EGModel:
 
             case StepType.break_mode:
                 logger.trace("EGModel: break_mode actions")
+                self.__update_wnd_break_values()
                 self.__view.show_wnd_break()
 
             case StepType.work_notified_1:
@@ -171,7 +172,7 @@ class EGModel:
                     # new_wnd_break_values = wnd_values.WndBreakValues()
                     # new_wnd_break_values.remaining_time_str
                     # self.__view.update_wnd_break_values(self.model.__current_state)
-                    self.__update_wnd_values()
+                    self.__update_wnd_break_values()
 
                 case (
                     StepType.off_mode
@@ -247,12 +248,27 @@ class EGModel:
         new_wnd_break_values.remaining_time_pbar_value = (
             1 - remaining_time_actual / self.model.steps_data_list[StepType.break_mode].step_duration_td
         )
-        self.__view.update_wnd_break_values(new_wnd_break_values)
+        # self.__view.update_wnd_break_values(new_wnd_break_values)
         # self.view.tray_icon.title = time_until_break_tooltip_string
         # self.view.wnd_status.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
         # self.view.wnd_status.pbar_time_until_break.set(
         #     1 - remaining_time_actual / remaining_time_for_work_full
         # )
+        # self.__update_wnd_break_values()
+
+    def __update_wnd_break_values(self):
+        """Updating wnd break values"""
+        logger.trace("EGController: __update_wnd_break_values")
+        new_wnd_break_values = wnd_values.WndBreakValues()
+        new_wnd_break_values.remaining_time_str = (
+            f"Remaining break time: {self.model.__current_state.current_step_remaining_time}"
+        )
+        new_wnd_break_values.remaining_time_pbar_value = (
+            1
+            - self.model.__current_state.current_step_remaining_time
+            / self.model.steps_data_list[StepType.break_mode].step_duration_td
+        )
+        self.__view.update_wnd_break_values(new_wnd_break_values)
 
     # def __update_model_settings(self):
     #     logger.trace("EGController: __update_model_settings")

@@ -15,6 +15,7 @@ class TryIconValues:
 class WndStatusValues:
     remaining_time_str: str = ""
     remaining_time_pbar_value: float = 0
+    protection_status: str = ""
 
 
 @dataclass
