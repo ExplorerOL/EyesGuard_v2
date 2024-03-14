@@ -112,6 +112,9 @@ class View(customtkinter.CTk):
     def update_wnd_status_values(self, wnd_status_values: wnd_values.WndStatusValues) -> None:
         self.__wnd_status.update_values(wnd_status_values)
 
+    def update_wnd_settings_values(self, wnd_settings_values: wnd_values.WndSettingsValues) -> None:
+        self.__wnd_settings.update_values(wnd_settings_values)
+
     def update_wnd_break_values(self, new_values: wnd_values.WndBreakValues) -> None:
         self.__wnd_break.update_values(new_values)
 

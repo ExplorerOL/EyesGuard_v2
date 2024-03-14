@@ -132,7 +132,11 @@ class WndStatus(customtkinter.CTkToplevel):
     def update(self, user_settings: UserSettingsData):
         """Updating status window elements states"""
 
-        if user_settings.protection_status == "on":
+    def update_values(self, new_values: wnd_values.WndStatusValues):
+        self.lbl_time_until_break.configure(text=new_values.remaining_time_str)
+        self.pbar_time_until_break.set(value=new_values.remaining_time_pbar_value)
+
+        if new_values.protection_status == "on":
             self.btn_change_protection_state.configure(
                 text="Protection active",
                 text_color="GreenYellow",
@@ -147,7 +151,3 @@ class WndStatus(customtkinter.CTkToplevel):
                 image=customtkinter.CTkImage(light_image=self.img_eyes_without_protection, size=(30, 30)),
                 require_redraw=True,
             )
-
-    def update_values(self, new_values: wnd_values.WndStatusValues):
-        self.lbl_time_until_break.configure(text=new_values.remaining_time_str)
-        self.pbar_time_until_break.set(value=new_values.remaining_time_pbar_value)

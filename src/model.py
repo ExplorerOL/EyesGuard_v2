@@ -119,7 +119,27 @@ class Model:
         new_wnd_status_values.remaining_time_pbar_value = (
             1 - remaining_time_to_display / remaining_time_for_work_full
         )
+        new_wnd_status_values.protection_status = self.model_user_settings.protection_status
         self.__view.update_wnd_status_values(new_wnd_status_values)
+
+    def __update_wnd_settings_values(self):
+        new_wnd_settings_values = wnd_values.WndSettingsValues()
+        new_wnd_settings_values.protection_status = self.model_user_settings.protection_status
+        self.__view.update_wnd_settings_values(new_wnd_settings_values)
+
+    def __update_wnd_break_values(self):
+        """Updating break window values"""
+        logger.trace("Controller: __update_wnd_break_values")
+        new_wnd_break_values = wnd_values.WndBreakValues()
+        new_wnd_break_values.remaining_time_str = (
+            f"Remaining break time: {self.model.__current_state.current_step_remaining_time}"
+        )
+        new_wnd_break_values.remaining_time_pbar_value = (
+            1
+            - self.model.__current_state.current_step_remaining_time
+            / self.model.steps_data_list[StepType.break_mode].step_duration_td
+        )
+        self.__view.update_wnd_break_values(new_wnd_break_values)
 
     def __calculate_remaining_time_to_display(self) -> datetime.timedelta:
         remaining_time_actual: datetime.timedelta = self.model.__current_state.current_step_remaining_time
@@ -153,20 +173,6 @@ class Model:
                     + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
                 )
         return remaining_time_for_work_full
-
-    def __update_wnd_break_values(self):
-        """Updating break window values"""
-        logger.trace("Controller: __update_wnd_break_values")
-        new_wnd_break_values = wnd_values.WndBreakValues()
-        new_wnd_break_values.remaining_time_str = (
-            f"Remaining break time: {self.model.__current_state.current_step_remaining_time}"
-        )
-        new_wnd_break_values.remaining_time_pbar_value = (
-            1
-            - self.model.__current_state.current_step_remaining_time
-            / self.model.steps_data_list[StepType.break_mode].step_duration_td
-        )
-        self.__view.update_wnd_break_values(new_wnd_break_values)
 
     def __set_current_step(self, step_type: StepType) -> None:
         """settind step data in current state by step type"""
@@ -308,6 +314,7 @@ class Model:
         self.__set_current_step(self.current_state.current_step_type)
 
     def change_protection_state(self):
+        logger.trace("Model: change_protection_state")
         new_user_settings = self.model_user_settings
         if new_user_settings.protection_status == OnOffValue.on.value:
             new_user_settings.protection_status = OnOffValue.off.value
@@ -320,3 +327,5 @@ class Model:
             self.__set_current_step(StepType.off_mode)
         else:
             self.__set_current_step(StepType.work_mode)
+        self.__update_wnd_status_values()
+        self.__update_wnd_settings_values()

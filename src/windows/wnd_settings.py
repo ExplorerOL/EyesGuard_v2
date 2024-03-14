@@ -14,8 +14,9 @@ from tkinter import StringVar
 import customtkinter
 from PIL import Image, ImageTk
 
+import data.wnd_values as wnd_values
 from logger import logger
-from settings import Settings, UserSettingsData
+from settings import OnOffValue, Settings, UserSettingsData
 
 
 class WndSettings(customtkinter.CTkToplevel):
@@ -275,7 +276,7 @@ class WndSettings(customtkinter.CTkToplevel):
 
     def on_focus_in(self, event):
         """Actions on focus at window"""
-        self.update_protection_status()
+        # self.update_protection_status()
 
     def on_focus_out(self, event):
         """Actions on focus out of window"""
@@ -303,21 +304,25 @@ class WndSettings(customtkinter.CTkToplevel):
         print(result)
         return result
 
-    def update_protection_status(self):
+    def update_protection_status(self, current_protection_status: str):
         """Updating protection status at settings window"""
-        print(f"protection_status={self.chbox_protection_status_value.get()}")
-        self.chbox_protection_status_value.set(value=self.settings.get_settings_copy().protection_status)
-        if self.chbox_protection_status_value.get() == "on":
+        # print(f"protection_status={self.chbox_protection_status_value.get()}")
+        # self.chbox_protection_status_value.set(value=self.settings.get_settings_copy().protection_status)
+        if current_protection_status == OnOffValue.on.value:
             self.navigation_frame_lbl_title.configure(image=self.img_eyes_with_protection)
+            self.navigation_frame_lbl_description.configure(
+                text="cares about your vision", text_color="GreenYellow"
+            )
         else:
             self.navigation_frame_lbl_title.configure(image=self.img_eyes_without_protection)
+            self.navigation_frame_lbl_description.configure(text="protection suspended!", text_color="Tomato")
 
     def update(self, user_settings: UserSettingsData):
         """Updating status window elements states"""
         logger.trace("Settings wnd: update function started")
         logger.debug(f"New settings: {user_settings}")
 
-        self.update_protection_status()
+        # self.update_protection_status()
         self.work_duration_value.set(str(user_settings.work_duration))
         self.break_duration_value.set(str(user_settings.break_duration))
         self.chbox_sounds_value.set(value=user_settings.sounds)
@@ -360,3 +365,6 @@ class WndSettings(customtkinter.CTkToplevel):
         """Coll method of view for applying new settings"""
         # new_settings = self.get_settings_from_widgets()
         self.view.apply_view_user_settings()
+
+    def update_values(self, new_values: wnd_values.WndSettingsValues):
+        self.update_protection_status(new_values.protection_status)

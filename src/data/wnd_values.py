@@ -19,6 +19,11 @@ class WndStatusValues:
 
 
 @dataclass
+class WndSettingsValues:
+    protection_status: str = ""
+
+
+@dataclass
 class WndBreakValues:
     remaining_time_str: str = ""
     remaining_time_pbar_value: float = 0
