@@ -19,7 +19,7 @@ SETTINGS_FILE = "./settings/settings.json"
 
 class EGModel:
     def __init__(self, settings_file: str = SETTINGS_FILE):
-        self.view = None
+        self.view: EGView | None = None
         self.settings = Settings(settings_file)
         self.current_state = CurrentState(self.settings)
 
@@ -110,7 +110,9 @@ class EGModel:
         logger.trace("EGModel: __do_current_step_actions")
         self.model.current_state.reset_elapsed_time()
         logger.debug(f"New current step {(self.current_state.current_step_type)}")
-        logger.debug(f"Type {type(self.current_state.current_step_type)}")
+        logger.debug(f"New step type {type(self.current_state.current_step_type)}")
+        logger.debug(f"New step duration {self.current_state.current_step_duration}")
+        logger.debug(f"New step remaining_time {self.current_state.current_step_remaining_time}")
 
         match self.model.current_state.current_step_type:
             case StepType.off_mode:
@@ -149,7 +151,7 @@ class EGModel:
 
             if (
                 self.model.current_state.current_step_elapsed_time
-                <= self.model.current_state.current_step_duration
+                < self.model.current_state.current_step_duration
             ):
                 self.model.current_state.increase_elapsed_time()
                 # self._update_time_until_break()
@@ -159,11 +161,15 @@ class EGModel:
             # actions during step is in progress
             match self.model.current_state.current_step_type:
                 case StepType.break_mode:
-                    pass
-                    # self.break_wnd.set_lbl_remaining_time_text(
-                    #     self.model.current_state.get_step_remaining_time()
-                    # )
-
+                    self.view.update_wnd_break_remaining_time(self.model.current_state)
+                case (
+                    StepType.off_mode
+                    | StepType.work_mode
+                    | StepType.work_notified_1
+                    | StepType.work_notified_2
+                ):
+                    # calculatin time to break for tooltip
+                    self.__update_time_until_break()
             # TODO - case for updating time
             # case StepType.work_notified_1:
             #     remaining_time_actual = (
@@ -180,8 +186,8 @@ class EGModel:
             #         + self.steps_data_list[StepType.work_notified_1].step_duration_td
             #         + self.steps_data_list[StepType.work_notified_2].step_duration_td
             #     )
-            self.__update_time_until_break()
-            self.__update_model_settings()
+
+            # self.__update_model_settings()
             time.sleep(1)
 
     def __change_step_if_protection_mode_was_changed(self):
@@ -203,7 +209,7 @@ class EGModel:
         """Updating time until break info"""
         logger.trace("EGController: __update_time_until_break")
 
-        remaining_time_actual: datetime.timedelta = self.model.current_state.get_step_remaining_time()
+        remaining_time_actual: datetime.timedelta = self.model.current_state.current_step_remaining_time
         remaining_time_for_work_full = (
             self.model.steps_data_list[StepType.work_mode].step_duration_td
             + self.model.steps_data_list[StepType.work_notified_1].step_duration_td

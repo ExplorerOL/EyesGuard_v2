@@ -1,5 +1,6 @@
 """Module with main widnow of application"""
 
+import datetime
 import os
 
 import customtkinter
@@ -75,7 +76,7 @@ class EGView(customtkinter.CTk):
         logger.trace("EGView: init_all_views function started")
         self.wnd_status.update(model.settings.user_settings)
         self.wnd_settings.update(model.settings.user_settings)
-        self.wnd_break.update(model.current_state)
+        self.wnd_break.update_values(model.current_state)
 
     def apply_view_settings(self):
         logger.trace("EGView: applying new settings")
@@ -106,3 +107,6 @@ class EGView(customtkinter.CTk):
 
     def hide_wnd_break(self):
         self.wnd_break.hide()
+
+    def update_wnd_break_remaining_time(self, current_state: CurrentState) -> None:
+        self.wnd_break.update_values(current_state)

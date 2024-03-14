@@ -75,7 +75,8 @@ class CurrentState:
     def current_step_elapsed_time(self):
         return self.__elapsed_time_dt
 
-    def get_step_remaining_time(self):
+    @property
+    def current_step_remaining_time(self) -> datetime.timedelta:
         return self.__step_duration_dt - self.__elapsed_time_dt
 
     def increase_elapsed_time(self, time_delta: datetime.timedelta = datetime.timedelta(seconds=1)):
