@@ -37,6 +37,6 @@ class EGController:
             self.model.do_current_step_actions()
             self.model.wait_for_current_step_is_ended()
 
-    def apply_view_settings(self, user_settings: UserSettingsData) -> None:
+    def apply_view_user_settings(self, user_settings: UserSettingsData) -> None:
         logger.trace("EGModel: applying view settings")
         self.model.apply_new_settings(user_settings)

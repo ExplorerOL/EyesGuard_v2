@@ -359,4 +359,4 @@ class WndSettings(customtkinter.CTkToplevel):
     def apply_ui_settings(self):
         """Coll method of view for applying new settings"""
         # new_settings = self.get_settings_from_widgets()
-        self.view.apply_view_settings()
+        self.view.apply_view_user_settings()

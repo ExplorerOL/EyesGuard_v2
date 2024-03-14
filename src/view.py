@@ -79,11 +79,11 @@ class EGView(customtkinter.CTk):
         self.__wnd_settings.update(model.model_user_settings)
         # self.__wnd_break.update_values(model.current_state)
 
-    def apply_view_settings(self):
+    def apply_view_user_settings(self):
         logger.trace("EGView: applying new settings")
-        self.controller.apply_view_settings(self.__get_settings_from_widgets())
+        self.controller.apply_view_user_settings(self.__get_user_settings_from_wnd_settings())
 
-    def __get_settings_from_widgets(self) -> UserSettingsData:
+    def __get_user_settings_from_wnd_settings(self) -> UserSettingsData:
         """Get data from all widgets with settings"""
         ui_settings_data = UserSettingsData()
         try:
@@ -93,7 +93,7 @@ class EGView(customtkinter.CTk):
             ui_settings_data.sounds = str(self.__wnd_settings.chbox_sounds_value.get())
             ui_settings_data.notifications = str(self.__wnd_settings.chbox_notifications_value.get())
         except TypeError as error:
-            print("Error occuired while reading settings from ui: {error}")
+            logger.error("Error occuired while reading settings from ui: {error}")
 
         logger.info(f"Settings read from ui: {str(ui_settings_data)}")
         # print(int(self.break_duration_value.get()))
