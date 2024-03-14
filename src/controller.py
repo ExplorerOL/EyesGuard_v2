@@ -11,11 +11,11 @@ class Controller:
     """Class for time and break control"""
 
     def __init__(self):
-        logger.trace("EGController: object was created")
+        logger.trace("Controller: object was created")
 
     def set_model(self, model: Model):
         """Assigning model to controller"""
-        logger.trace("EGController: set_model")
+        logger.trace("Controller: set_model")
         self.model = model
         self.thread_alg = None
 
@@ -31,7 +31,7 @@ class Controller:
     def main_loop(self):
         """Controller main loop in separated thread"""
 
-        logger.trace("EGController: main loop started")
+        logger.trace("Controller: main loop started")
         while True:
             self.model.set_new_step_in_sequence()
             self.model.do_current_step_actions()
