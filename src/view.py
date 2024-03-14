@@ -24,12 +24,12 @@ class EGView(customtkinter.CTk):
         customtkinter.set_appearance_mode("light")
         customtkinter.set_default_color_theme("blue")
 
-        self.settings = Settings()
-        self.current_state = CurrentState(self.settings)
+        self.__settings = Settings()
+        self.__current_state = CurrentState(self.__settings)
+        self.__wnd_settings = WndSettings(self, self.__settings)
+        self.__wnd_break = WndBreak(self, self.__current_state)
+        self.__wnd_status = WndStatus(self, self.__settings, self.__wnd_break)
         self.title("EyesGuard v2")
-        self.wnd_settings = WndSettings(self, self.settings)
-        self.wnd_break = WndBreak(self, self.current_state)
-        self.wnd_status = WndStatus(self, self.settings, self.wnd_break)
 
         # tray icon
         self.image = Image.open("res/img/eyes_with_protection.png")
@@ -48,12 +48,12 @@ class EGView(customtkinter.CTk):
     def __show_status_wnd(self):
         """Show status wnd"""
         logger.trace("EGView: show status wnd")
-        self.wnd_status.show()
+        self.__wnd_status.show()
 
     def __show_settings_wnd(self):
         """Show settings wnd"""
         logger.trace("EGView: show settings wnd")
-        self.wnd_settings.show()
+        self.__wnd_settings.show()
 
     def show_notification(self, title: str, text: str):
         logger.trace("EGView: show_notification")
@@ -74,9 +74,9 @@ class EGView(customtkinter.CTk):
     def init_all_views(self, model: EGModel):
         """Init all data at windows"""
         logger.trace("EGView: init_all_views function started")
-        self.wnd_status.update(model.settings.user_settings)
-        self.wnd_settings.update(model.settings.user_settings)
-        self.wnd_break.update_values(model.current_state)
+        self.__wnd_status.update(model.settings.user_settings)
+        self.__wnd_settings.update(model.settings.user_settings)
+        self.__wnd_break.update_values(model.current_state)
 
     def apply_view_settings(self):
         logger.trace("EGView: applying new settings")
@@ -86,11 +86,11 @@ class EGView(customtkinter.CTk):
         """Get data from all widgets with settings"""
         ui_settings_data = UserSettingsData()
         try:
-            ui_settings_data.work_duration = int(self.wnd_settings.work_duration_value.get())
-            ui_settings_data.break_duration = int(self.wnd_settings.break_duration_value.get())
-            ui_settings_data.protection_status = str(self.wnd_settings.chbox_protection_status_value.get())
-            ui_settings_data.sounds = str(self.wnd_settings.chbox_sounds_value.get())
-            ui_settings_data.notifications = str(self.wnd_settings.chbox_notifications_value.get())
+            ui_settings_data.work_duration = int(self.__wnd_settings.work_duration_value.get())
+            ui_settings_data.break_duration = int(self.__wnd_settings.break_duration_value.get())
+            ui_settings_data.protection_status = str(self.__wnd_settings.chbox_protection_status_value.get())
+            ui_settings_data.sounds = str(self.__wnd_settings.chbox_sounds_value.get())
+            ui_settings_data.notifications = str(self.__wnd_settings.chbox_notifications_value.get())
         except TypeError as error:
             print("Error occuired while reading settings from ui: {error}")
 
@@ -103,10 +103,16 @@ class EGView(customtkinter.CTk):
         return ui_settings_data
 
     def show_wnd_break(self):
-        self.wnd_break.show()
+        self.__wnd_break.show()
 
     def hide_wnd_break(self):
-        self.wnd_break.hide()
+        self.__wnd_break.hide()
 
-    def update_wnd_break_remaining_time(self, current_state: CurrentState) -> None:
-        self.wnd_break.update_values(current_state)
+    def update_wnd_status_values(self, current_state: CurrentState) -> None:
+        self.__wnd_break.update_values(current_state)
+
+    def update_wnd_break_values(self, current_state: CurrentState) -> None:
+        self.__wnd_break.update_values(current_state)
+
+    def update_try_icon_tooltip(self, time_until_break_tooltip_string: str) -> None:
+        self.tray_icon.title = time_until_break_tooltip_string

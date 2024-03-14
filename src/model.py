@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from view import EGView
 
+# import dataclasses.wnd_values
 import datetime
 import time
 
@@ -161,33 +162,16 @@ class EGModel:
             # actions during step is in progress
             match self.model.current_state.current_step_type:
                 case StepType.break_mode:
-                    self.view.update_wnd_break_remaining_time(self.model.current_state)
+                    self.view.update_wnd_break_values(self.model.current_state)
                 case (
                     StepType.off_mode
                     | StepType.work_mode
                     | StepType.work_notified_1
                     | StepType.work_notified_2
                 ):
-                    # calculatin time to break for tooltip
+                    # calculatin time to break for tray tooltip
                     self.__update_time_until_break()
-            # TODO - case for updating time
-            # case StepType.work_notified_1:
-            #     remaining_time_actual = (
-            #         self.model.current_state.get_step_remaining_time()
-            #         + self.steps_data_list[StepType.work_notified_2].step_duration_td
-            #     )
 
-            # case StepType.work_notified_2:
-            #     remaining_time_actual = self.model.current_state.get_step_remaining_time()
-
-            # case StepType.work_mode:
-            #     remaining_time_actual = (
-            #         self.model.current_state.get_step_remaining_time()
-            #         + self.steps_data_list[StepType.work_notified_1].step_duration_td
-            #         + self.steps_data_list[StepType.work_notified_2].step_duration_td
-            #     )
-
-            # self.__update_model_settings()
             time.sleep(1)
 
     def __change_step_if_protection_mode_was_changed(self):
@@ -236,6 +220,7 @@ class EGModel:
         logger.debug("Updating time")
 
         time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_actual}"
+        self.view.update_try_icon_tooltip(time_until_break_tooltip_string)
 
         # self.view.tray_icon.title = time_until_break_tooltip_string
         # self.view.wnd_status.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
