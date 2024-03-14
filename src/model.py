@@ -224,6 +224,10 @@ class EGModel:
         tray_icon_values.tooltip_str = time_until_break_tooltip_string
         self.view.update_tray_icon_values(tray_icon_values)
 
+        wnd_status_values = wnd_values.WndStatusValues()
+        wnd_status_values.remaining_time_str = time_until_break_tooltip_string
+        wnd_status_values.remaining_time_pbar_value = 1 - remaining_time_actual / remaining_time_for_work_full
+        self.view.update_wnd_status_values(wnd_status_values)
         # self.view.tray_icon.title = time_until_break_tooltip_string
         # self.view.wnd_status.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
         # self.view.wnd_status.pbar_time_until_break.set(

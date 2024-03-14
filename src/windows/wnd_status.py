@@ -12,6 +12,7 @@ import time
 import customtkinter
 from PIL import Image
 
+import data.wnd_values as wnd_values
 from settings import Settings, UserSettingsData
 from windows.wnd_break import WndBreak
 
@@ -143,3 +144,7 @@ class WndStatus(customtkinter.CTkToplevel):
                 image=customtkinter.CTkImage(light_image=self.img_eyes_without_protection, size=(30, 30)),
                 require_redraw=True,
             )
+
+    def update_values(self, new_values: wnd_values.WndStatusValues):
+        self.lbl_time_until_break.configure(text=new_values.remaining_time_str)
+        self.pbar_time_until_break.set(value=new_values.remaining_time_pbar_value)

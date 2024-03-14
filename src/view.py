@@ -109,8 +109,8 @@ class EGView(customtkinter.CTk):
     def hide_wnd_break(self):
         self.__wnd_break.hide()
 
-    def update_wnd_status_values(self, current_state: CurrentState) -> None:
-        self.__wnd_break.update_values(current_state)
+    def update_wnd_status_values(self, wnd_status_values: wnd_values.WndStatusValues) -> None:
+        self.__wnd_status.update_values(wnd_status_values)
 
     def update_wnd_break_values(self, current_state: CurrentState) -> None:
         self.__wnd_break.update_values(current_state)
