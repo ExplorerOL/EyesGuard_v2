@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from view import EGView
+    from view import View
 
 import datetime
 import re
@@ -25,7 +25,7 @@ from states import CurrentState
 class WndBreak(customtkinter.CTkToplevel):
     """Break window"""
 
-    def __init__(self, view: EGView, current_state: CurrentState, *args, **kwargs):
+    def __init__(self, view: View, current_state: CurrentState, *args, **kwargs):
         super().__init__(*args, fg_color="#000000", **kwargs)
         self.current_state = current_state
         self.view = view

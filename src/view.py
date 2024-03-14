@@ -8,16 +8,16 @@ import pystray
 from PIL import Image
 
 import data.wnd_values as wnd_values
-from controller import EGController
+from controller import Controller
 from logger import logger
-from model import CurrentState, EGModel
+from model import CurrentState, Model
 from settings import Settings, UserSettingsData
 from windows.wnd_break import WndBreak
 from windows.wnd_settings import WndSettings
 from windows.wnd_status import WndStatus
 
 
-class EGView(customtkinter.CTk):
+class View(customtkinter.CTk):
     """Main window of application"""
 
     def __init__(self):
@@ -60,7 +60,7 @@ class EGView(customtkinter.CTk):
         logger.trace("EGView: show_notification")
         self.tray_icon.notify(title, text)
 
-    def set_controller(self, controller: EGController):
+    def set_controller(self, controller: Controller):
         """Assigning controller to view"""
         self.controller = controller
         logger.trace("EGView: controller was set")
@@ -72,7 +72,7 @@ class EGView(customtkinter.CTk):
         self.quit()
         os._exit(0)
 
-    def init_all_views(self, model: EGModel):
+    def init_all_views(self, model: Model):
         """Init all data at windows"""
         logger.trace("EGView: init_all_views function started")
         # self.__wnd_status.update(model.model_user_settings)

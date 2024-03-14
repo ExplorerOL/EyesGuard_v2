@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from view import EGView
+    from view import View
 
 import time
 
@@ -20,7 +20,7 @@ from windows.wnd_break import WndBreak
 class WndStatus(customtkinter.CTkToplevel):
     """Status window"""
 
-    def __init__(self, view: EGView, settings: Settings, break_wnd: WndBreak, *args, **kwargs):
+    def __init__(self, view: View, settings: Settings, break_wnd: WndBreak, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.settings = settings
         self.wnd_break = break_wnd

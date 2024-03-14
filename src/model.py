@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from view import EGView
+    from view import View
 
 import datetime
 import time
@@ -18,11 +18,11 @@ from states import CurrentState, StepData, StepType
 SETTINGS_FILE = "./settings/settings.json"
 
 
-class EGModel:
+class Model:
     TIME_TICK_S = 1
 
     def __init__(self, settings_file: str = SETTINGS_FILE):
-        self.__view: EGView | None = None
+        self.__view: View | None = None
         self.__settings = Settings(settings_file)
         self.__current_state = CurrentState(self.__settings)
 
@@ -180,7 +180,7 @@ class EGModel:
         logger.debug(f"Steps data list: {self.model.steps_data_list[step_type]}")
 
     @property
-    def model(self) -> EGModel:
+    def model(self) -> Model:
         logger.trace("EGModel: getting model data")
         return self
 
@@ -208,7 +208,7 @@ class EGModel:
         logger.trace("EGModel: saving new settings")
         self.__settings.apply_settings_from_ui(user_settings)
 
-    def set_view(self, view: EGView) -> None:
+    def set_view(self, view: View) -> None:
         """Assigning controller to view"""
         logger.trace("EGModel: set_view started")
 

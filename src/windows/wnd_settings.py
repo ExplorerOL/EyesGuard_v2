@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from view import EGView
+    from view import View
 
 import re
 import time
@@ -21,7 +21,7 @@ from settings import Settings, UserSettingsData
 class WndSettings(customtkinter.CTkToplevel):
     """Settings window"""
 
-    def __init__(self, view: EGView, settings: Settings, *args, **kwargs):
+    def __init__(self, view: View, settings: Settings, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.view = view

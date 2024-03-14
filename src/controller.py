@@ -1,19 +1,19 @@
 from threading import Thread
 
 from logger import logger
-from model import EGModel
+from model import Model
 from settings import UserSettingsData
 
 # from view import EGView
 
 
-class EGController:
+class Controller:
     """Class for time and break control"""
 
     def __init__(self):
         logger.trace("EGController: object was created")
 
-    def set_model(self, model: EGModel):
+    def set_model(self, model: Model):
         """Assigning model to controller"""
         logger.trace("EGController: set_model")
         self.model = model

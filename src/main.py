@@ -1,7 +1,7 @@
-from controller import EGController
+from controller import Controller
 from logger import logger
-from model import EGModel
-from view import EGView
+from model import Model
+from view import View
 
 
 def main():
@@ -9,9 +9,9 @@ def main():
 
     logger.trace(f"Function started")
 
-    controller = EGController()
-    model = EGModel()
-    view = EGView()
+    controller = Controller()
+    model = Model()
+    view = View()
 
     controller.set_model(model=model)
     model.set_view(view=view)
