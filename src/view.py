@@ -75,9 +75,9 @@ class EGView(customtkinter.CTk):
     def init_all_views(self, model: EGModel):
         """Init all data at windows"""
         logger.trace("EGView: init_all_views function started")
-        self.__wnd_status.update(model.settings.user_settings)
-        self.__wnd_settings.update(model.settings.user_settings)
-        self.__wnd_break.update_values(model.current_state)
+        # self.__wnd_status.update(model.model_user_settings)
+        self.__wnd_settings.update(model.model_user_settings)
+        # self.__wnd_break.update_values(model.current_state)
 
     def apply_view_settings(self):
         logger.trace("EGView: applying new settings")
@@ -112,8 +112,8 @@ class EGView(customtkinter.CTk):
     def update_wnd_status_values(self, wnd_status_values: wnd_values.WndStatusValues) -> None:
         self.__wnd_status.update_values(wnd_status_values)
 
-    def update_wnd_break_values(self, current_state: CurrentState) -> None:
-        self.__wnd_break.update_values(current_state)
+    def update_wnd_break_values(self, new_values: wnd_values.WndBreakValues) -> None:
+        self.__wnd_break.update_values(new_values)
 
     def update_tray_icon_values(self, tray_icon_values: wnd_values.TryIconValues) -> None:
         self.tray_icon.title = tray_icon_values.tooltip_str

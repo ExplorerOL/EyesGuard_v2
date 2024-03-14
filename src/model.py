@@ -20,11 +20,11 @@ SETTINGS_FILE = "./settings/settings.json"
 
 class EGModel:
     def __init__(self, settings_file: str = SETTINGS_FILE):
-        self.view: EGView | None = None
-        self.settings = Settings(settings_file)
-        self.current_state = CurrentState(self.settings)
+        self.__view: EGView | None = None
+        self.__settings = Settings(settings_file)
+        self.__current_state = CurrentState(self.__settings)
 
-        logger.info(f"User settings: = {self.settings.user_settings}")
+        logger.info(f"User settings: = {self.__settings.user_settings}")
 
         self.steps_data_list: list[StepData] = []
 
@@ -33,11 +33,11 @@ class EGModel:
             self.steps_data_list[step_type].step_type = step_type
 
         # setting steps durations
-        self.step_off_duration_td = self.settings.system_settings.step_off_mode_duration
-        self.step_work_duration_td = datetime.timedelta(minutes=self.settings.user_settings.work_duration)
-        self.step_break_duration_td = datetime.timedelta(minutes=self.settings.user_settings.break_duration)
-        self.step_notification_1_time_td = self.settings.system_settings.step_notification_1_duration
-        self.step_notification_2_time_td = self.settings.system_settings.step_notification_2_duration
+        self.step_off_duration_td = self.__settings.system_settings.step_off_mode_duration
+        self.step_work_duration_td = datetime.timedelta(minutes=self.__settings.user_settings.work_duration)
+        self.step_break_duration_td = datetime.timedelta(minutes=self.__settings.user_settings.break_duration)
+        self.step_notification_1_time_td = self.__settings.system_settings.step_notification_1_duration
+        self.step_notification_2_time_td = self.__settings.system_settings.step_notification_2_duration
         logger.info(f"step_work_duration_td {self.step_work_duration_td}")
 
         self.steps_data_list[StepType.off_mode].step_duration_td = self.step_off_duration_td
@@ -63,7 +63,7 @@ class EGModel:
             logger.info(f"{step.step_type=}")
             logger.info(step.step_duration_td)
 
-        logger.info(self.current_state)
+        logger.info(self.__current_state)
 
         logger.trace("EGModel: object was created")
 
@@ -74,7 +74,7 @@ class EGModel:
         # import placed here for breaking circular import
         # from view import EGView
 
-        self.view = view
+        self.__view = view
         self.__init_view()
 
     @property
@@ -83,9 +83,14 @@ class EGModel:
         return self
 
     @property
+    def current_state(self) -> CurrentState:
+        logger.trace("EGModel: current_state")
+        return self.__current_state
+
+    @property
     def model_settings(self) -> Settings:
         logger.trace("EGModel: getting settings")
-        return self.settings
+        return self.__settings
 
     @model_settings.setter
     def model_settings(self, settings: Settings) -> None:
@@ -94,75 +99,80 @@ class EGModel:
     @property
     def model_user_settings(self) -> UserSettingsData:
         logger.trace("EGModel: getting user settings")
-        return self.settings.user_settings
+        return self.__settings.user_settings
 
     @model_user_settings.setter
     def model_user_settings(self, user_settings: UserSettingsData) -> None:
         logger.trace("EGModel: saving new settings")
-        self.settings.apply_settings_from_ui(user_settings)
+        self.__settings.apply_settings_from_ui(user_settings)
 
     def __init_view(self):
         """View initialization with model data"""
         logger.trace("EGModel: __init_view function started")
-        if self.view is not None:
-            self.view.init_all_views(self.model)
+        if self.__view is not None:
+            self.__view.init_all_views(self.model)
 
     def do_current_step_actions(self):
         logger.trace("EGModel: __do_current_step_actions")
-        self.model.current_state.reset_elapsed_time()
-        logger.debug(f"New current step {(self.current_state.current_step_type)}")
-        logger.debug(f"New step type {type(self.current_state.current_step_type)}")
-        logger.debug(f"New step duration {self.current_state.current_step_duration}")
-        logger.debug(f"New step remaining_time {self.current_state.current_step_remaining_time}")
+        self.model.__current_state.reset_elapsed_time()
+        logger.debug(f"New current step {(self.__current_state.current_step_type)}")
+        logger.debug(f"New step type {type(self.__current_state.current_step_type)}")
+        logger.debug(f"New step duration {self.__current_state.current_step_duration}")
+        logger.debug(f"New step remaining_time {self.__current_state.current_step_remaining_time}")
 
-        match self.model.current_state.current_step_type:
+        match self.model.__current_state.current_step_type:
             case StepType.off_mode:
                 logger.trace("EGModel: off_mode actions")
-                self.view.show_notification("Eyes Guard is in suspended mode!", "Attention!")
+                self.__view.show_notification("Eyes Guard is in suspended mode!", "Attention!")
 
             case StepType.break_mode:
                 logger.trace("EGModel: break_mode actions")
-                self.view.show_wnd_break()
+                self.__view.show_wnd_break()
 
             case StepType.work_notified_1:
                 logger.trace("EGModel: work_notified_1 actions")
-                if self.settings.user_settings.notifications == "on":
+                if self.__settings.user_settings.notifications == "on":
                     pass
                     # self.view.show_notification("Break will start in 1 minute!", "Attention!")
 
             case StepType.work_notified_2:
                 logger.trace("EGModel: work_notified_2 actions")
-                if self.settings.user_settings.notifications == "on":
-                    self.view.show_notification("Break will start in 5 seconds!", "Attention!")
+                if self.__settings.user_settings.notifications == "on":
+                    self.__view.show_notification("Break will start in 5 seconds!", "Attention!")
 
             case StepType.work_mode:
                 logger.trace("EGModel: work_mode actions")
-                self.view.hide_wnd_break()
+                self.__view.hide_wnd_break()
                 # self.break_wnd.hide()
 
     def wait_for_current_step_is_ended(self):
         logger.trace("EGModel: __wait_for_current_step_is_ended")
         while True:
             # print info
-            logger.info(f"Current step type: {self.model.current_state.current_step_type}")
-            logger.info(f"Step duration: {self.model.current_state.current_step_duration}")
-            logger.info(f"Step elapsed time: {self.model.current_state.current_step_elapsed_time}")
+            logger.info(f"Current step type: {self.model.__current_state.current_step_type}")
+            logger.info(f"Step duration: {self.model.__current_state.current_step_duration}")
+            logger.info(f"Step elapsed time: {self.model.__current_state.current_step_elapsed_time}")
             self.__change_step_if_protection_mode_was_changed()
             # time.sleep(1)
 
             if (
-                self.model.current_state.current_step_elapsed_time
-                < self.model.current_state.current_step_duration
+                self.model.__current_state.current_step_elapsed_time
+                < self.model.__current_state.current_step_duration
             ):
-                self.model.current_state.increase_elapsed_time()
+                self.model.__current_state.increase_elapsed_time()
                 # self._update_time_until_break()
             else:
                 break
 
             # actions during step is in progress
-            match self.model.current_state.current_step_type:
+            match self.model.__current_state.current_step_type:
                 case StepType.break_mode:
-                    self.view.update_wnd_break_values(self.model.current_state)
+                    pass
+                    # new_wnd_break_values = wnd_values.WndBreakValues()
+                    # new_wnd_break_values.remaining_time_str
+                    # self.__view.update_wnd_break_values(self.model.__current_state)
+                    self.__update_wnd_values()
+
                 case (
                     StepType.off_mode
                     | StepType.work_mode
@@ -170,7 +180,7 @@ class EGModel:
                     | StepType.work_notified_2
                 ):
                     # calculatin time to break for tray tooltip
-                    self.__update_time_until_break()
+                    self.__update_wnd_values()
 
             time.sleep(1)
 
@@ -189,18 +199,18 @@ class EGModel:
         # ):
         #     self._set_current_step(step_type=StepType.work_mode)
 
-    def __update_time_until_break(self):
+    def __update_wnd_values(self):
         """Updating time until break info"""
         logger.trace("EGController: __update_time_until_break")
 
-        remaining_time_actual: datetime.timedelta = self.model.current_state.current_step_remaining_time
+        remaining_time_actual: datetime.timedelta = self.model.__current_state.current_step_remaining_time
         remaining_time_for_work_full = (
             self.model.steps_data_list[StepType.work_mode].step_duration_td
             + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
             + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
         )
         logger.debug(remaining_time_actual)
-        match self.model.current_state.current_step_type:
+        match self.model.__current_state.current_step_type:
             case StepType.off_mode:
                 remaining_time_actual += self.model.steps_data_list[StepType.work_mode].step_duration_td
                 remaining_time_for_work_full = (
@@ -220,45 +230,55 @@ class EGModel:
         logger.debug("Updating time")
 
         time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_actual}"
-        tray_icon_values = wnd_values.TryIconValues()
-        tray_icon_values.tooltip_str = time_until_break_tooltip_string
-        self.view.update_tray_icon_values(tray_icon_values)
+        new_tray_icon_values = wnd_values.TryIconValues()
+        new_tray_icon_values.tooltip_str = time_until_break_tooltip_string
+        self.__view.update_tray_icon_values(new_tray_icon_values)
 
-        wnd_status_values = wnd_values.WndStatusValues()
-        wnd_status_values.remaining_time_str = time_until_break_tooltip_string
-        wnd_status_values.remaining_time_pbar_value = 1 - remaining_time_actual / remaining_time_for_work_full
-        self.view.update_wnd_status_values(wnd_status_values)
+        new_wnd_status_values = wnd_values.WndStatusValues()
+        new_wnd_status_values.remaining_time_str = time_until_break_tooltip_string
+        new_wnd_status_values.remaining_time_pbar_value = (
+            1 - remaining_time_actual / remaining_time_for_work_full
+        )
+        self.__view.update_wnd_status_values(new_wnd_status_values)
+
+        time_until_work_tooltip_string = f"Remaining break time: {remaining_time_actual}"
+        new_wnd_break_values = wnd_values.WndBreakValues()
+        new_wnd_break_values.remaining_time_str = time_until_work_tooltip_string
+        new_wnd_break_values.remaining_time_pbar_value = (
+            1 - remaining_time_actual / self.model.steps_data_list[StepType.break_mode].step_duration_td
+        )
+        self.__view.update_wnd_break_values(new_wnd_break_values)
         # self.view.tray_icon.title = time_until_break_tooltip_string
         # self.view.wnd_status.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
         # self.view.wnd_status.pbar_time_until_break.set(
         #     1 - remaining_time_actual / remaining_time_for_work_full
         # )
 
-    def __update_model_settings(self):
-        logger.trace("EGController: __update_model_settings")
-        # self.model.settings.user_settings = self.model.settings.user_settings
-        # self.model.(self.model)
-        # print(self.model.set_model.user_settings)
+    # def __update_model_settings(self):
+    #     logger.trace("EGController: __update_model_settings")
+    #     # self.model.settings.user_settings = self.model.settings.user_settings
+    #     # self.model.(self.model)
+    #     # print(self.model.set_model.user_settings)
 
-        # settings autorefresh not working
+    #     # settings autorefresh not working
 
-        # self.__update_current_state()
+    #     # self.__update_current_state()
 
-    def __update_current_state(self):
-        logger.trace("Controller: __update_current_state")
+    # def __update_current_state(self):
+    #     logger.trace("Controller: __update_current_state")
 
-        current_step = self.model.current_state.current_step_type
-        self.model.current_state.set_current_step_data(
-            step_type=current_step, step_duration=self.model.steps_data_list[current_step].step_duration_td
-        )
-        if (
-            self.model.current_state.current_step_duration
-            != self.model.steps_data_list[current_step].step_duration_td
-        ):
-            self.model.current_state.set_current_step_data(
-                step_type=current_step,
-                step_duration=self.model.steps_data_list[current_step].step_duration_td,
-            )
+    #     current_step = self.model.current_state.current_step_type
+    #     self.model.current_state.set_current_step_data(
+    #         step_type=current_step, step_duration=self.model.steps_data_list[current_step].step_duration_td
+    #     )
+    #     if (
+    #         self.model.current_state.current_step_duration
+    #         != self.model.steps_data_list[current_step].step_duration_td
+    #     ):
+    #         self.model.current_state.set_current_step_data(
+    #             step_type=current_step,
+    #             step_duration=self.model.steps_data_list[current_step].step_duration_td,
+    #         )
 
     def set_new_step_in_sequence(self):
         logger.trace("EGController: __set_new_step_in_sequence")
@@ -266,7 +286,7 @@ class EGModel:
         # current_step_type = self.model.current_state.current_step_type
 
         # steps transitions
-        match self.current_state.current_step_type:
+        match self.__current_state.current_step_type:
             case StepType.off_mode:
                 new_step_type = StepType.work_mode
             case StepType.work_mode:
@@ -285,11 +305,11 @@ class EGModel:
         """settind step data in current state by step type"""
         logger.trace("EGModel: __set_current_step")
 
-        self.model.current_state.set_current_step_data(
+        self.model.__current_state.set_current_step_data(
             step_type=step_type, step_duration=self.model.steps_data_list[step_type].step_duration_td
         )
-        logger.debug(f"Step_type: {self.model.current_state.current_step_type}")
-        logger.debug(f"Step_duration: {self.model.current_state.current_step_duration}")
+        logger.debug(f"Step_type: {self.model.__current_state.current_step_type}")
+        logger.debug(f"Step_duration: {self.model.__current_state.current_step_duration}")
         logger.debug(f"Steps data list: {self.model.steps_data_list[step_type]}")
 
     def apply_new_settings(self, user_settings: UserSettingsData) -> None:

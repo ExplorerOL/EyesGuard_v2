@@ -15,6 +15,7 @@ from tkinter import StringVar
 import customtkinter
 from PIL import Image, ImageTk
 
+import data.wnd_values as wnd_values
 from logger import logger
 from states import CurrentState
 
@@ -78,12 +79,12 @@ class WndBreak(customtkinter.CTkToplevel):
 
     def show(self):
         """Show window"""
-        print("Break wnd: showing break window")
+        logger.trace("Break wnd: show")
 
         # self.update_values(self.current_state)
 
-        self.pbar_break_progress.set(0)
-        self.pbar_break_progress.start()
+        # self.pbar_break_progress.set(0)
+        # self.pbar_break_progress.start()
         self.deiconify()
 
         for i in range(100):
@@ -93,20 +94,19 @@ class WndBreak(customtkinter.CTkToplevel):
     # def set_lbl_remaining_time_text(self, elapsed_time: datetime.timedelta):
     #     self.remaining_break_time.set(f"Remaining break time: {elapsed_time.seconds} seconds")
 
-    def update_values(self, current_state: CurrentState):
-        self.remaining_break_time.set(
-            f"Remaining break time: {current_state.current_step_remaining_time.seconds} seconds"
-        )
-        self.__set_pbar_speed(current_state=current_state)
+    def update_values(self, new_values: wnd_values.WndBreakValues):
+        self.remaining_break_time.set(new_values.remaining_time_str)
+        # self.__set_pbar_speed(current_state=new_values.remaining_time_pbar_value)
+        logger.debug(f"WndBreak: pb speed = {new_values.remaining_time_pbar_value}")
+        # self.pbar_break_progress.configure(determinate_speed=new_values.remaining_time_pbar_value)
+        self.pbar_break_progress.set(new_values.remaining_time_pbar_value)
 
-    def __set_pbar_speed(self, current_state: CurrentState):
-        logger.trace("WndBreak: __set_pbar_speed")
-        logger.debug(
-            f"WndBreak: current_state.current_step_duration.seconds = {current_state.current_step_duration.seconds}"
-        )
+    # def __set_pbar_speed(self, current_state: CurrentState):
+    #     logger.trace("WndBreak: __set_pbar_speed")
+    #     logger.debug(
+    #         f"WndBreak: current_state.current_step_duration.seconds = {current_state.current_step_duration.seconds}"
+    #     )
 
-        pbar_speed = 1
-        if current_state.current_step_duration.seconds > 0:
-            pbar_speed = 1 * 1.4455 / current_state.current_step_duration.seconds
-        logger.debug(f"WndBreak: pb speed = {pbar_speed}")
-        self.pbar_break_progress.configure(determinate_speed=pbar_speed)
+    #     pbar_speed = 1
+    #     if current_state.current_step_duration.seconds > 0:
+    #         pbar_speed = 1 * 1.4455 / current_state.current_step_duration.seconds
