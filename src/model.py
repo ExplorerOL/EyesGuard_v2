@@ -19,6 +19,8 @@ SETTINGS_FILE = "./settings/settings.json"
 
 
 class EGModel:
+    TIME_TICK_S = 1
+
     def __init__(self, settings_file: str = SETTINGS_FILE):
         self.__view: EGView | None = None
         self.__settings = Settings(settings_file)
@@ -168,22 +170,13 @@ class EGModel:
             # actions during step is in progress
             match self.model.__current_state.current_step_type:
                 case StepType.break_mode:
-                    pass
-                    # new_wnd_break_values = wnd_values.WndBreakValues()
-                    # new_wnd_break_values.remaining_time_str
-                    # self.__view.update_wnd_break_values(self.model.__current_state)
                     self.__update_wnd_break_values()
 
-                case (
-                    StepType.off_mode
-                    | StepType.work_mode
-                    | StepType.work_notified_1
-                    | StepType.work_notified_2
-                ):
-                    # calculatin time to break for tray tooltip
-                    self.__update_wnd_values()
+                case _:
+                    self.__update_wnd_status_values()
+                    self.__update_tray_icon_values()
 
-            time.sleep(1)
+            time.sleep(self.TIME_TICK_S)
 
     def __change_step_if_protection_mode_was_changed(self):
         logger.trace("EGController: __change_step_if_protection_mode_was_changed")
@@ -200,26 +193,42 @@ class EGModel:
         # ):
         #     self._set_current_step(step_type=StepType.work_mode)
 
-    def __update_wnd_values(self):
-        """Updating time until break info"""
-        logger.trace("EGController: __update_time_until_break")
+    def __update_tray_icon_values(self):
+        """Updating tray icon values"""
+        logger.trace("EGController: __update_tray_icon_values")
 
-        remaining_time_actual: datetime.timedelta = self.model.__current_state.current_step_remaining_time
-        remaining_time_for_work_full = (
-            self.model.steps_data_list[StepType.work_mode].step_duration_td
-            + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
-            + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
+        remaining_time_to_display = self.__calculate_remaining_time_to_display()
+        # logger.debug("Updating time")
+
+        time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_to_display}"
+        new_tray_icon_values = wnd_values.TryIconValues()
+        new_tray_icon_values.tooltip_str = time_until_break_tooltip_string
+        self.__view.update_tray_icon_values(new_tray_icon_values)
+
+    def __update_wnd_status_values(self):
+        """Updating status window values"""
+        logger.trace("EGController: __update_wnd_status_values")
+
+        remaining_time_to_display = self.__calculate_remaining_time_to_display()
+        remaining_time_for_work_full = self.__calculate_remaining_time_for_work()
+        # logger.debug("Updating time")
+
+        time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_to_display}"
+
+        new_wnd_status_values = wnd_values.WndStatusValues()
+        new_wnd_status_values.remaining_time_str = time_until_break_tooltip_string
+        new_wnd_status_values.remaining_time_pbar_value = (
+            1 - remaining_time_to_display / remaining_time_for_work_full
         )
+        self.__view.update_wnd_status_values(new_wnd_status_values)
+
+    def __calculate_remaining_time_to_display(self) -> datetime.timedelta:
+        remaining_time_actual: datetime.timedelta = self.model.__current_state.current_step_remaining_time
         logger.debug(remaining_time_actual)
         match self.model.__current_state.current_step_type:
             case StepType.off_mode:
                 remaining_time_actual += self.model.steps_data_list[StepType.work_mode].step_duration_td
-                remaining_time_for_work_full = (
-                    self.model.steps_data_list[StepType.off_mode].step_duration_td
-                    + self.model.steps_data_list[StepType.work_mode].step_duration_td
-                    + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
-                    + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
-                )
+
             case StepType.work_mode:
                 remaining_time_actual += (
                     self.model.steps_data_list[StepType.work_notified_1].step_duration_td
@@ -227,37 +236,27 @@ class EGModel:
                 )
             case StepType.work_notified_1:
                 remaining_time_actual += self.model.steps_data_list[StepType.work_notified_2].step_duration_td
+        return remaining_time_actual
 
-        logger.debug("Updating time")
-
-        time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_actual}"
-        new_tray_icon_values = wnd_values.TryIconValues()
-        new_tray_icon_values.tooltip_str = time_until_break_tooltip_string
-        self.__view.update_tray_icon_values(new_tray_icon_values)
-
-        new_wnd_status_values = wnd_values.WndStatusValues()
-        new_wnd_status_values.remaining_time_str = time_until_break_tooltip_string
-        new_wnd_status_values.remaining_time_pbar_value = (
-            1 - remaining_time_actual / remaining_time_for_work_full
+    def __calculate_remaining_time_for_work(self) -> datetime.timedelta:
+        # remaining_time_actual: datetime.timedelta = self.model.__current_state.current_step_remaining_time
+        remaining_time_for_work_full = (
+            self.model.steps_data_list[StepType.work_mode].step_duration_td
+            + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
+            + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
         )
-        self.__view.update_wnd_status_values(new_wnd_status_values)
-
-        time_until_work_tooltip_string = f"Remaining break time: {remaining_time_actual}"
-        new_wnd_break_values = wnd_values.WndBreakValues()
-        new_wnd_break_values.remaining_time_str = time_until_work_tooltip_string
-        new_wnd_break_values.remaining_time_pbar_value = (
-            1 - remaining_time_actual / self.model.steps_data_list[StepType.break_mode].step_duration_td
-        )
-        # self.__view.update_wnd_break_values(new_wnd_break_values)
-        # self.view.tray_icon.title = time_until_break_tooltip_string
-        # self.view.wnd_status.lbl_time_until_break.configure(text=time_until_break_tooltip_string)
-        # self.view.wnd_status.pbar_time_until_break.set(
-        #     1 - remaining_time_actual / remaining_time_for_work_full
-        # )
-        # self.__update_wnd_break_values()
+        match self.model.__current_state.current_step_type:
+            case StepType.off_mode:
+                remaining_time_for_work_full = (
+                    self.model.steps_data_list[StepType.off_mode].step_duration_td
+                    + self.model.steps_data_list[StepType.work_mode].step_duration_td
+                    + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
+                    + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
+                )
+        return remaining_time_for_work_full
 
     def __update_wnd_break_values(self):
-        """Updating wnd break values"""
+        """Updating break window values"""
         logger.trace("EGController: __update_wnd_break_values")
         new_wnd_break_values = wnd_values.WndBreakValues()
         new_wnd_break_values.remaining_time_str = (
