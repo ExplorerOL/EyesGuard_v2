@@ -256,7 +256,7 @@ class Model:
                 logger.trace("Model: work_notified_1 actions")
                 if self.__settings.user_settings.notifications == "on":
                     pass
-                    # self.view.show_notification("Break will start in 1 minute!", "Attention!")
+                    self.__view.show_notification("Break will start in 1 minute!", "Attention!")
 
             case StepType.work_notified_2:
                 logger.trace("Model: work_notified_2 actions")
