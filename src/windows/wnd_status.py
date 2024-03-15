@@ -134,6 +134,7 @@ class WndStatus(customtkinter.CTkToplevel):
         """Updating status window elements states"""
 
     def update_values(self, new_values: wnd_values.WndStatusValues):
+        logger.trace("Wnd status: update_values")
         self.lbl_time_until_break.configure(text=new_values.remaining_time_str)
         self.pbar_time_until_break.set(value=new_values.remaining_time_pbar_value)
 
@@ -152,3 +153,12 @@ class WndStatus(customtkinter.CTkToplevel):
                 image=customtkinter.CTkImage(light_image=self.img_eyes_without_protection, size=(30, 30)),
                 require_redraw=True,
             )
+
+        if new_values.btn_take_break_enabled:
+            # if update permanently - abberrations of button present
+            if self.btn_take_break.cget("state") != "normal":
+                self.btn_take_break.configure(state="normal")
+        else:
+            # if update permanently - abberrations of button present
+            if self.btn_take_break.cget("state") != "disabled":
+                self.btn_take_break.configure(state="disabled")

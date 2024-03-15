@@ -121,6 +121,10 @@ class Model:
             1 - remaining_time_to_display / remaining_time_for_work_full
         )
         new_wnd_status_values.protection_status = self.model_user_settings.protection_status
+        if self.current_state.current_step_type == StepType.off_mode:
+            new_wnd_status_values.btn_take_break_enabled = False
+        else:
+            new_wnd_status_values.btn_take_break_enabled = True
         self.__view.update_wnd_status_values(new_wnd_status_values)
 
     def __update_wnd_settings_values(self):
