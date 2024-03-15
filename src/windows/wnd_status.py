@@ -15,6 +15,7 @@ from PIL import Image
 import data.wnd_values as wnd_values
 from logger import logger
 from settings import Settings, UserSettingsData
+from states import StepType
 from windows.wnd_break import WndBreak
 
 
@@ -127,7 +128,7 @@ class WndStatus(customtkinter.CTkToplevel):
 
     def __btn_take_break_action(self):
         """Action for pressing button for taking a break"""
-        self.view.set_break_mode()
+        self.view.set_step(StepType.break_mode)
 
     def update(self, user_settings: UserSettingsData):
         """Updating status window elements states"""

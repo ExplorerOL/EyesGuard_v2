@@ -10,8 +10,9 @@ from PIL import Image
 import data.wnd_values as wnd_values
 from controller import Controller
 from logger import logger
-from model import CurrentState, Model
+from model import Model
 from settings import OnOffValue, Settings, UserSettingsData
+from states import CurrentState, StepType
 from windows.wnd_break import WndBreak
 from windows.wnd_settings import WndSettings
 from windows.wnd_status import WndStatus
@@ -129,5 +130,5 @@ class View(customtkinter.CTk):
     def change_protection_state(self):
         self.controller.change_protection_state()
 
-    def set_break_mode(self):
-        self.controller.set_break_mode()
+    def set_step(self, new_step_type: StepType):
+        self.controller.set_step(new_step_type)

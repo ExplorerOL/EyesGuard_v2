@@ -3,6 +3,7 @@ from threading import Thread
 from logger import logger
 from model import Model
 from settings import UserSettingsData
+from states import StepType
 
 # from view import EGView
 
@@ -44,5 +45,5 @@ class Controller:
     def change_protection_state(self):
         self.model.change_protection_state()
 
-    def set_break_mode(self):
-        self.model.set_break_mode()
+    def set_step(self, new_step_type: StepType):
+        self.model.set_step(new_step_type)

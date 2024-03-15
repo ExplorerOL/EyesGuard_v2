@@ -17,7 +17,7 @@ from PIL import Image, ImageTk
 
 import data.wnd_values as wnd_values
 from logger import logger
-from states import CurrentState
+from states import CurrentState, StepType
 
 # from settings import Settings, SettingsData
 
@@ -64,11 +64,12 @@ class WndBreak(customtkinter.CTkToplevel):
         )
         self.pbar_break_progress.grid(row=2, column=0, padx=20, pady=5, sticky="ew")
 
-        self.protocol("WM_DELETE_WINDOW", self.hide)
+        self.protocol("WM_DELETE_WINDOW", self.on_close_action)
         self.withdraw()
 
     def hide(self):
         """Hide window"""
+        logger.trace("Wnd break: hide")
         self.pbar_break_progress.stop()
         self.pbar_break_progress.set(1)
 
@@ -76,6 +77,10 @@ class WndBreak(customtkinter.CTkToplevel):
             self.attributes("-alpha", 1 - i / 100)
             time.sleep(0.006)
         self.withdraw()
+
+    def on_close_action(self):
+        logger.trace("Wnd break: on_close_action")
+        self.view.set_step(new_step_type=StepType.work_mode)
 
     def show(self):
         """Show window"""
