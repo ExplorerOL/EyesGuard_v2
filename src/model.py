@@ -338,3 +338,9 @@ class Model:
             self.__set_current_step(StepType.work_mode)
         self.__update_wnd_status_values()
         self.__update_wnd_settings_values()
+
+    def set_break_mode(self):
+        logger.trace("Model: set_break_mode")
+        self.__set_current_step(StepType.break_mode)
+        self.__update_wnd_break_values()
+        self.__view.show_wnd_break()

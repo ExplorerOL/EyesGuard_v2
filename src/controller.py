@@ -43,3 +43,6 @@ class Controller:
 
     def change_protection_state(self):
         self.model.change_protection_state()
+
+    def set_break_mode(self):
+        self.model.set_break_mode()

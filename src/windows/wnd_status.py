@@ -127,7 +127,7 @@ class WndStatus(customtkinter.CTkToplevel):
 
     def __btn_take_break_action(self):
         """Action for pressing button for taking a break"""
-        # self.wnd_break.show()
+        self.view.set_break_mode()
 
     def update(self, user_settings: UserSettingsData):
         """Updating status window elements states"""

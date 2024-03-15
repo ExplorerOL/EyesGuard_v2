@@ -128,3 +128,6 @@ class View(customtkinter.CTk):
 
     def change_protection_state(self):
         self.controller.change_protection_state()
+
+    def set_break_mode(self):
+        self.controller.set_break_mode()
