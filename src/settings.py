@@ -9,6 +9,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError
 
+from logger import logger
+
 
 class OnOffValue(Enum):
     on = "on"
@@ -136,9 +138,10 @@ class Settings:
 
     def apply_settings_from_file(self):
         """Read, validate and apply settings from file"""
-
+        logger.trace("Settings: apply_settings_from_file")
         settings_from_file_str = self._read_settings_from_file()
         settings_validated = self._validate_settings_str(settings_from_file_str)
+        logger.debug(f"Settings from file {settings_validated}")
         self._apply_settings(settings_validated)
 
     def apply_settings_from_ui(self, new_settings_data: UserSettingsData):
@@ -157,7 +160,7 @@ class Settings:
 
     def save_settings_to_file(self):
         """Save settings to file"""
-
+        logger.trace("Settings: save_settings_to_file")
         settings_dict = self._settings_to_dict()
         print(settings_dict)
         print(type(settings_dict))
@@ -167,9 +170,10 @@ class Settings:
             print(error)
             print(type(error))
             return
-        settings_validated.protection_status = OnOffValue.on.value
+        # settings_validated.protection_status = OnOffValue.on.value
         settings_json = settings_validated.model_dump_json(indent=4)
-        print(settings_json)
+        # print(settings_json)
+        logger.debug(f"Settings to file {settings_json}")
         self.__settings_file.write_text(settings_json, encoding="utf-8")
 
     def get_settings_copy(self) -> UserSettingsData:

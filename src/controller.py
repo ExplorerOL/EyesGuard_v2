@@ -43,7 +43,7 @@ class Controller:
         self.model.apply_new_settings(user_settings)
 
     def change_protection_state(self):
-        self.model.change_protection_state()
+        self.model.switch_suspended_mode()
 
     def set_step(self, new_step_type: StepType):
         self.model.set_step(new_step_type)

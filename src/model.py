@@ -72,10 +72,15 @@ class Model:
             logger.info(step.step_duration_td)
 
         # set initial step
-        self.__set_current_step(step_type=StepType.work_mode)
 
-        if self.__settings.user_settings.protection_status == OnOffValue.off:
+        logger.debug(f"Off mode: {self.__settings.user_settings.protection_status}")
+        logger.debug(f"Off value: {OnOffValue.off}")
+        if self.__settings.user_settings.protection_status == OnOffValue.off.value:
+            logger.debug("Model: init with off_mode")
             self.__set_current_step(StepType.off_mode)
+        else:
+            logger.debug("Model: init with work_mode")
+            self.__set_current_step(step_type=StepType.work_mode)
         # suspended mode can not be activated before program started
         # if self.__current_state.suspended_mode_active:
         #     self.__set_current_step(StepType.suspended_mode)
@@ -195,6 +200,7 @@ class Model:
     def __set_current_step(self, step_type: StepType) -> None:
         """settind step data in current state by step type"""
         logger.trace("Model: __set_current_step")
+        logger.debug(f"Model: new step {step_type}")
 
         self.model.__current_state.reset_elapsed_time()
         self.model.__current_state.set_current_step_data(
@@ -216,21 +222,21 @@ class Model:
 
     @property
     def model_settings(self) -> Settings:
-        logger.trace("Model: getting settings")
+        logger.trace("Model: model_settings getter")
         return self.__settings
 
     @model_settings.setter
     def model_settings(self, settings: Settings) -> None:
-        logger.trace("Model: saving new settings")
+        logger.trace("Model: model_settings setter")
 
     @property
     def model_user_settings(self) -> UserSettingsData:
-        logger.trace("Model: getting user settings")
+        logger.trace("Model: model_user_settings getter")
         return self.__settings.user_settings
 
     @model_user_settings.setter
     def model_user_settings(self, user_settings: UserSettingsData) -> None:
-        logger.trace("Model: saving new settings")
+        logger.trace("Model: model_user_settings setter")
         self.__settings.apply_settings_from_ui(user_settings)
 
     def set_view(self, view: View) -> None:
@@ -274,8 +280,9 @@ class Model:
 
             case StepType.work_mode:
                 logger.trace("Model: work_mode actions")
-                if self.model_user_settings.protection_status == OnOffValue.off.value:
-                    self.change_protection_state()
+                if self.__current_state.suspended_mode_active:
+                    # self.switch_suspended_mode()
+                    self.set_step(new_step_type=StepType.suspended_mode)
 
                 self.__view.hide_wnd_break()
                 # self.break_wnd.hide()
@@ -290,23 +297,24 @@ class Model:
             self.__change_step_if_protection_mode_was_changed()
             # time.sleep(1)
 
-            if (
-                self.model.__current_state.current_step_elapsed_time
-                < self.model.__current_state.current_step_duration
-            ):
-                self.model.__current_state.increase_elapsed_time()
-                # self._update_time_until_break()
-            else:
-                break
+            if self.__current_state.current_step_type != StepType.off_mode:
+                if (
+                    self.model.__current_state.current_step_elapsed_time
+                    < self.model.__current_state.current_step_duration
+                ):
+                    self.model.__current_state.increase_elapsed_time()
+                    # self._update_time_until_break()
+                else:
+                    break
 
-            # actions during step is in progress
-            match self.model.__current_state.current_step_type:
-                case StepType.break_mode:
-                    self.__update_wnd_break_values()
+                # actions during step is in progress
+                match self.model.__current_state.current_step_type:
+                    case StepType.break_mode:
+                        self.__update_wnd_break_values()
 
-                case _:
-                    self.__update_wnd_status_values()
-                    self.__update_tray_icon_values()
+                    case _:
+                        self.__update_wnd_status_values()
+                        self.__update_tray_icon_values()
 
             time.sleep(self.TIME_TICK_S)
 
@@ -336,9 +344,14 @@ class Model:
         logger.trace("Model: apply_new_settings")
         self.model_user_settings = user_settings
         self.__init_steps()
-        self.__set_current_step(StepType.work_mode)
+        # self.__set_current_step(StepType.work_mode)
 
-    def change_protection_state(self):
+        if self.__settings.user_settings.protection_status == OnOffValue.off:
+            self.__set_current_step(StepType.off_mode)
+        else:
+            self.__set_current_step(StepType.work_mode)
+
+    def switch_suspended_mode(self):
         logger.trace("Model: change_protection_state")
         new_user_settings = self.model_user_settings
         if new_user_settings.protection_status == OnOffValue.on.value:
@@ -356,7 +369,7 @@ class Model:
         self.__update_wnd_settings_values()
 
     def set_step(self, new_step_type: StepType):
-        logger.trace("Model: set_break_mode")
+        logger.trace("Model: set_step")
         self.__set_current_step(new_step_type)
         self.__update_wnd_break_values()
         self.__update_wnd_status_values()

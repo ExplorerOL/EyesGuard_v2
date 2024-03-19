@@ -327,6 +327,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.break_duration_value.set(str(user_settings.break_duration))
         self.chbox_sounds_value.set(value=user_settings.sounds)
         self.chbox_notifications_value.set(value=user_settings.notifications)
+        self.chbox_protection_status_value.set(value=user_settings.protection_status)
 
     def select_frame_by_name(self, name: str) -> None:
         # set button color for selected button
