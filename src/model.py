@@ -24,7 +24,7 @@ class Model:
     def __init__(self, settings_file: str = SETTINGS_FILE):
         self.__view: View | None = None
         self.__settings = Settings(settings_file)
-        self.__current_state = CurrentState(self.__settings)
+        self.__current_state = CurrentState()
 
         logger.info(f"User settings: = {self.__settings.user_settings}")
 
@@ -70,6 +70,15 @@ class Model:
         for step in self.steps_data_list:
             logger.info(f"{step.step_type=}")
             logger.info(step.step_duration_td)
+
+        # set initial step
+        self.__set_current_step(step_type=StepType.work_mode)
+
+        if self.__settings.user_settings.protection_status == OnOffValue.off:
+            self.__set_current_step(StepType.off_mode)
+        # suspended mode can not be activated before program started
+        # if self.__current_state.suspended_mode_active:
+        #     self.__set_current_step(StepType.suspended_mode)
 
     def __init_view(self):
         """View initialization with model data"""
@@ -307,6 +316,9 @@ class Model:
         # steps transitions
         match self.__current_state.current_step_type:
             case StepType.off_mode:
+                new_step_type = self.current_state.current_step_type
+                pass
+            case StepType.suspended_mode:
                 new_step_type = StepType.work_mode
             case StepType.work_mode:
                 new_step_type = StepType.work_notified_1

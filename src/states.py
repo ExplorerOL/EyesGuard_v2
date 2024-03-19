@@ -10,10 +10,11 @@ class StepType(IntEnum):
     """Types of programm steps"""
 
     off_mode = 0
-    work_mode = 1
-    work_notified_1 = 2
-    work_notified_2 = 3
-    break_mode = 4
+    suspended_mode = 1
+    work_mode = 2
+    work_notified_1 = 3
+    work_notified_2 = 4
+    break_mode = 5
     # break_notified = 4
 
 
@@ -28,10 +29,12 @@ class StepData:
 class CurrentState:
     """Data about current step"""
 
-    def __init__(self, settings: Settings):
-        self.__step_type: StepType = StepType.off_mode
+    def __init__(self):
+        self.__step_type: StepType = StepType.work_mode
+
         self.__step_duration_dt: datetime.timedelta = datetime.timedelta(seconds=0)
         self.__elapsed_time_dt: datetime.timedelta = datetime.timedelta(seconds=0)
+        self.__suspended_mode_active: bool = False
 
         print(f"Init current state: {self}")
 
@@ -56,17 +59,6 @@ class CurrentState:
     def current_step_type(self) -> StepType:
         return self.__step_type
 
-    def set_current_step_data(
-        self, step_type: StepType, step_duration: datetime.timedelta = datetime.timedelta(seconds=0)
-    ):
-        logger.trace("CurrentState: __set_current_step_data")
-        self.__step_type = step_type
-        self.__step_duration_dt = step_duration
-        # self.__elapsed_time_dt = datetime.timedelta(seconds=0)
-        logger.debug(f"__step_type = {self.__step_type}")
-        logger.debug(f"__step_duration_dt = {self.__step_duration_dt}")
-        logger.debug(f"__elapsed_time_dt = {self.__elapsed_time_dt}")
-
     @property
     def current_step_duration(self):
         return self.__step_duration_dt
@@ -78,6 +70,26 @@ class CurrentState:
     @property
     def current_step_remaining_time(self) -> datetime.timedelta:
         return self.__step_duration_dt - self.__elapsed_time_dt
+
+    @property
+    def suspended_mode_active(self) -> bool:
+        return self.__suspended_mode_active
+
+    # @suspended_mode_active.setter
+    # def suspended_mode_active(self, new_active_status: bool) -> None:
+    #     self.__suspended_mode_active = new_active_status
+
+    def set_current_step_data(
+        self, step_type: StepType, step_duration: datetime.timedelta = datetime.timedelta(seconds=0)
+    ):
+        """Setting current step type and its duration"""
+        logger.trace("CurrentState: __set_current_step_data")
+        self.__step_type = step_type
+        self.__step_duration_dt = step_duration
+        # self.__elapsed_time_dt = datetime.timedelta(seconds=0)
+        logger.debug(f"__step_type = {self.__step_type}")
+        logger.debug(f"__step_duration_dt = {self.__step_duration_dt}")
+        logger.debug(f"__elapsed_time_dt = {self.__elapsed_time_dt}")
 
     def increase_elapsed_time(self, time_delta: datetime.timedelta = datetime.timedelta(seconds=1)):
         logger.trace("CurrentState: increase_elapsed_time")

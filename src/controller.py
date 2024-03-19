@@ -34,9 +34,9 @@ class Controller:
 
         logger.trace("Controller: main loop started")
         while True:
-            self.model.set_new_step_in_sequence()
             self.model.do_current_step_actions()
             self.model.wait_for_current_step_is_ended()
+            self.model.set_new_step_in_sequence()
 
     def apply_view_user_settings(self, user_settings: UserSettingsData) -> None:
         logger.trace("EGModel: applying view settings")

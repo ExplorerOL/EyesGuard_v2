@@ -27,7 +27,7 @@ class View(customtkinter.CTk):
         customtkinter.set_default_color_theme("blue")
 
         self.__settings = Settings()
-        self.__current_state = CurrentState(self.__settings)
+        self.__current_state = CurrentState()
         self.__wnd_settings = WndSettings(self, self.__settings)
         self.__wnd_break = WndBreak(self, self.__current_state)
         self.__wnd_status = WndStatus(self)
