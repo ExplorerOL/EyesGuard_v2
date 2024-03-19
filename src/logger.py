@@ -1,4 +1,3 @@
-import sys as __sys
 from pathlib import Path as __Path
 
 import loguru as __loguru
@@ -14,15 +13,7 @@ if log_file_path.exists():
     log_file_path.unlink(missing_ok=True)
 
 logger = __loguru.logger
-logger.remove()
-logger.add(
-    sink=__sys.stderr,
-    level=__LOG_LEVEL_DEBUG,
-    format=__LOG_FORMAT,
-    colorize=True,
-    backtrace=True,
-    diagnose=True,
-)
+
 logger.add(
     sink=__LOG_FILE,
     level=__LOG_LEVEL_TRACE,
