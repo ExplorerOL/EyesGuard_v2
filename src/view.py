@@ -5,12 +5,12 @@ import os
 
 import customtkinter
 import pystray
-from PIL import Image
 
 import data.wnd_values as wnd_values
 from controller import Controller
 from logger import logger
 from model import Model
+from resourses import ResImages
 from settings import OnOffValue, Settings, UserSettingsData
 from states import CurrentState, StepType
 from windows.wnd_break import WndBreak
@@ -34,8 +34,9 @@ class View(customtkinter.CTk):
         self.title("EyesGuard v2")
 
         # tray icon
-        self.image_protection_active = Image.open("res/img/eyes_with_protection.png")
-        self.image_protection_suspended = Image.open("res/img/eyes_without_protection.png")
+        self.image_protection_active = ResImages.image_protection_active
+        self.image_protection_suspended = ResImages.image_protection_suspended
+        self.image_protection_off = ResImages.image_protection_off
         menu = (
             pystray.MenuItem("Status", self.__show_status_wnd, default=True),
             pystray.MenuItem("Settings", self.__show_settings_wnd),
@@ -123,10 +124,12 @@ class View(customtkinter.CTk):
 
     def update_tray_icon_values(self, new_tray_icon_values: wnd_values.TryIconValues) -> None:
         self.__tray_icon.title = new_tray_icon_values.tooltip_str
-        if new_tray_icon_values.protection_status == OnOffValue.on.value:
-            self.__tray_icon.icon = self.image_protection_active
-        else:
+        if new_tray_icon_values.protection_status == OnOffValue.off.value:
+            self.__tray_icon.icon = self.image_protection_off
+        elif new_tray_icon_values.suspended_status:
             self.__tray_icon.icon = self.image_protection_suspended
+        else:
+            self.__tray_icon.icon = self.image_protection_active
 
     def change_protection_state(self):
         self.controller.change_protection_state()

@@ -10,6 +10,7 @@ class WndSettingsValues:
 class TryIconValues:
     tooltip_str: str = ""
     protection_status: str = ""
+    suspended_status: bool = False
 
 
 @dataclass
