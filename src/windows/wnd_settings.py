@@ -16,6 +16,7 @@ from PIL import Image, ImageTk
 
 import data.wnd_values as wnd_values
 from logger import logger
+from model import Model
 from settings import OnOffValue, Settings, UserSettingsData
 
 
@@ -49,11 +50,12 @@ class WndSettings(customtkinter.CTkToplevel):
 
         # images
         self.img_eyes_with_protection = customtkinter.CTkImage(
-            Image.open("res/img/eyes_with_protection.png"), size=(50, 50)
+            self.view.image_protection_active, size=(50, 50)
         )
-        self.img_eyes_without_protection = customtkinter.CTkImage(
-            Image.open("res/img/eyes_without_protection.png"), size=(50, 50)
+        self.img_eyes_protection_suspended = customtkinter.CTkImage(
+            self.view.image_protection_suspended, size=(50, 50)
         )
+        self.img_eyes_protection_off = customtkinter.CTkImage(self.view.image_protection_off, size=(50, 50))
         self.img_clock = customtkinter.CTkImage(Image.open("res/img/clock.png"), size=(25, 25))
         self.img_gear = customtkinter.CTkImage(Image.open("res/img/gear.png"), size=(25, 25))
         self.img_info = customtkinter.CTkImage(Image.open("res/img/info.png"), size=(25, 25))
@@ -304,30 +306,35 @@ class WndSettings(customtkinter.CTkToplevel):
         print(result)
         return result
 
-    def update_protection_status(self, current_protection_status: str):
+    def update_protection_status_image(self, new_wnd_values: wnd_values.WndSettingsValues):
         """Updating protection status at settings window"""
         # print(f"protection_status={self.chbox_protection_status_value.get()}")
         # self.chbox_protection_status_value.set(value=self.settings.get_settings_copy().protection_status)
-        if current_protection_status == OnOffValue.on.value:
+        if new_wnd_values.protection_status == OnOffValue.off.value:
+            self.navigation_frame_lbl_title.configure(image=self.img_eyes_protection_off)
+            self.navigation_frame_lbl_description.configure(text="protection is off !", text_color="Black")
+        elif new_wnd_values.suspended_status:
+            self.navigation_frame_lbl_title.configure(image=self.img_eyes_protection_suspended)
+            self.navigation_frame_lbl_description.configure(
+                text="suspended protection !", text_color="Tomato"
+            )
+        else:
             self.navigation_frame_lbl_title.configure(image=self.img_eyes_with_protection)
             self.navigation_frame_lbl_description.configure(
                 text="cares about your vision", text_color="GreenYellow"
             )
-        else:
-            self.navigation_frame_lbl_title.configure(image=self.img_eyes_without_protection)
-            self.navigation_frame_lbl_description.configure(text="protection suspended!", text_color="Tomato")
 
-    def update(self, user_settings: UserSettingsData):
+    def update(self, model: Model):
         """Updating status window elements states"""
         logger.trace("Settings wnd: update function started")
-        logger.debug(f"New settings: {user_settings}")
+        logger.debug(f"Model settings: {model}")
 
         # self.update_protection_status()
-        self.work_duration_value.set(str(user_settings.work_duration))
-        self.break_duration_value.set(str(user_settings.break_duration))
-        self.chbox_sounds_value.set(value=user_settings.sounds)
-        self.chbox_notifications_value.set(value=user_settings.notifications)
-        self.chbox_protection_status_value.set(value=user_settings.protection_status)
+        self.work_duration_value.set(str(model.model_user_settings.work_duration))
+        self.break_duration_value.set(str(model.model_user_settings.break_duration))
+        self.chbox_sounds_value.set(value=model.model_user_settings.sounds)
+        self.chbox_notifications_value.set(value=model.model_user_settings.notifications)
+        self.chbox_protection_status_value.set(value=model.model_user_settings.protection_status)
 
     def select_frame_by_name(self, name: str) -> None:
         # set button color for selected button
@@ -368,4 +375,4 @@ class WndSettings(customtkinter.CTkToplevel):
         self.view.apply_view_user_settings()
 
     def update_values(self, new_values: wnd_values.WndSettingsValues):
-        self.update_protection_status(new_values.protection_status)
+        self.update_protection_status_image(new_values)

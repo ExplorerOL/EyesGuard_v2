@@ -42,8 +42,8 @@ class Controller:
         logger.trace("EGModel: applying view settings")
         self.model.apply_new_settings(user_settings)
 
-    def change_protection_state(self):
-        self.model.switch_suspended_mode()
+    def switch_suspended_state(self):
+        self.model.switch_suspended_state()
 
     def set_step(self, new_step_type: StepType):
         self.model.set_step(new_step_type)

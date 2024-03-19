@@ -21,7 +21,7 @@ class OnOffValue(Enum):
 class SystemSettingsData:
     """class for storing system settings"""
 
-    step_off_mode_duration = datetime.timedelta(minutes=60)
+    step_suspended_mode_duration = datetime.timedelta(minutes=60)
     step_notification_1_duration = datetime.timedelta(seconds=55)
     step_notification_2_duration = datetime.timedelta(seconds=5)
 

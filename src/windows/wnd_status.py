@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from view import View
 
+import datetime
 import time
 
 import customtkinter
@@ -14,6 +15,7 @@ from PIL import Image
 
 import data.wnd_values as wnd_values
 from logger import logger
+from model import Model
 from settings import Settings, UserSettingsData
 from states import StepType
 from windows.wnd_break import WndBreak
@@ -66,7 +68,7 @@ class WndStatus(customtkinter.CTkToplevel):
             f' ---------------- progress_color = {self.pbar_time_until_break.cget("progress_color")}'
         )
         # button change protection state
-        self.btn_change_protection_state = customtkinter.CTkButton(
+        self.btn_change_suspended_state = customtkinter.CTkButton(
             self,
             text="Protection active",
             text_color="GreenYellow",
@@ -78,7 +80,7 @@ class WndStatus(customtkinter.CTkToplevel):
             border_spacing=0,
             font=("", 13, "bold"),
         )
-        self.btn_change_protection_state.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        self.btn_change_suspended_state.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
         # button take a break
         self.btn_take_break = customtkinter.CTkButton(
@@ -123,42 +125,107 @@ class WndStatus(customtkinter.CTkToplevel):
 
     def __btn_change_protection_state_action(self):
         """Action for pressing changeing protection state button"""
-        self.view.change_protection_state()
+        self.view.switch_suspended_state()
         # self.update_view()
 
     def __btn_take_break_action(self):
         """Action for pressing button for taking a break"""
         self.view.set_step(StepType.break_mode)
 
-    def update(self, user_settings: UserSettingsData):
+    def update(self, model: Model):
         """Updating status window elements states"""
-
-    def update_values(self, new_values: wnd_values.WndStatusValues):
-        logger.trace("Wnd status: update_values")
-        self.lbl_time_until_break.configure(text=new_values.remaining_time_str)
-        self.pbar_time_until_break.set(value=new_values.remaining_time_pbar_value)
-
-        if new_values.protection_status == "on":
-            self.btn_change_protection_state.configure(
-                text="Protection active",
-                text_color="GreenYellow",
-                image=customtkinter.CTkImage(light_image=self.img_eyes_with_protection, size=(30, 30)),
-                require_redraw=True,
-            )
+        logger.trace("Wnd status: update")
+        self.lbl_time_until_break.configure(text=model.remaining_working_time_to_display)
+        if model.time_for_work_full > datetime.timedelta(seconds=0):
+            pbar_value = 1 - model.remaining_working_time_to_display / model.time_for_work_full
         else:
-            self.btn_change_protection_state.configure(
-                text="Protection suspended",
-                text_color="Tomato",
-                # hover_color="yellow",
-                image=customtkinter.CTkImage(light_image=self.img_eyes_without_protection, size=(30, 30)),
-                require_redraw=True,
-            )
+            pbar_value = 0
+        self.pbar_time_until_break.set(value=pbar_value)
 
-        if new_values.btn_take_break_enabled:
-            # if update permanently - abberrations of button present
-            if self.btn_take_break.cget("state") != "normal":
-                self.btn_take_break.configure(state="normal")
-        else:
-            # if update permanently - abberrations of button present
-            if self.btn_take_break.cget("state") != "disabled":
-                self.btn_take_break.configure(state="disabled")
+        # if new_values.protection_status == "off":
+
+        match model.current_state.current_step_type:
+            case StepType.off_mode:
+                self.btn_change_suspended_state.configure(
+                    text="Protection off",
+                    text_color="GreenYellow",
+                    image=customtkinter.CTkImage(light_image=self.img_eyes_with_protection, size=(30, 30)),
+                    require_redraw=True,
+                )
+                # if update permanently - abberrations of button present
+                if self.btn_take_break.cget("state") != "disabled":
+                    self.btn_take_break.configure(state="disabled")
+
+                if self.btn_change_suspended_state.cget("state") != "disabled":
+                    self.btn_change_suspended_state.configure(state="disabled")
+
+            case StepType.suspended_mode:
+                self.btn_change_suspended_state.configure(
+                    text="Protection suspended",
+                    text_color="Tomato",
+                    # hover_color="yellow",
+                    image=customtkinter.CTkImage(light_image=self.img_eyes_without_protection, size=(30, 30)),
+                    require_redraw=True,
+                )
+                if self.btn_take_break.cget("state") != "disabled":
+                    self.btn_take_break.configure(state="disabled")
+            case _:
+                self.btn_change_suspended_state.configure(
+                    text="Protection active",
+                    text_color="GreenYellow",
+                    image=customtkinter.CTkImage(light_image=self.img_eyes_with_protection, size=(30, 30)),
+                    require_redraw=True,
+                )
+                # if update permanently - abberrations of button present
+                if self.btn_take_break.cget("state") != "normal":
+                    self.btn_take_break.configure(state="normal")
+
+                if self.btn_change_suspended_state.cget("state") != "normal":
+                    self.btn_change_suspended_state.configure(state="normal")
+
+    # def update(self, model: Model):
+    #     logger.trace("Wnd status: update_values")
+    #     self.lbl_time_until_break.configure(text=model.remaining_working_time_to_display)
+
+    #     if model.time_for_work_full > datetime.timedelta(seconds=0):
+    #         pbar_value = 1 - model.remaining_working_time_to_display / model.time_for_work_full
+    #     else:
+    #         pbar_value = 0
+    #     self.pbar_time_until_break.set(value=pbar_value)
+
+    #     # self.pbar_time_until_break.set(
+    #     #     value=1 - model.remaining_working_time_to_display / model.__time_for_work_full
+    #     # )
+
+    #     # if new_values.protection_status == "off":
+
+    #     if model.model_user_settings.protection_status == "on":
+    #         self.btn_change_suspended_state.configure(
+    #             text="Protection active",
+    #             text_color="GreenYellow",
+    #             image=customtkinter.CTkImage(light_image=self.img_eyes_with_protection, size=(30, 30)),
+    #             require_redraw=True,
+    #         )
+    #     else:
+    #         self.btn_change_suspended_state.configure(
+    #             text="Protection suspended",
+    #             text_color="Tomato",
+    #             # hover_color="yellow",
+    #             image=customtkinter.CTkImage(light_image=self.img_eyes_without_protection, size=(30, 30)),
+    #             require_redraw=True,
+    #         )
+
+    #     # if new_values.protection_status == "off":
+    #     #     # if update permanently - abberrations of button present
+    #     #     if self.btn_take_break.cget("state") != "disabled":
+    #     #         self.btn_take_break.configure(state="disabled")
+
+    #     #     if self.btn_change_suspended_state.cget("state") != "disabled":
+    #     #         self.btn_change_suspended_state.configure(state="disabled")
+    #     # else:
+    #     #     # if update permanently - abberrations of button present
+    #     #     if self.btn_take_break.cget("state") != "normal":
+    #     #         self.btn_take_break.configure(state="normal")
+
+    #     #     if self.btn_change_suspended_state.cget("state") != "normal":
+    #     #         self.btn_change_suspended_state.configure(state="normal")

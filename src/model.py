@@ -30,8 +30,10 @@ class Model:
 
         self.steps_data_list: list[StepData] = []
         self.__init_steps()
-
         logger.info(self.__current_state)
+
+        self.__remaining_time_to_display = datetime.timedelta(seconds=0)
+        self.__time_for_work_full = datetime.timedelta(seconds=0)
 
         logger.trace("Model: object was created")
 
@@ -41,14 +43,18 @@ class Model:
             self.steps_data_list[step_type].step_type = step_type
 
         # setting steps durations
-        self.step_off_duration_td = self.__settings.system_settings.step_off_mode_duration
+        self.step_off_duration_td = self.__settings.system_settings.step_suspended_mode_duration
+        self.step_suspended_duration_td = self.__settings.system_settings.step_suspended_mode_duration
         self.step_work_duration_td = datetime.timedelta(minutes=self.__settings.user_settings.work_duration)
         self.step_break_duration_td = datetime.timedelta(minutes=self.__settings.user_settings.break_duration)
         self.step_notification_1_time_td = self.__settings.system_settings.step_notification_1_duration
         self.step_notification_2_time_td = self.__settings.system_settings.step_notification_2_duration
         logger.info(f"step_work_duration_td {self.step_work_duration_td}")
 
-        self.steps_data_list[StepType.off_mode].step_duration_td = self.step_off_duration_td
+        self.steps_data_list[StepType.off_mode].step_duration_td = self.step_suspended_duration_td
+        self.steps_data_list[StepType.suspended_mode].step_duration_td = (
+            self.step_suspended_duration_td + self.step_work_duration_td
+        )
         if self.step_work_duration_td > self.step_notification_1_time_td + self.step_notification_2_time_td:
             logger.info(
                 f"cond 1 {self.step_work_duration_td}  {self.step_notification_1_time_td + self.step_notification_2_time_td}"
@@ -89,22 +95,22 @@ class Model:
         """View initialization with model data"""
         logger.trace("Model: __init_view function started")
         if self.__view is not None:
-            self.__view.init_all_views(self.model)
+            self.__view.update_all_wnd_values(self.model)
 
-    def __change_step_if_protection_mode_was_changed(self):
-        logger.trace(f"Model: __change_step_if_protection_mode_was_changed")
-        # if (
-        #     self.model.set_model.user_settings.protection_status == "off"
-        #     and self.model.current_state.current_step_type() != StepType.off_mode
-        # ):
-        #     self._set_current_step(step_type=StepType.off_mode)
-        #     # self.view.wnd_settings.update()
+    # def __change_step_if_protection_mode_was_changed(self):
+    #     logger.trace(f"Model: __change_step_if_protection_mode_was_changed")
+    #     # if (
+    #     #     self.model.set_model.user_settings.protection_status == "off"
+    #     #     and self.model.current_state.current_step_type() != StepType.off_mode
+    #     # ):
+    #     #     self._set_current_step(step_type=StepType.off_mode)
+    #     #     # self.view.wnd_settings.update()
 
-        # if (
-        #     self.model.set_model.user_settings.protection_status == "on"
-        #     and self.model.current_state.current_step_type() == StepType.off_mode
-        # ):
-        #     self._set_current_step(step_type=StepType.work_mode)
+    #     # if (
+    #     #     self.model.set_model.user_settings.protection_status == "on"
+    #     #     and self.model.current_state.current_step_type() == StepType.off_mode
+    #     # ):
+    #     #     self._set_current_step(step_type=StepType.work_mode)
 
     def __update_tray_icon_values(self):
         """Updating tray icon values"""
@@ -123,23 +129,23 @@ class Model:
         """Updating status window values"""
         logger.trace("Controller: __update_wnd_status_values")
 
-        remaining_time_to_display = self.__calculate_remaining_time_for_work()
-        remaining_time_for_work_full = self.__calculate_time_for_work()
+        self.__remaining_time_to_display = self.__calculate_remaining_time_for_work()
+        self.__time_for_work_full = self.__calculate_time_for_work()
         # logger.debug("Updating time")
 
-        time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_to_display}"
+        # time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_to_display}"
 
-        new_wnd_status_values = wnd_values.WndStatusValues()
-        new_wnd_status_values.remaining_time_str = time_until_break_tooltip_string
-        new_wnd_status_values.remaining_time_pbar_value = (
-            1 - remaining_time_to_display / remaining_time_for_work_full
-        )
-        new_wnd_status_values.protection_status = self.model_user_settings.protection_status
-        if self.current_state.current_step_type == StepType.off_mode:
-            new_wnd_status_values.btn_take_break_enabled = False
-        else:
-            new_wnd_status_values.btn_take_break_enabled = True
-        self.__view.update_wnd_status_values(new_wnd_status_values)
+        # new_wnd_status_values = wnd_values.WndStatusValues()
+        # new_wnd_status_values.remaining_time_str = time_until_break_tooltip_string
+        # new_wnd_status_values.remaining_time_pbar_value = (
+        #     1 - remaining_time_to_display / remaining_time_for_work_full
+        # )
+        # new_wnd_status_values.protection_status = self.model_user_settings.protection_status
+        # if self.current_state.current_step_type == StepType.off_mode:
+        #     new_wnd_status_values.btn_take_break_enabled = False
+        # else:
+        #     new_wnd_status_values.btn_take_break_enabled = True
+        self.__view.update_wnd_status_values(self.model)
 
     def __update_wnd_settings_values(self):
         new_wnd_settings_values = wnd_values.WndSettingsValues()
@@ -214,6 +220,16 @@ class Model:
     def model(self) -> Model:
         logger.trace("Model: getting model data")
         return self
+
+    @property
+    def remaining_working_time_to_display(self) -> datetime.timedelta:
+        logger.trace("Model: remaining_working_time_to_display property")
+        return self.__remaining_time_to_display
+
+    @property
+    def time_for_work_full(self) -> datetime.timedelta:
+        logger.trace("Model: time_for_work_full property")
+        return self.__time_for_work_full
 
     @property
     def current_state(self) -> CurrentState:
@@ -294,7 +310,7 @@ class Model:
             logger.info(f"Current step type: {self.model.__current_state.current_step_type}")
             logger.info(f"Step duration: {self.model.__current_state.current_step_duration}")
             logger.info(f"Step elapsed time: {self.model.__current_state.current_step_elapsed_time}")
-            self.__change_step_if_protection_mode_was_changed()
+            # self.__change_step_if_protection_mode_was_changed()
             # time.sleep(1)
 
             if self.__current_state.current_step_type != StepType.off_mode:
@@ -351,18 +367,18 @@ class Model:
         else:
             self.__set_current_step(StepType.work_mode)
 
-    def switch_suspended_mode(self):
+    def switch_suspended_state(self):
         logger.trace("Model: change_protection_state")
-        new_user_settings = self.model_user_settings
-        if new_user_settings.protection_status == OnOffValue.on.value:
-            new_user_settings.protection_status = OnOffValue.off.value
-        else:
-            new_user_settings.protection_status = OnOffValue.on.value
-        self.model_user_settings = new_user_settings
-        self.__init_steps()
-
-        if new_user_settings.protection_status == OnOffValue.off.value:
-            self.__set_current_step(StepType.off_mode)
+        # new_user_settings = self.model_user_settings
+        # if new_user_settings.protection_status == OnOffValue.on.value:
+        #     new_user_settings.protection_status = OnOffValue.off.value
+        # else:
+        #     new_user_settings.protection_status = OnOffValue.on.value
+        # self.model_user_settings = new_user_settings
+        # self.__init_steps()
+        # self.current_state.suspended_mode_active = not (self.current_state.suspended_mode_active)
+        if self.current_state.current_step_type != StepType.suspended_mode:
+            self.__set_current_step(StepType.suspended_mode)
         else:
             self.__set_current_step(StepType.work_mode)
         self.__update_wnd_status_values()

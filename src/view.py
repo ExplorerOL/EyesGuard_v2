@@ -26,6 +26,10 @@ class View(customtkinter.CTk):
         customtkinter.set_appearance_mode("light")
         customtkinter.set_default_color_theme("blue")
 
+        self.image_protection_active = ResImages.image_protection_active
+        self.image_protection_suspended = ResImages.image_protection_suspended
+        self.image_protection_off = ResImages.image_protection_off
+
         self.__settings = Settings()
         self.__current_state = CurrentState()
         self.__wnd_settings = WndSettings(self, self.__settings)
@@ -34,9 +38,6 @@ class View(customtkinter.CTk):
         self.title("EyesGuard v2")
 
         # tray icon
-        self.image_protection_active = ResImages.image_protection_active
-        self.image_protection_suspended = ResImages.image_protection_suspended
-        self.image_protection_off = ResImages.image_protection_off
         menu = (
             pystray.MenuItem("Status", self.__show_status_wnd, default=True),
             pystray.MenuItem("Settings", self.__show_settings_wnd),
@@ -75,11 +76,11 @@ class View(customtkinter.CTk):
         self.quit()
         os._exit(0)
 
-    def init_all_views(self, model: Model):
+    def update_all_wnd_values(self, model: Model):
         """Init all data at windows"""
         logger.trace("View: init_all_views function started")
-        # self.__wnd_status.update(model.model_user_settings)
-        self.__wnd_settings.update(model.model_user_settings)
+        self.__wnd_status.update(model)
+        self.__wnd_settings.update(model)
         # self.__wnd_break.update_values(model.current_state)
 
     def apply_view_user_settings(self):
@@ -113,8 +114,8 @@ class View(customtkinter.CTk):
     def hide_wnd_break(self):
         self.__wnd_break.hide()
 
-    def update_wnd_status_values(self, wnd_status_values: wnd_values.WndStatusValues) -> None:
-        self.__wnd_status.update_values(wnd_status_values)
+    def update_wnd_status_values(self, model: Model) -> None:
+        self.__wnd_status.update(model)
 
     def update_wnd_settings_values(self, wnd_settings_values: wnd_values.WndSettingsValues) -> None:
         self.__wnd_settings.update_values(wnd_settings_values)
@@ -131,8 +132,8 @@ class View(customtkinter.CTk):
         else:
             self.__tray_icon.icon = self.image_protection_active
 
-    def change_protection_state(self):
-        self.controller.change_protection_state()
+    def switch_suspended_state(self):
+        self.controller.switch_suspended_state()
 
     def set_step(self, new_step_type: StepType):
         self.controller.set_step(new_step_type)
