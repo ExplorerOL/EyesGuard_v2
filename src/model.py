@@ -52,9 +52,7 @@ class Model:
         logger.info(f"step_work_duration_td {self.step_work_duration_td}")
 
         self.steps_data_list[StepType.off_mode].step_duration_td = self.step_suspended_duration_td
-        self.steps_data_list[StepType.suspended_mode].step_duration_td = (
-            self.step_suspended_duration_td + self.step_work_duration_td
-        )
+        self.steps_data_list[StepType.suspended_mode].step_duration_td = self.step_suspended_duration_td
         if self.step_work_duration_td > self.step_notification_1_time_td + self.step_notification_2_time_td:
             logger.info(
                 f"cond 1 {self.step_work_duration_td}  {self.step_notification_1_time_td + self.step_notification_2_time_td}"
