@@ -132,7 +132,7 @@ class Model:
         new_tray_icon_values.protection_status = self.__settings.user_settings.protection_status
         self.__view.update_tray_icon_values(self.model)
 
-    def __update_wnd_status_values(self):
+    def __update_wnd_status(self):
         """Updating status window values"""
         logger.trace("Controller: __update_wnd_status_values")
 
@@ -152,26 +152,26 @@ class Model:
         #     new_wnd_status_values.btn_take_break_enabled = False
         # else:
         #     new_wnd_status_values.btn_take_break_enabled = True
-        self.__view.update_wnd_status_values(self.model)
+        self.__view.update_wnd_status(self.model)
 
-    def __update_wnd_settings_values(self):
+    def __update_wnd_settings(self):
         # new_wnd_settings_values = wnd_values.WndSettingsValues()
         # new_wnd_settings_values.protection_status = self.model_user_settings.protection_status
-        self.__view.update_wnd_settings_values(self.model)
+        self.__view.update_wnd_settings(self.model)
 
-    def __update_wnd_break_values(self):
+    def __update_wnd_break(self):
         """Updating break window values"""
         logger.trace("Controller: __update_wnd_break_values")
-        new_wnd_break_values = wnd_values.WndBreakValues()
-        new_wnd_break_values.remaining_time_str = (
-            f"Remaining break time: {self.model.__current_state.current_step_remaining_time}"
-        )
-        new_wnd_break_values.remaining_time_pbar_value = (
-            1
-            - self.model.__current_state.current_step_remaining_time
-            / self.model.steps_data_list[StepType.break_mode].step_duration_td
-        )
-        self.__view.update_wnd_break_values(new_wnd_break_values)
+        # new_wnd_break_values = wnd_values.WndBreakValues()
+        # new_wnd_break_values.remaining_time_str = (
+        #     f"Remaining break time: {self.model.__current_state.current_step_remaining_time}"
+        # )
+        # new_wnd_break_values.remaining_time_pbar_value = (
+        #     1
+        #     - self.model.__current_state.current_step_remaining_time
+        #     / self.model.steps_data_list[StepType.break_mode].step_duration_td
+        # )
+        self.__view.update_wnd_break(self.model)
 
     def __calculate_remaining_time_for_work(self) -> datetime.timedelta:
         remaining_time_actual: datetime.timedelta = self.model.__current_state.current_step_remaining_time
@@ -291,7 +291,7 @@ class Model:
 
             case StepType.break_mode:
                 logger.trace("Model: break_mode actions")
-                self.__update_wnd_break_values()
+                self.__update_wnd_break()
                 self.__view.show_wnd_break()
 
             case StepType.work_notified_1:
@@ -337,10 +337,10 @@ class Model:
             # actions during step is in progress
             match self.model.__current_state.current_step_type:
                 case StepType.break_mode:
-                    self.__update_wnd_break_values()
+                    self.__update_wnd_break()
 
                 case _:
-                    self.__update_wnd_status_values()
+                    self.__update_wnd_status()
                     self.__update_tray_icon_values()
 
             time.sleep(self.TIME_TICK_S)
@@ -392,15 +392,15 @@ class Model:
             self.__set_current_step(StepType.suspended_mode)
         else:
             self.__set_current_step(StepType.work_mode)
-        self.__update_wnd_status_values()
-        self.__update_wnd_settings_values()
+        self.__update_wnd_status()
+        self.__update_wnd_settings()
 
     def set_step(self, new_step_type: StepType):
         logger.trace("Model: set_step")
         self.__set_current_step(new_step_type)
-        self.__update_wnd_break_values()
-        self.__update_wnd_status_values()
-        self.__update_wnd_settings_values()
+        self.__update_wnd_break()
+        self.__update_wnd_status()
+        self.__update_wnd_settings()
 
         # TODO: move to current step actions
         # match new_step_type:

@@ -114,14 +114,14 @@ class View(customtkinter.CTk):
     def hide_wnd_break(self):
         self.__wnd_break.hide()
 
-    def update_wnd_status_values(self, model: Model) -> None:
+    def update_wnd_status(self, model: Model) -> None:
         self.__wnd_status.update(model)
 
-    def update_wnd_settings_values(self, model: Model) -> None:
+    def update_wnd_settings(self, model: Model) -> None:
         self.__wnd_settings.update(model)
 
-    def update_wnd_break_values(self, new_values: wnd_values.WndBreakValues) -> None:
-        self.__wnd_break.update_values(new_values)
+    def update_wnd_break(self, model: Model) -> None:
+        self.__wnd_break.update(model)
 
     def update_tray_icon_values(self, model: Model) -> None:
         logger.trace("View: update_tray_icon_values")

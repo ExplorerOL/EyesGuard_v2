@@ -17,6 +17,7 @@ from PIL import Image, ImageTk
 
 import data.wnd_values as wnd_values
 from logger import logger
+from model import Model
 from states import CurrentState, StepType
 
 # from settings import Settings, SettingsData
@@ -81,6 +82,8 @@ class WndBreak(customtkinter.CTkToplevel):
     def on_close_action(self):
         logger.trace("Wnd break: on_close_action")
         self.view.set_step(new_step_type=StepType.work_mode)
+        self.remaining_break_time.set(f"Remaining break time: 0:00:00")
+        self.pbar_break_progress.set(0)
 
     def show(self):
         """Show window"""
@@ -99,12 +102,31 @@ class WndBreak(customtkinter.CTkToplevel):
     # def set_lbl_remaining_time_text(self, elapsed_time: datetime.timedelta):
     #     self.remaining_break_time.set(f"Remaining break time: {elapsed_time.seconds} seconds")
 
-    def update_values(self, new_values: wnd_values.WndBreakValues):
-        self.remaining_break_time.set(new_values.remaining_time_str)
+    def update(self, model: Model):
+        logger.trace("WndBreak: update")
+
         # self.__set_pbar_speed(current_state=new_values.remaining_time_pbar_value)
-        logger.debug(f"WndBreak: pb speed = {new_values.remaining_time_pbar_value}")
+        if model.current_state.current_step_elapsed_time > datetime.timedelta(seconds=0):
+            pbar_value = (
+                model.current_state.current_step_elapsed_time / model.current_state.current_step_duration
+            )
+        else:
+            pbar_value = 0
+        logger.debug(f"WndBreak: pb speed = {pbar_value}")
         # self.pbar_break_progress.configure(determinate_speed=new_values.remaining_time_pbar_value)
-        self.pbar_break_progress.set(new_values.remaining_time_pbar_value)
+        self.pbar_break_progress.set(pbar_value)
+        if model.current_state.current_step_type == StepType.break_mode:
+            self.remaining_break_time.set(
+                f"Remaining break time: {model.steps_data_list[StepType.break_mode].step_duration_td - model.current_state.current_step_elapsed_time}"
+            )
+            if self.state() != "normal":
+                self.show()
+        else:
+            self.remaining_break_time.set(
+                f"Remaining break time: {model.steps_data_list[StepType.break_mode].step_duration_td}"
+            )
+            if self.state() == "normal":
+                self.hide()
 
     # def __set_pbar_speed(self, current_state: CurrentState):
     #     logger.trace("WndBreak: __set_pbar_speed")
