@@ -29,7 +29,7 @@ class Model:
         logger.info(f"User settings: = {self.__settings.user_settings}")
 
         self.steps_data_list: list[StepData] = []
-        self.__init_steps()
+        # self.__init_steps()
         logger.info(self.__current_state)
 
         self.__remaining_time_to_display = datetime.timedelta(seconds=0)
@@ -83,10 +83,15 @@ class Model:
         logger.debug(f"Off value: {OnOffValue.off}")
         if self.__settings.user_settings.protection_status == OnOffValue.off.value:
             logger.debug("Model: init with off_mode")
-            self.__set_current_step(StepType.off_mode)
+            self.set_step(new_step_type=StepType.off_mode)
         else:
             logger.debug("Model: init with work_mode")
-            self.__set_current_step(step_type=StepType.work_mode)
+            self.set_step(new_step_type=StepType.work_mode)
+
+        # if self.__settings.user_settings.protection_status == OnOffValue.off.value:
+        #     self.set_step(StepType.off_mode)
+        # else:
+        #     self.set_step(StepType.work_mode)
         # suspended mode can not be activated before program started
         # if self.__current_state.suspended_mode_active:
         #     self.__set_current_step(StepType.suspended_mode)
@@ -94,6 +99,8 @@ class Model:
     def __init_view(self):
         """View initialization with model data"""
         logger.trace("Model: __init_view function started")
+        self.__init_steps()
+
         if self.__view is not None:
             self.__view.update_all_wnd_values(self.model)
 
@@ -148,9 +155,9 @@ class Model:
         self.__view.update_wnd_status_values(self.model)
 
     def __update_wnd_settings_values(self):
-        new_wnd_settings_values = wnd_values.WndSettingsValues()
-        new_wnd_settings_values.protection_status = self.model_user_settings.protection_status
-        self.__view.update_wnd_settings_values(new_wnd_settings_values)
+        # new_wnd_settings_values = wnd_values.WndSettingsValues()
+        # new_wnd_settings_values.protection_status = self.model_user_settings.protection_status
+        self.__view.update_wnd_settings_values(self.model)
 
     def __update_wnd_break_values(self):
         """Updating break window values"""
@@ -366,10 +373,10 @@ class Model:
         self.__init_steps()
         # self.__set_current_step(StepType.work_mode)
 
-        if self.__settings.user_settings.protection_status == OnOffValue.off:
-            self.set_step(StepType.off_mode)
-        else:
-            self.set_step(StepType.work_mode)
+        # if self.__settings.user_settings.protection_status == OnOffValue.off.value:
+        #     self.set_step(StepType.off_mode)
+        # else:
+        #     self.set_step(StepType.work_mode)
 
     def switch_suspended_state(self):
         logger.trace("Model: change_protection_state")

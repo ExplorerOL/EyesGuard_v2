@@ -18,6 +18,7 @@ import data.wnd_values as wnd_values
 from logger import logger
 from model import Model
 from settings import OnOffValue, Settings, UserSettingsData
+from states import StepType
 
 
 class WndSettings(customtkinter.CTkToplevel):
@@ -306,23 +307,26 @@ class WndSettings(customtkinter.CTkToplevel):
         print(result)
         return result
 
-    def update_protection_status_image(self, new_wnd_values: wnd_values.WndSettingsValues):
+    def update_protection_status_image(self, model: Model):
         """Updating protection status at settings window"""
         # print(f"protection_status={self.chbox_protection_status_value.get()}")
         # self.chbox_protection_status_value.set(value=self.settings.get_settings_copy().protection_status)
-        if new_wnd_values.protection_status == OnOffValue.off.value:
-            self.navigation_frame_lbl_title.configure(image=self.img_eyes_protection_off)
-            self.navigation_frame_lbl_description.configure(text="protection is off !", text_color="Black")
-        elif new_wnd_values.suspended_status:
-            self.navigation_frame_lbl_title.configure(image=self.img_eyes_protection_suspended)
-            self.navigation_frame_lbl_description.configure(
-                text="suspended protection !", text_color="Tomato"
-            )
-        else:
-            self.navigation_frame_lbl_title.configure(image=self.img_eyes_with_protection)
-            self.navigation_frame_lbl_description.configure(
-                text="cares about your vision", text_color="GreenYellow"
-            )
+        match model.current_state.current_step_type:
+            case StepType.off_mode:
+                self.navigation_frame_lbl_title.configure(image=self.img_eyes_protection_off)
+                self.navigation_frame_lbl_description.configure(
+                    text="protection is off !", text_color="Black"
+                )
+            case StepType.suspended_mode:
+                self.navigation_frame_lbl_title.configure(image=self.img_eyes_protection_suspended)
+                self.navigation_frame_lbl_description.configure(
+                    text="suspended protection !", text_color="Tomato"
+                )
+            case _:
+                self.navigation_frame_lbl_title.configure(image=self.img_eyes_with_protection)
+                self.navigation_frame_lbl_description.configure(
+                    text="cares about your vision", text_color="GreenYellow"
+                )
 
     def update(self, model: Model):
         """Updating status window elements states"""
@@ -335,6 +339,8 @@ class WndSettings(customtkinter.CTkToplevel):
         self.chbox_sounds_value.set(value=model.model_user_settings.sounds)
         self.chbox_notifications_value.set(value=model.model_user_settings.notifications)
         self.chbox_protection_status_value.set(value=model.model_user_settings.protection_status)
+
+        self.update_protection_status_image(model)
 
     def select_frame_by_name(self, name: str) -> None:
         # set button color for selected button
@@ -374,5 +380,5 @@ class WndSettings(customtkinter.CTkToplevel):
         # new_settings = self.get_settings_from_widgets()
         self.view.apply_view_user_settings()
 
-    def update_values(self, new_values: wnd_values.WndSettingsValues):
-        self.update_protection_status_image(new_values)
+    # def update(self, new_values: wnd_values.WndSettingsValues):
+    #     self.update_protection_status_image(new_values)
