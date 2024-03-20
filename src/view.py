@@ -132,6 +132,9 @@ class View(customtkinter.CTk):
             self.__tray_icon.icon = self.image_protection_off
         elif model.current_state.current_step_type == StepType.suspended_mode:
             self.__tray_icon.icon = self.image_protection_suspended
+            self.__tray_icon.title = (
+                f"Time without protection: {model.current_state.current_step_remaining_time}"
+            )
         else:
             self.__tray_icon.icon = self.image_protection_active
 
