@@ -205,6 +205,7 @@ class WndSettings(customtkinter.CTkToplevel):
             font=("", 13),
         )
         self.chbox_protection_status.grid(row=0, column=0, padx=20, pady=10, sticky="ew")
+
         # sounds setting
         self.chbox_sounds_value = customtkinter.StringVar(value=self.settings.get_settings_copy().sounds)
         self.chbox_sounds = customtkinter.CTkCheckBox(
@@ -215,7 +216,8 @@ class WndSettings(customtkinter.CTkToplevel):
             offvalue="off",
             font=("", 13),
         )
-        self.chbox_sounds.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+        # Temporaly not used
+        # self.chbox_sounds.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
         # notifications setting
         self.chbox_notifications_value = customtkinter.StringVar(
@@ -229,7 +231,8 @@ class WndSettings(customtkinter.CTkToplevel):
             offvalue="off",
             font=("", 13),
         )
-        self.chbox_notifications.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        # Temporaly not used
+        # self.chbox_notifications.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
         # --- create frame about---
         self.frame_about = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
