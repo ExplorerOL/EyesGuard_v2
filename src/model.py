@@ -276,7 +276,11 @@ class Model:
         match self.model.__current_state.current_step_type:
             case StepType.off_mode:
                 logger.trace("Model: off_mode actions")
-                self.__view.show_notification("Eyes Guard is in suspended mode!", "Attention!")
+                self.__view.show_notification("Eyes Guard protection is off!", "Attention!")
+
+            case StepType.suspended_mode:
+                logger.trace("Model: off_mode actions")
+                self.__view.show_notification("Eyes Guard protection suspended!", "Attention!")
 
             case StepType.break_mode:
                 logger.trace("Model: break_mode actions")
@@ -356,16 +360,16 @@ class Model:
         logger.debug(f"Model: new step = {new_step_type}")
         self.__set_current_step(new_step_type)
 
-    def apply_new_settings(self, user_settings: UserSettingsData) -> None:
+    def apply_new_user_settings(self, user_settings: UserSettingsData) -> None:
         logger.trace("Model: apply_new_settings")
         self.model_user_settings = user_settings
         self.__init_steps()
         # self.__set_current_step(StepType.work_mode)
 
         if self.__settings.user_settings.protection_status == OnOffValue.off:
-            self.__set_current_step(StepType.off_mode)
+            self.set_step(StepType.off_mode)
         else:
-            self.__set_current_step(StepType.work_mode)
+            self.set_step(StepType.work_mode)
 
     def switch_suspended_state(self):
         logger.trace("Model: change_protection_state")
@@ -391,8 +395,9 @@ class Model:
         self.__update_wnd_status_values()
         self.__update_wnd_settings_values()
 
-        match new_step_type:
-            case StepType.break_mode:
-                self.__view.show_wnd_break()
-            case StepType.work_mode:
-                self.__view.hide_wnd_break()
+        # TODO: move to current step actions
+        # match new_step_type:
+        #     case StepType.break_mode:
+        #         self.__view.show_wnd_break()
+        #     case StepType.work_mode:
+        #         self.__view.hide_wnd_break()

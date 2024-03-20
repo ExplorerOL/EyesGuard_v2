@@ -83,7 +83,7 @@ class CurrentState:
         self, step_type: StepType, step_duration: datetime.timedelta = datetime.timedelta(seconds=0)
     ):
         """Setting current step type and its duration"""
-        logger.trace("CurrentState: __set_current_step_data")
+        logger.trace("CurrentState: set_current_step_data")
         self.__step_type = step_type
         self.__step_duration_dt = step_duration
         # self.__elapsed_time_dt = datetime.timedelta(seconds=0)

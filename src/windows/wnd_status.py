@@ -130,6 +130,7 @@ class WndStatus(customtkinter.CTkToplevel):
 
     def __btn_take_break_action(self):
         """Action for pressing button for taking a break"""
+        logger.trace("Wnd_status: __btn_take_break_action")
         self.view.set_step(StepType.break_mode)
 
     def update(self, model: Model):

@@ -136,4 +136,5 @@ class View(customtkinter.CTk):
         self.controller.switch_suspended_state()
 
     def set_step(self, new_step_type: StepType):
+        logger.trace("View: set_step")
         self.controller.set_step(new_step_type)

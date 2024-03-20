@@ -40,10 +40,11 @@ class Controller:
 
     def apply_view_user_settings(self, user_settings: UserSettingsData) -> None:
         logger.trace("EGModel: applying view settings")
-        self.model.apply_new_settings(user_settings)
+        self.model.apply_new_user_settings(user_settings)
 
     def switch_suspended_state(self):
         self.model.switch_suspended_state()
 
     def set_step(self, new_step_type: StepType):
+        logger.trace("Controller: set_step")
         self.model.set_step(new_step_type)
