@@ -128,7 +128,7 @@ class View(customtkinter.CTk):
         self.__tray_icon.title = f"Time until break: {model.remaining_working_time_to_display}"
         if model.current_state.current_step_type == StepType.off_mode:
             logger.debug("View: off cond")
-            self.__tray_icon.title = f"Time until break: 0:00:00"
+            self.__tray_icon.title = "Time until break: ∞ : ∞ : ∞"
             self.__tray_icon.icon = self.image_protection_off
         elif model.current_state.current_step_type == StepType.suspended_mode:
             self.__tray_icon.icon = self.image_protection_suspended
