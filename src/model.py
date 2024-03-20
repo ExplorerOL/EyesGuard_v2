@@ -130,7 +130,7 @@ class Model:
         new_tray_icon_values = wnd_values.TryIconValues()
         new_tray_icon_values.tooltip_str = time_until_break_tooltip_string
         new_tray_icon_values.protection_status = self.__settings.user_settings.protection_status
-        self.__view.update_tray_icon_values(new_tray_icon_values)
+        self.__view.update_tray_icon_values(self.model)
 
     def __update_wnd_status_values(self):
         """Updating status window values"""
@@ -334,14 +334,14 @@ class Model:
                 else:
                     break
 
-                # actions during step is in progress
-                match self.model.__current_state.current_step_type:
-                    case StepType.break_mode:
-                        self.__update_wnd_break_values()
+            # actions during step is in progress
+            match self.model.__current_state.current_step_type:
+                case StepType.break_mode:
+                    self.__update_wnd_break_values()
 
-                    case _:
-                        self.__update_wnd_status_values()
-                        self.__update_tray_icon_values()
+                case _:
+                    self.__update_wnd_status_values()
+                    self.__update_tray_icon_values()
 
             time.sleep(self.TIME_TICK_S)
 

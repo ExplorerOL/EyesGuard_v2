@@ -123,11 +123,14 @@ class View(customtkinter.CTk):
     def update_wnd_break_values(self, new_values: wnd_values.WndBreakValues) -> None:
         self.__wnd_break.update_values(new_values)
 
-    def update_tray_icon_values(self, new_tray_icon_values: wnd_values.TryIconValues) -> None:
-        self.__tray_icon.title = new_tray_icon_values.tooltip_str
-        if new_tray_icon_values.protection_status == OnOffValue.off.value:
+    def update_tray_icon_values(self, model: Model) -> None:
+        logger.trace("View: update_tray_icon_values")
+        self.__tray_icon.title = f"Time until break: {model.remaining_working_time_to_display}"
+        if model.current_state.current_step_type == StepType.off_mode:
+            logger.debug("View: off cond")
+            self.__tray_icon.title = f"Time until break: 0:00:00"
             self.__tray_icon.icon = self.image_protection_off
-        elif new_tray_icon_values.suspended_status:
+        elif model.current_state.current_step_type == StepType.suspended_mode:
             self.__tray_icon.icon = self.image_protection_suspended
         else:
             self.__tray_icon.icon = self.image_protection_active
