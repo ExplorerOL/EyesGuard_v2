@@ -71,8 +71,8 @@ class WndBreak(customtkinter.CTkToplevel):
     def hide(self):
         """Hide window"""
         logger.trace("Wnd break: hide")
-        self.pbar_break_progress.stop()
-        self.pbar_break_progress.set(1)
+        # self.pbar_break_progress.stop()
+        # self.pbar_break_progress.set(1)
 
         for i in range(100):
             self.attributes("-alpha", 1 - i / 100)
@@ -81,9 +81,11 @@ class WndBreak(customtkinter.CTkToplevel):
 
     def on_close_action(self):
         logger.trace("Wnd break: on_close_action")
+        # self.pbar_break_progress.set(0)
+
         self.view.set_step(new_step_type=StepType.work_mode)
-        self.remaining_break_time.set(f"Remaining break time: 0:00:00")
-        self.pbar_break_progress.set(0)
+        # self.remaining_break_time.set(f"Remaining break time: 0:00:00")
+        # self.pbar_break_progress.set(0)
 
     def show(self):
         """Show window"""
@@ -106,16 +108,17 @@ class WndBreak(customtkinter.CTkToplevel):
         logger.trace("WndBreak: update")
 
         # self.__set_pbar_speed(current_state=new_values.remaining_time_pbar_value)
-        if model.current_state.current_step_elapsed_time > datetime.timedelta(seconds=0):
-            pbar_value = (
-                model.current_state.current_step_elapsed_time / model.current_state.current_step_duration
-            )
-        else:
-            pbar_value = 0
-        logger.debug(f"WndBreak: pb speed = {pbar_value}")
+        # logger.debug(f"WndBreak: pb speed = {pbar_value}")
         # self.pbar_break_progress.configure(determinate_speed=new_values.remaining_time_pbar_value)
-        self.pbar_break_progress.set(pbar_value)
+        # self.pbar_break_progress.set(pbar_value)
         if model.current_state.current_step_type == StepType.break_mode:
+            if model.current_state.current_step_elapsed_time > datetime.timedelta(seconds=0):
+                pbar_value = (
+                    model.current_state.current_step_elapsed_time / model.current_state.current_step_duration
+                )
+            else:
+                pbar_value = 0
+            self.pbar_break_progress.set(pbar_value)
             self.remaining_break_time.set(
                 f"Remaining break time: {model.steps_data_list[StepType.break_mode].step_duration_td - model.current_state.current_step_elapsed_time}"
             )
@@ -126,7 +129,9 @@ class WndBreak(customtkinter.CTkToplevel):
                 f"Remaining break time: {model.steps_data_list[StepType.break_mode].step_duration_td}"
             )
             if self.state() == "normal":
+                self.pbar_break_progress.set(0)
                 self.hide()
+                # self.remaining_break_time.set(f"Remaining break time: 0:00:00")
 
     # def __set_pbar_speed(self, current_state: CurrentState):
     #     logger.trace("WndBreak: __set_pbar_speed")
