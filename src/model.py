@@ -389,19 +389,20 @@ class Model:
 
         # TODO: move logic to set_step
         if self.current_state.current_step_type != StepType.suspended_mode:
-            self.__set_current_step(StepType.suspended_mode)
+            self.set_step(StepType.suspended_mode)
             logger.debug("Model: show notification")
             # Strange but not working
             self.__view.show_notification("Eyes Guard protection suspended!", "Attention!")
 
         else:
-            self.__set_current_step(StepType.work_mode)
-        self.__update_wnd_status()
-        self.__update_wnd_settings()
+            self.set_step(StepType.work_mode)
+        # self.__update_wnd_status()
+        # self.__update_wnd_settings()
 
     def set_step(self, new_step_type: StepType):
         logger.trace("Model: set_step")
         self.__set_current_step(new_step_type)
+        # TODO: принудительны вызывать do_current_step_actions
         self.__update_wnd_break()
         self.__update_wnd_status()
         self.__update_wnd_settings()
