@@ -128,17 +128,18 @@ class View(customtkinter.CTk):
         self.__tray_icon.title = f"Time until break: {model.remaining_working_time_to_display}"
         if model.current_state.current_step_type == StepType.off_mode:
             logger.debug("View: off cond")
-            self.__tray_icon.title = "Time until break: ∞ : ∞ : ∞"
+            self.__tray_icon.title = "Protection off"
             self.__tray_icon.icon = self.image_protection_off
         elif model.current_state.current_step_type == StepType.suspended_mode:
             self.__tray_icon.icon = self.image_protection_suspended
             self.__tray_icon.title = (
-                f"Time without protection: {model.current_state.current_step_remaining_time}"
+                f"Time until normal mode: {model.current_state.current_step_remaining_time}"
             )
         else:
             self.__tray_icon.icon = self.image_protection_active
 
     def switch_suspended_state(self):
+        logger.trace("View: switch_suspended_state")
         self.controller.switch_suspended_state()
 
     def set_step(self, new_step_type: StepType):

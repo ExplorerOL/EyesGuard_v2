@@ -93,10 +93,11 @@ class Model:
         # suspended mode can not be activated before program started
         # if self.__current_state.suspended_mode_active:
         #     self.__set_current_step(StepType.suspended_mode)
+        self.__view.update_all_wnd_values(self.model)
 
-    def __init_view(self):
+    def __update_view(self):
         """View initialization with model data"""
-        logger.trace("Model: __init_view function started")
+        logger.trace("Model: __init_view function")
         self.__init_steps()
 
         if self.__view is not None:
@@ -268,15 +269,15 @@ class Model:
         # from view import EGView
 
         self.__view = view
-        self.__init_view()
+        self.__update_view()
 
     def do_current_step_actions(self):
         logger.trace("Model: __do_current_step_actions")
         # self.model.__current_state.reset_elapsed_time()
-        logger.debug(f"New current step {(self.__current_state.current_step_type)}")
-        logger.debug(f"New step type {type(self.__current_state.current_step_type)}")
-        logger.debug(f"New step duration {self.__current_state.current_step_duration}")
-        logger.debug(f"New step remaining_time {self.__current_state.current_step_remaining_time}")
+        logger.debug(f"Model: New current step {(self.__current_state.current_step_type)}")
+        logger.debug(f"Model: New step type {type(self.__current_state.current_step_type)}")
+        logger.debug(f"Model: New step duration {self.__current_state.current_step_duration}")
+        logger.debug(f"Model: New step remaining_time {self.__current_state.current_step_remaining_time}")
 
         match self.model.__current_state.current_step_type:
             case StepType.off_mode:
@@ -305,11 +306,13 @@ class Model:
 
             case StepType.work_mode:
                 logger.trace("Model: work_mode actions")
-                if self.__current_state.suspended_mode_active:
-                    # self.switch_suspended_mode()
-                    self.set_step(new_step_type=StepType.suspended_mode)
+                # if self.__current_state.suspended_mode_active:
+                #     # self.switch_suspended_mode()
+                #     self.set_step(new_step_type=StepType.suspended_mode)
 
-                self.__view.hide_wnd_break()
+                # self.__view.hide_wnd_break()
+                self.__view.update_wnd_break(model=self.model)
+
                 # self.break_wnd.hide()
 
     def wait_for_current_step_is_ended(self):
@@ -387,7 +390,7 @@ class Model:
         # self.__init_steps()
         # self.current_state.suspended_mode_active = not (self.current_state.suspended_mode_active)
 
-        # TODO: move logic to set_step
+        # TODO: move logic to set_step - DONE
         if self.current_state.current_step_type != StepType.suspended_mode:
             self.set_step(StepType.suspended_mode)
             logger.debug("Model: show notification")
@@ -403,18 +406,19 @@ class Model:
         logger.trace("Model: set_step")
         self.__set_current_step(new_step_type)
         # TODO: принудительны вызывать do_current_step_actions
+        self.do_current_step_actions()
         self.__update_wnd_break()
         self.__update_wnd_status()
         self.__update_wnd_settings()
 
-        # TODO: move to current step actions - not possible
-        match new_step_type:
-            case StepType.off_mode:
-                logger.debug("Model: show notification about off mode")
-                self.__view.show_notification("Eyes Guard protection is off!", "Attention!")
-            case StepType.suspended_mode:
-                self.__view.show_notification("Eyes Guard protection suspended!", "Attention!")
-                logger.debug("Model: show notification about suspended mode")
+        # # TODO: move to current step actions - not possible
+        # match new_step_type:
+        #     case StepType.off_mode:
+        #         logger.debug("Model: show notification about off mode")
+        #         self.__view.show_notification("Eyes Guard protection is off!", "Attention!")
+        #     case StepType.suspended_mode:
+        #         self.__view.show_notification("Eyes Guard protection suspended!", "Attention!")
+        #         logger.debug("Model: show notification about suspended mode")
 
-            # case StepType.work_mode:
-            #     self.__view.hide_wnd_break()
+        # case StepType.work_mode:
+        #     self.__view.hide_wnd_break()

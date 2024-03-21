@@ -183,7 +183,7 @@ class WndStatus(customtkinter.CTkToplevel):
                         require_redraw=True,
                     )
                 self.lbl_time_until_break.configure(
-                    text=f"Time without protection: {model.current_state.current_step_duration - model.current_state.current_step_elapsed_time}"
+                    text=f"Time until normal mode: {model.current_state.current_step_duration - model.current_state.current_step_elapsed_time}"
                 )
             case _:
                 self.lbl_time_until_break.configure(

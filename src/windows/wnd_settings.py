@@ -317,13 +317,11 @@ class WndSettings(customtkinter.CTkToplevel):
         match model.current_state.current_step_type:
             case StepType.off_mode:
                 self.navigation_frame_lbl_title.configure(image=self.img_eyes_protection_off)
-                self.navigation_frame_lbl_description.configure(
-                    text="protection is off !", text_color="Black"
-                )
+                self.navigation_frame_lbl_description.configure(text="Protection off!", text_color="Black")
             case StepType.suspended_mode:
                 self.navigation_frame_lbl_title.configure(image=self.img_eyes_protection_suspended)
                 self.navigation_frame_lbl_description.configure(
-                    text="suspended protection !", text_color="Tomato"
+                    text="Protection suspended!", text_color="Tomato"
                 )
             case _:
                 self.navigation_frame_lbl_title.configure(image=self.img_eyes_with_protection)
