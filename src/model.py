@@ -290,7 +290,7 @@ class Model:
             case StepType.break_mode:
                 logger.trace("Model: break_mode actions")
                 self.__update_wnd_break()
-                self.__view.show_wnd_break()
+                # self.__view.show_wnd_break()
 
             case StepType.work_notified_1:
                 logger.trace("Model: work_notified_1 actions")
@@ -400,9 +400,3 @@ class Model:
         self.__update_wnd_status()
         self.__update_wnd_settings()
 
-        # TODO: move to current step actions
-        # match new_step_type:
-        #     case StepType.break_mode:
-        #         self.__view.show_wnd_break()
-        #     case StepType.work_mode:
-        #         self.__view.hide_wnd_break()
