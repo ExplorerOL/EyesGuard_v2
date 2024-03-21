@@ -377,7 +377,7 @@ class Model:
         #     self.set_step(StepType.work_mode)
 
     def switch_suspended_state(self):
-        logger.trace("Model: change_protection_state")
+        logger.trace("Model: change_suspended_state")
         # new_user_settings = self.model_user_settings
         # if new_user_settings.protection_status == OnOffValue.on.value:
         #     new_user_settings.protection_status = OnOffValue.off.value
@@ -386,8 +386,14 @@ class Model:
         # self.model_user_settings = new_user_settings
         # self.__init_steps()
         # self.current_state.suspended_mode_active = not (self.current_state.suspended_mode_active)
+
+        # TODO: move logic to set_step
         if self.current_state.current_step_type != StepType.suspended_mode:
             self.__set_current_step(StepType.suspended_mode)
+            logger.debug("Model: show notification")
+            # Strange but not working
+            self.__view.show_notification("Eyes Guard protection suspended!", "Attention!")
+
         else:
             self.__set_current_step(StepType.work_mode)
         self.__update_wnd_status()
@@ -400,3 +406,14 @@ class Model:
         self.__update_wnd_status()
         self.__update_wnd_settings()
 
+        # TODO: move to current step actions - not possible
+        match new_step_type:
+            case StepType.off_mode:
+                logger.debug("Model: show notification about off mode")
+                self.__view.show_notification("Eyes Guard protection is off!", "Attention!")
+            case StepType.suspended_mode:
+                self.__view.show_notification("Eyes Guard protection suspended!", "Attention!")
+                logger.debug("Model: show notification about suspended mode")
+
+            # case StepType.work_mode:
+            #     self.__view.hide_wnd_break()
