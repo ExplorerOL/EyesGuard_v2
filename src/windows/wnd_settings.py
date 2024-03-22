@@ -335,11 +335,11 @@ class WndSettings(customtkinter.CTkToplevel):
         logger.debug(f"Model settings: {model}")
 
         # self.update_protection_status()
-        self.work_duration_value.set(str(model.model_user_settings.work_duration))
-        self.break_duration_value.set(str(model.model_user_settings.break_duration))
-        self.chbox_sounds_value.set(value=model.model_user_settings.sounds)
-        self.chbox_notifications_value.set(value=model.model_user_settings.notifications)
-        self.chbox_protection_status_value.set(value=model.model_user_settings.protection_status)
+        self.work_duration_value.set(str(model.user_settings.work_duration))
+        self.break_duration_value.set(str(model.user_settings.break_duration))
+        self.chbox_sounds_value.set(value=model.user_settings.sounds)
+        self.chbox_notifications_value.set(value=model.user_settings.notifications)
+        self.chbox_protection_status_value.set(value=model.user_settings.protection_status)
 
         self.update_protection_status_image(model)
 

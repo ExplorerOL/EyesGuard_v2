@@ -243,21 +243,21 @@ class Model:
         return self.__current_state
 
     @property
-    def model_settings(self) -> Settings:
+    def settings(self) -> Settings:
         logger.trace("Model: model_settings getter")
         return self.__settings
 
-    @model_settings.setter
-    def model_settings(self, settings: Settings) -> None:
+    @settings.setter
+    def settings(self, settings: Settings) -> None:
         logger.trace("Model: model_settings setter")
 
     @property
-    def model_user_settings(self) -> UserSettingsData:
+    def user_settings(self) -> UserSettingsData:
         logger.trace("Model: model_user_settings getter")
         return self.__settings.user_settings
 
-    @model_user_settings.setter
-    def model_user_settings(self, user_settings: UserSettingsData) -> None:
+    @user_settings.setter
+    def user_settings(self, user_settings: UserSettingsData) -> None:
         logger.trace("Model: model_user_settings setter")
         self.__settings.apply_settings_from_ui(user_settings)
 
@@ -370,7 +370,7 @@ class Model:
 
     def apply_new_user_settings(self, user_settings: UserSettingsData) -> None:
         logger.trace("Model: apply_new_settings")
-        self.model_user_settings = user_settings
+        self.user_settings = user_settings
         self.__init_steps()
         # self.__set_current_step(StepType.work_mode)
 
