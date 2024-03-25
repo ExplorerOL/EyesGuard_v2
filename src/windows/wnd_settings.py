@@ -81,7 +81,7 @@ class WndSettings(customtkinter.CTkToplevel):
 
         self.navigation_frame_lbl_description = customtkinter.CTkLabel(
             self.navigation_frame,
-            text="cares about your vision",
+            text="Cares about your vision",
             text_color="GreenYellow",
             compound="center",
             font=customtkinter.CTkFont(size=13, weight="bold"),
@@ -317,7 +317,7 @@ class WndSettings(customtkinter.CTkToplevel):
             case _:
                 self.navigation_frame_lbl_title.configure(image=self.img_eyes_with_protection)
                 self.navigation_frame_lbl_description.configure(
-                    text="cares about your vision", text_color="GreenYellow"
+                    text="Cares about your vision", text_color="GreenYellow"
                 )
 
     def update(self, model: Model):
