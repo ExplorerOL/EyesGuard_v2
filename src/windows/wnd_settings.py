@@ -16,7 +16,7 @@ from PIL import Image, ImageTk
 
 from logger import logger
 from model import Model
-from settings import OnOffValue, Settings, UserSettingsData
+from settings import Settings
 from states import StepType
 
 
@@ -76,7 +76,6 @@ class WndSettings(customtkinter.CTkToplevel):
             image=self.img_eyes_with_protection,
             compound="left",
             font=customtkinter.CTkFont(size=18, weight="bold"),
-            # text_color="GreenYellow",
         )
         self.navigation_frame_lbl_title.grid(row=0, column=0, padx=20, pady=5)
 
@@ -86,7 +85,6 @@ class WndSettings(customtkinter.CTkToplevel):
             text_color="GreenYellow",
             compound="center",
             font=customtkinter.CTkFont(size=13, weight="bold"),
-            # text_color="GreenYellow",
         )
         self.navigation_frame_lbl_description.grid(row=1, column=0, padx=0, pady=1)
 
@@ -121,7 +119,6 @@ class WndSettings(customtkinter.CTkToplevel):
             text_color=("gray10", "gray90"),
             hover_color=("LightSkyBlue", "gray30"),
             border_color="LightSteelBlue",
-            # image=self.image,
             anchor="w",
             command=self.event_btn_general_settings_click,
             image=self.img_gear,
@@ -140,7 +137,6 @@ class WndSettings(customtkinter.CTkToplevel):
             text_color=("gray10", "gray90"),
             hover_color=("LightSkyBlue", "gray30"),
             border_color="LightSteelBlue",
-            # image=self.image,
             anchor="w",
             command=self.event_btn_about_click,
             image=self.img_info,
@@ -273,18 +269,17 @@ class WndSettings(customtkinter.CTkToplevel):
 
         # actions after elements creation
         self.bind("<FocusIn>", self.on_focus_in)
-        # self.bind("<FocusOut>", self.on_focus_out)
-        # self.entry_work_duration.bind("<FocusIn>", self.entry_on_focus_in)
         self.protocol("WM_DELETE_WINDOW", self.hide)
         self.event_btn_time_settings_click()
         self.withdraw()
 
     def on_focus_in(self, event):
         """Actions on focus at window"""
-        # self.update_protection_status()
+        pass
 
     def on_focus_out(self, event):
         """Actions on focus out of window"""
+        pass
 
     def hide(self):
         """Hide window"""
@@ -296,7 +291,6 @@ class WndSettings(customtkinter.CTkToplevel):
     def show(self):
         """Show window"""
         print("showing top level wnd")
-        # self.update_wnd()
         self.deiconify()
 
         for i in range(100):
@@ -311,8 +305,6 @@ class WndSettings(customtkinter.CTkToplevel):
 
     def update_protection_status_image(self, model: Model):
         """Updating protection status at settings window"""
-        # print(f"protection_status={self.chbox_protection_status_value.get()}")
-        # self.chbox_protection_status_value.set(value=self.settings.get_settings_copy().protection_status)
         match model.current_state.current_step_type:
             case StepType.off_mode:
                 self.navigation_frame_lbl_title.configure(image=self.img_eyes_protection_off)
@@ -333,7 +325,6 @@ class WndSettings(customtkinter.CTkToplevel):
         logger.trace("Settings wnd: update function started")
         logger.debug(f"Model settings: {model}")
 
-        # self.update_protection_status()
         self.work_duration_value.set(str(model.user_settings.work_duration))
         self.break_duration_value.set(str(model.user_settings.break_duration))
         self.chbox_sounds_value.set(value=model.user_settings.sounds)
@@ -343,7 +334,6 @@ class WndSettings(customtkinter.CTkToplevel):
         self.update_protection_status_image(model)
 
     def select_frame_by_name(self, name: str) -> None:
-        # set button color for selected button
         self.btn_time_settings.configure(
             fg_color="LightSteelBlue" if name == "frame_time_settings" else "transparent"
         )
@@ -377,5 +367,4 @@ class WndSettings(customtkinter.CTkToplevel):
 
     def apply_ui_settings(self):
         """Coll method of view for applying new settings"""
-        # new_settings = self.get_settings_from_widgets()
         self.view.apply_view_user_settings()
