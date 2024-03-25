@@ -15,9 +15,7 @@ from PIL import Image
 
 from logger import logger
 from model import Model
-from settings import Settings, UserSettingsData
 from states import StepType
-from windows.wnd_break import WndBreak
 
 
 class WndStatus(customtkinter.CTkToplevel):
@@ -25,8 +23,6 @@ class WndStatus(customtkinter.CTkToplevel):
 
     def __init__(self, view: View, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.settings = settings
-        # self.wnd_break = break_wnd
         self.view = view
 
         wnd_width = 250
@@ -54,7 +50,7 @@ class WndStatus(customtkinter.CTkToplevel):
 
         # label time until break
         self.lbl_time_until_break = customtkinter.CTkLabel(
-            self, text="Time until break:  - - -", font=("", 13, "bold")
+            self, text="Time until break:  - : - : -", font=("", 13, "bold")
         )
         self.lbl_time_until_break.grid(row=0, column=0, padx=20, pady=(20, 0), sticky="ew")
 
@@ -63,9 +59,7 @@ class WndStatus(customtkinter.CTkToplevel):
             self, orientation="horizontal", height=20, fg_color="#3B8ED0", progress_color="GreenYellow"
         )
         self.pbar_time_until_break.grid(row=1, column=0, padx=20, pady=(0, 10), sticky="ew")
-        logger.debug(
-            f' ---------------- progress_color = {self.pbar_time_until_break.cget("progress_color")}'
-        )
+        logger.debug(f'progress_color = {self.pbar_time_until_break.cget("progress_color")}')
         # button change protection state
         self.btn_change_suspended_state = customtkinter.CTkButton(
             self,
@@ -98,7 +92,6 @@ class WndStatus(customtkinter.CTkToplevel):
 
         self.bind("<FocusOut>", self.on_focus_out)
         self.protocol("WM_DELETE_WINDOW", self.hide)
-        # self.update_view()
         self.withdraw()
 
     def on_focus_out(self, event):
@@ -115,7 +108,6 @@ class WndStatus(customtkinter.CTkToplevel):
     def show(self):
         """Show window"""
         print("Showing status wnd")
-        # self.update_view()
         self.deiconify()
 
         for i in range(100):
@@ -125,7 +117,6 @@ class WndStatus(customtkinter.CTkToplevel):
     def __btn_change_protection_state_action(self):
         """Action for pressing changeing protection state button"""
         self.view.switch_suspended_state()
-        # self.update_view()
 
     def __btn_take_break_action(self):
         """Action for pressing button for taking a break"""
@@ -135,47 +126,34 @@ class WndStatus(customtkinter.CTkToplevel):
     def update(self, model: Model):
         """Updating status window elements states"""
         logger.trace("Wnd status: update")
-        # self.lbl_time_until_break.configure(
-        #     text=f"Time until break: {model.remaining_working_time_to_display}"
-        # )
         if model.time_for_work_full > datetime.timedelta(seconds=0):
             pbar_value = 1 - model.remaining_working_time_to_display / model.time_for_work_full
         else:
             pbar_value = 0
         self.pbar_time_until_break.set(value=pbar_value)
 
-        # if new_values.protection_status == "off":
-
         match model.current_state.current_step_type:
             case StepType.off_mode:
-                # if update permanently - abberrations of button present
                 if self.btn_change_suspended_state.cget("state") != "disabled":
                     self.btn_take_break.configure(state="disabled")
                     self.lbl_time_until_break.configure(text="Time until break: ∞ : ∞ : ∞")
                     self.btn_change_suspended_state.configure(
                         text="Protection off",
-                        # text_color="",
                         image=customtkinter.CTkImage(
                             light_image=self.view.image_protection_off, size=(30, 30)
                         ),
                         require_redraw=True,
                         state="disabled",
                     )
-                    # self.btn_change_suspended_state.configure()
                     self.pbar_time_until_break.set(0)
-
-                # if self.btn_change_suspended_state.cget("state") != "disabled":
 
             case StepType.suspended_mode:
                 if self.btn_take_break.cget("state") != "disabled":
                     self.btn_take_break.configure(state="disabled")
 
-                    # button configuring is here for preventing visual artefacts
-                    # if update permanently - abberrations of button present
                     self.btn_change_suspended_state.configure(
                         text="Protection suspended",
                         text_color="Tomato",
-                        # hover_color="yellow",
                         image=customtkinter.CTkImage(
                             light_image=self.view.image_protection_suspended, size=(30, 30)
                         ),
@@ -196,56 +174,8 @@ class WndStatus(customtkinter.CTkToplevel):
                     ),
                     require_redraw=True,
                 )
-                # if update permanently - abberrations of button present
                 if self.btn_take_break.cget("state") != "normal":
                     self.btn_take_break.configure(state="normal")
 
                 if self.btn_change_suspended_state.cget("state") != "normal":
                     self.btn_change_suspended_state.configure(state="normal")
-
-    # def update(self, model: Model):
-    #     logger.trace("Wnd status: update_values")
-    #     self.lbl_time_until_break.configure(text=model.remaining_working_time_to_display)
-
-    #     if model.time_for_work_full > datetime.timedelta(seconds=0):
-    #         pbar_value = 1 - model.remaining_working_time_to_display / model.time_for_work_full
-    #     else:
-    #         pbar_value = 0
-    #     self.pbar_time_until_break.set(value=pbar_value)
-
-    #     # self.pbar_time_until_break.set(
-    #     #     value=1 - model.remaining_working_time_to_display / model.__time_for_work_full
-    #     # )
-
-    #     # if new_values.protection_status == "off":
-
-    #     if model.model_user_settings.protection_status == "on":
-    #         self.btn_change_suspended_state.configure(
-    #             text="Protection active",
-    #             text_color="GreenYellow",
-    #             image=customtkinter.CTkImage(light_image=self.img_eyes_with_protection, size=(30, 30)),
-    #             require_redraw=True,
-    #         )
-    #     else:
-    #         self.btn_change_suspended_state.configure(
-    #             text="Protection suspended",
-    #             text_color="Tomato",
-    #             # hover_color="yellow",
-    #             image=customtkinter.CTkImage(light_image=self.img_eyes_without_protection, size=(30, 30)),
-    #             require_redraw=True,
-    #         )
-
-    #     # if new_values.protection_status == "off":
-    #     #     # if update permanently - abberrations of button present
-    #     #     if self.btn_take_break.cget("state") != "disabled":
-    #     #         self.btn_take_break.configure(state="disabled")
-
-    #     #     if self.btn_change_suspended_state.cget("state") != "disabled":
-    #     #         self.btn_change_suspended_state.configure(state="disabled")
-    #     # else:
-    #     #     # if update permanently - abberrations of button present
-    #     #     if self.btn_take_break.cget("state") != "normal":
-    #     #         self.btn_take_break.configure(state="normal")
-
-    #     #     if self.btn_change_suspended_state.cget("state") != "normal":
-    #     #         self.btn_change_suspended_state.configure(state="normal")
