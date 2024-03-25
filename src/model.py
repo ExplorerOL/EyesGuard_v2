@@ -10,7 +10,6 @@ if TYPE_CHECKING:
 import datetime
 import time
 
-import data.wnd_values as wnd_values
 from logger import logger
 from settings import OnOffValue, Settings, UserSettingsData
 from states import CurrentState, StepData, StepType
@@ -122,13 +121,7 @@ class Model:
         """Updating tray icon values"""
         logger.trace("Controller: __update_tray_icon_values")
 
-        remaining_time_to_display = self.__calculate_remaining_time_for_work()
-        # logger.debug("Updating time")
-
-        time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_to_display}"
-        new_tray_icon_values = wnd_values.TryIconValues()
-        new_tray_icon_values.tooltip_str = time_until_break_tooltip_string
-        new_tray_icon_values.protection_status = self.__settings.user_settings.protection_status
+        self.__calculate_remaining_time_for_work()
         self.__view.update_tray_icon_values(self.model)
 
     def __update_wnd_status(self):

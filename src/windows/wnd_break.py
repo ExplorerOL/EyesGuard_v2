@@ -15,7 +15,6 @@ from tkinter import StringVar
 import customtkinter
 from PIL import Image, ImageTk
 
-import data.wnd_values as wnd_values
 from logger import logger
 from model import Model
 from states import CurrentState, StepType

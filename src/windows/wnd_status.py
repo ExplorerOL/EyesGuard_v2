@@ -13,7 +13,6 @@ import time
 import customtkinter
 from PIL import Image
 
-import data.wnd_values as wnd_values
 from logger import logger
 from model import Model
 from settings import Settings, UserSettingsData

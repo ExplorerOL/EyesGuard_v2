@@ -6,7 +6,6 @@ import os
 import customtkinter
 import pystray
 
-import data.wnd_values as wnd_values
 from controller import Controller
 from logger import logger
 from model import Model

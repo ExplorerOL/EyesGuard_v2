@@ -14,7 +14,6 @@ from tkinter import StringVar
 import customtkinter
 from PIL import Image, ImageTk
 
-import data.wnd_values as wnd_values
 from logger import logger
 from model import Model
 from settings import OnOffValue, Settings, UserSettingsData
@@ -380,6 +379,3 @@ class WndSettings(customtkinter.CTkToplevel):
         """Coll method of view for applying new settings"""
         # new_settings = self.get_settings_from_widgets()
         self.view.apply_view_user_settings()
-
-    # def update(self, new_values: wnd_values.WndSettingsValues):
-    #     self.update_protection_status_image(new_values)
