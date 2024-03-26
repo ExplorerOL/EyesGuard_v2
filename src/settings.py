@@ -38,10 +38,12 @@ class UserSettingsData:
 
     def _settings_to_dict(self) -> dict:
         # convertation object to dict
+        logger.trace("UserSettingsData: __settings_to_dict")
         settings_dict = {}
         for attr in dir(self):
             if not attr.startswith("_"):
                 settings_dict[attr] = getattr(self, attr)
+        logger.debug(f"UserSettingsData: {settings_dict}")
         return settings_dict
 
     def __repr__(self) -> dict:
@@ -75,7 +77,6 @@ class Settings:
 
     def _settings_to_dict(self) -> dict:
         """Convertation settings object to dict"""
-
         settings_dict = {}
         for attr in dir(self.__user_settings):
             if not attr.startswith("_"):
@@ -92,7 +93,7 @@ class Settings:
 
         return str(self._settings_to_dict())
 
-    def _read_settings_from_file(self) -> str | None:
+    def __read_settings_from_file(self) -> str | None:
         """Reading settings from file on disk"""
 
         settings_str = None
@@ -111,7 +112,7 @@ class Settings:
     # def _write_settings_to_file(self, settings: UserSettingsData) -> None:
     #     """writing settings from file on disk"""
 
-    def _validate_settings_str(self, settings_str: str) -> SettingsDataValidator | None:
+    def __validate_settings_str(self, settings_str: str) -> SettingsDataValidator | None:
         """validation settings"""
 
         print(settings_str)
@@ -126,23 +127,23 @@ class Settings:
                 return None
         return None
 
-    def _apply_settings(self, validated_settings: SettingsDataValidator) -> None:
+    def __apply_settings(self, validated_settings: SettingsDataValidator) -> None:
         """Apply given settings to the app"""
 
         if validated_settings is not None:
             for attr in dir(self.__user_settings):
                 if not attr.startswith("_"):
+                    logger.debug(f"Settings: get attr: {attr}")
                     setattr(self.__user_settings, attr, getattr(validated_settings, attr))
-                    print(attr)
                     print(getattr(self.__user_settings, attr))
 
     def apply_settings_from_file(self):
         """Read, validate and apply settings from file"""
         logger.trace("Settings: apply_settings_from_file")
-        settings_from_file_str = self._read_settings_from_file()
-        settings_validated = self._validate_settings_str(settings_from_file_str)
+        settings_from_file_str = self.__read_settings_from_file()
+        settings_validated = self.__validate_settings_str(settings_from_file_str)
         logger.debug(f"Settings from file {settings_validated}")
-        self._apply_settings(settings_validated)
+        self.__apply_settings(settings_validated)
 
     def apply_settings_from_ui(self, new_settings_data: UserSettingsData):
         """Validate settings and write them to file"""
@@ -155,7 +156,7 @@ class Settings:
             print(error)
             print(type(error))
             return
-        self._apply_settings(settings_validated)
+        self.__apply_settings(settings_validated)
         self.save_settings_to_file()
 
     def save_settings_to_file(self):
