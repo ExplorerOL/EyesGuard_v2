@@ -85,17 +85,14 @@ class Settings:
 
     def __repr__(self) -> dict:
         """Convertation settings object to view in terminal"""
-
         return self._settings_to_dict()
 
     def __str__(self) -> str:
         """Convertation object to string"""
-
         return str(self._settings_to_dict())
 
     def __read_settings_from_file(self) -> str | None:
         """Reading settings from file on disk"""
-
         settings_str = None
         try:
             settings_str = self.__settings_file.read_text("utf-8")
@@ -109,12 +106,8 @@ class Settings:
             return None
         return settings_str
 
-    # def _write_settings_to_file(self, settings: UserSettingsData) -> None:
-    #     """writing settings from file on disk"""
-
     def __validate_settings_str(self, settings_str: str) -> SettingsDataValidator | None:
-        """validation settings"""
-
+        """Validation settings"""
         print(settings_str)
         if settings_str is not None:
             try:
@@ -129,7 +122,6 @@ class Settings:
 
     def __apply_settings(self, validated_settings: SettingsDataValidator) -> None:
         """Apply given settings to the app"""
-
         if validated_settings is not None:
             for attr in dir(self.__user_settings):
                 if not attr.startswith("_"):
@@ -147,7 +139,6 @@ class Settings:
 
     def apply_settings_from_ui(self, new_settings_data: UserSettingsData):
         """Validate settings and write them to file"""
-        # new_settings_dict = self._settings_to_dict()
         print(f"New settings from ui to apply: {new_settings_data}")
         print(type(new_settings_data))
         try:
@@ -171,25 +162,20 @@ class Settings:
             print(error)
             print(type(error))
             return
-        # settings_validated.protection_status = OnOffValue.on.value
         settings_json = settings_validated.model_dump_json(indent=4)
-        # print(settings_json)
         logger.debug(f"Settings to file {settings_json}")
         self.__settings_file.write_text(settings_json, encoding="utf-8")
 
     def get_settings_copy(self) -> UserSettingsData:
         """Return copy of settings object"""
-
         return copy.copy(self.__user_settings)
 
     @property
     def user_settings(self) -> UserSettingsData:
         """Return of user settings object"""
-
         return self.__user_settings
 
     @property
     def system_settings(self) -> SystemSettingsData:
         """Return of system settings object"""
-
         return self.__system_settings
