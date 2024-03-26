@@ -21,14 +21,13 @@ class Model:
     TIME_TICK_S = 1
 
     def __init__(self, settings_file: str = SETTINGS_FILE):
-        self.__view: View | None = None
+        self.__view: View
         self.__settings = Settings(settings_file)
         self.__current_state = CurrentState()
 
         logger.info(f"User settings: = {self.__settings.user_settings}")
 
         self.steps_data_list: list[StepData] = []
-        # self.__init_steps()
         logger.info(self.__current_state)
 
         self.__remaining_time_to_display = datetime.timedelta(seconds=0)
@@ -61,7 +60,6 @@ class Model:
                 - self.step_notification_1_time_td
                 - self.step_notification_2_time_td
             )
-            # self.steps_data_list[StepType.work_notified_1].step_duration_td = self.step_notification_1_time_td
         else:
             self.steps_data_list[StepType.work_mode].step_duration_td = datetime.timedelta(seconds=0)
 
@@ -75,7 +73,6 @@ class Model:
             logger.info(step.step_duration_td)
 
         # set initial step
-
         logger.debug(f"Off mode: {self.__settings.user_settings.protection_status}")
         logger.debug(f"Off value: {OnOffValue.off}")
         if self.__settings.user_settings.protection_status == OnOffValue.off.value:
@@ -85,13 +82,6 @@ class Model:
             logger.debug("Model: init with work_mode")
             self.set_step(new_step_type=StepType.work_mode)
 
-        # if self.__settings.user_settings.protection_status == OnOffValue.off.value:
-        #     self.set_step(StepType.off_mode)
-        # else:
-        #     self.set_step(StepType.work_mode)
-        # suspended mode can not be activated before program started
-        # if self.__current_state.suspended_mode_active:
-        #     self.__set_current_step(StepType.suspended_mode)
         self.__view.update_all_wnd_values(self.model)
 
     def __update_view(self):
@@ -101,21 +91,6 @@ class Model:
 
         if self.__view is not None:
             self.__view.update_all_wnd_values(self.model)
-
-    # def __change_step_if_protection_mode_was_changed(self):
-    #     logger.trace(f"Model: __change_step_if_protection_mode_was_changed")
-    #     # if (
-    #     #     self.model.set_model.user_settings.protection_status == "off"
-    #     #     and self.model.current_state.current_step_type() != StepType.off_mode
-    #     # ):
-    #     #     self._set_current_step(step_type=StepType.off_mode)
-    #     #     # self.view.wnd_settings.update()
-
-    #     # if (
-    #     #     self.model.set_model.user_settings.protection_status == "on"
-    #     #     and self.model.current_state.current_step_type() == StepType.off_mode
-    #     # ):
-    #     #     self._set_current_step(step_type=StepType.work_mode)
 
     def __update_tray_icon_values(self):
         """Updating tray icon values"""
@@ -130,39 +105,14 @@ class Model:
 
         self.__remaining_time_to_display = self.__calculate_remaining_time_for_work()
         self.__time_for_work_full = self.__calculate_time_for_work()
-        # logger.debug("Updating time")
-
-        # time_until_break_tooltip_string = "Time until break: " + f"{remaining_time_to_display}"
-
-        # new_wnd_status_values = wnd_values.WndStatusValues()
-        # new_wnd_status_values.remaining_time_str = time_until_break_tooltip_string
-        # new_wnd_status_values.remaining_time_pbar_value = (
-        #     1 - remaining_time_to_display / remaining_time_for_work_full
-        # )
-        # new_wnd_status_values.protection_status = self.model_user_settings.protection_status
-        # if self.current_state.current_step_type == StepType.off_mode:
-        #     new_wnd_status_values.btn_take_break_enabled = False
-        # else:
-        #     new_wnd_status_values.btn_take_break_enabled = True
         self.__view.update_wnd_status(self.model)
 
     def __update_wnd_settings(self):
-        # new_wnd_settings_values = wnd_values.WndSettingsValues()
-        # new_wnd_settings_values.protection_status = self.model_user_settings.protection_status
         self.__view.update_wnd_settings(self.model)
 
     def __update_wnd_break(self):
         """Updating break window values"""
         logger.trace("Controller: __update_wnd_break_values")
-        # new_wnd_break_values = wnd_values.WndBreakValues()
-        # new_wnd_break_values.remaining_time_str = (
-        #     f"Remaining break time: {self.model.__current_state.current_step_remaining_time}"
-        # )
-        # new_wnd_break_values.remaining_time_pbar_value = (
-        #     1
-        #     - self.model.__current_state.current_step_remaining_time
-        #     / self.model.steps_data_list[StepType.break_mode].step_duration_td
-        # )
         self.__view.update_wnd_break(self.model)
 
     def __calculate_remaining_time_for_work(self) -> datetime.timedelta:
@@ -186,7 +136,6 @@ class Model:
         return remaining_time_actual
 
     def __calculate_time_for_work(self) -> datetime.timedelta:
-        # remaining_time_actual: datetime.timedelta = self.model.__current_state.current_step_remaining_time
         time_for_work = (
             self.model.steps_data_list[StepType.work_mode].step_duration_td
             + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
@@ -257,16 +206,11 @@ class Model:
     def set_view(self, view: View) -> None:
         """Assigning controller to view"""
         logger.trace("Model: set_view started")
-
-        # import placed here for breaking circular import
-        # from view import EGView
-
         self.__view = view
         self.__update_view()
 
     def do_current_step_actions(self):
         logger.trace("Model: __do_current_step_actions")
-        # self.model.__current_state.reset_elapsed_time()
         logger.debug(f"Model: New current step {(self.__current_state.current_step_type)}")
         logger.debug(f"Model: New step type {type(self.__current_state.current_step_type)}")
         logger.debug(f"Model: New step duration {self.__current_state.current_step_duration}")
@@ -284,7 +228,6 @@ class Model:
             case StepType.break_mode:
                 logger.trace("Model: break_mode actions")
                 self.__update_wnd_break()
-                # self.__view.show_wnd_break()
 
             case StepType.work_notified_1:
                 logger.trace("Model: work_notified_1 actions")
@@ -299,24 +242,14 @@ class Model:
 
             case StepType.work_mode:
                 logger.trace("Model: work_mode actions")
-                # if self.__current_state.suspended_mode_active:
-                #     # self.switch_suspended_mode()
-                #     self.set_step(new_step_type=StepType.suspended_mode)
-
-                # self.__view.hide_wnd_break()
                 self.__view.update_wnd_break(model=self.model)
-
-                # self.break_wnd.hide()
 
     def wait_for_current_step_is_ended(self):
         logger.trace("Model: __wait_for_current_step_is_ended")
         while True:
-            # print info
             logger.info(f"Current step type: {self.model.__current_state.current_step_type}")
             logger.info(f"Step duration: {self.model.__current_state.current_step_duration}")
             logger.info(f"Step elapsed time: {self.model.__current_state.current_step_elapsed_time}")
-            # self.__change_step_if_protection_mode_was_changed()
-            # time.sleep(1)
 
             if self.__current_state.current_step_type != StepType.off_mode:
                 if (
@@ -324,7 +257,6 @@ class Model:
                     < self.model.__current_state.current_step_duration
                 ):
                     self.model.__current_state.increase_elapsed_time()
-                    # self._update_time_until_break()
                 else:
                     break
 
@@ -365,53 +297,21 @@ class Model:
         logger.trace("Model: apply_new_settings")
         self.user_settings = user_settings
         self.__init_steps()
-        # self.__set_current_step(StepType.work_mode)
-
-        # if self.__settings.user_settings.protection_status == OnOffValue.off.value:
-        #     self.set_step(StepType.off_mode)
-        # else:
-        #     self.set_step(StepType.work_mode)
 
     def switch_suspended_state(self):
         logger.trace("Model: change_suspended_state")
-        # new_user_settings = self.model_user_settings
-        # if new_user_settings.protection_status == OnOffValue.on.value:
-        #     new_user_settings.protection_status = OnOffValue.off.value
-        # else:
-        #     new_user_settings.protection_status = OnOffValue.on.value
-        # self.model_user_settings = new_user_settings
-        # self.__init_steps()
-        # self.current_state.suspended_mode_active = not (self.current_state.suspended_mode_active)
-
-        # TODO: move logic to set_step - DONE
         if self.current_state.current_step_type != StepType.suspended_mode:
             self.set_step(StepType.suspended_mode)
             logger.debug("Model: show notification")
-            # Strange but not working
             self.__view.show_notification("Eyes Guard protection suspended!", "Attention!")
 
         else:
             self.set_step(StepType.work_mode)
-        # self.__update_wnd_status()
-        # self.__update_wnd_settings()
 
     def set_step(self, new_step_type: StepType):
         logger.trace("Model: set_step")
         self.__set_current_step(new_step_type)
-        # TODO: принудительны вызывать do_current_step_actions
         self.do_current_step_actions()
         self.__update_wnd_break()
         self.__update_wnd_status()
         self.__update_wnd_settings()
-
-        # # TODO: move to current step actions - not possible
-        # match new_step_type:
-        #     case StepType.off_mode:
-        #         logger.debug("Model: show notification about off mode")
-        #         self.__view.show_notification("Eyes Guard protection is off!", "Attention!")
-        #     case StepType.suspended_mode:
-        #         self.__view.show_notification("Eyes Guard protection suspended!", "Attention!")
-        #         logger.debug("Model: show notification about suspended mode")
-
-        # case StepType.work_mode:
-        #     self.__view.hide_wnd_break()
