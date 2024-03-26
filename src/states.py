@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from enum import IntEnum
 
 from logger import logger
-from settings import Settings
 
 
 class StepType(IntEnum):
@@ -36,7 +35,7 @@ class CurrentState:
         self.__elapsed_time_dt: datetime.timedelta = datetime.timedelta(seconds=0)
         self.__suspended_mode_active: bool = False
 
-        print(f"Init current state: {self}")
+        logger.debug(f"Init current state: {self}")
 
     def __self_to_dict(self) -> dict:
         # convertation object to dict
@@ -75,10 +74,6 @@ class CurrentState:
     def suspended_mode_active(self) -> bool:
         return self.__suspended_mode_active
 
-    # @suspended_mode_active.setter
-    # def suspended_mode_active(self, new_active_status: bool) -> None:
-    #     self.__suspended_mode_active = new_active_status
-
     def set_current_step_data(
         self, step_type: StepType, step_duration: datetime.timedelta = datetime.timedelta(seconds=0)
     ):
@@ -86,7 +81,6 @@ class CurrentState:
         logger.trace("CurrentState: set_current_step_data")
         self.__step_type = step_type
         self.__step_duration_dt = step_duration
-        # self.__elapsed_time_dt = datetime.timedelta(seconds=0)
         logger.debug(f"__step_type = {self.__step_type}")
         logger.debug(f"__step_duration_dt = {self.__step_duration_dt}")
         logger.debug(f"__elapsed_time_dt = {self.__elapsed_time_dt}")
