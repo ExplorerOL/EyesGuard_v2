@@ -1,6 +1,5 @@
 """Module with main widnow of application"""
 
-import datetime
 import os
 
 import customtkinter
@@ -10,7 +9,7 @@ from controller import Controller
 from logger import logger
 from model import Model
 from resourses import ResImages
-from settings import OnOffValue, Settings, UserSettingsData
+from settings import Settings, UserSettingsData
 from states import CurrentState, StepType
 from windows.wnd_break import WndBreak
 from windows.wnd_settings import WndSettings
@@ -80,7 +79,6 @@ class View(customtkinter.CTk):
         logger.trace("View: init_all_views function started")
         self.__wnd_status.update(model)
         self.__wnd_settings.update(model)
-        # self.__wnd_break.update_values(model.current_state)
 
     def apply_view_user_settings(self):
         logger.trace("View: applying new settings")
@@ -97,13 +95,9 @@ class View(customtkinter.CTk):
             ui_settings_data.notifications = str(self.__wnd_settings.chbox_notifications_value.get())
             ui_settings_data.protection_status = str(self.__wnd_settings.chbox_protection_status_value.get())
         except TypeError as error:
-            logger.error("Error occuired while reading settings from ui: {error}")
+            logger.error(f"Error occuired while reading settings from ui: {error}")
 
         logger.info(f"Settings read from ui: {str(ui_settings_data)}")
-        # print(int(self.break_duration_value.get()))
-        # print(int(self.work_duration_value.get()))
-        # print(self.chbox_sounds_value.get())
-        # print(self.chbox_notifications_value.get())
 
         return ui_settings_data
 
