@@ -97,26 +97,26 @@ class Settings:
         try:
             settings_str = self.__settings_file.read_text("utf-8")
         except FileNotFoundError as error:
-            print(error)
-            print(type(error))
+            logger.error(error)
+            logger.error(type(error))
             return None
         except ValueError as error:
-            print(error)
-            print(type(error))
+            logger.error(error)
+            logger.error(type(error))
             return None
         return settings_str
 
     def __validate_settings_str(self, settings_str: str) -> SettingsDataValidator | None:
         """Validation settings"""
-        print(settings_str)
+        logger.debug(settings_str)
         if settings_str is not None:
             try:
                 settings_validated = SettingsDataValidator.model_validate_json(settings_str)
-                print(settings_validated)
+                logger.debug(settings_validated)
                 return settings_validated
             except ValidationError as error:
-                print(error)
-                print(type(error))
+                logger.error(error)
+                logger.error(type(error))
                 return None
         return None
 
@@ -127,7 +127,7 @@ class Settings:
                 if not attr.startswith("_"):
                     logger.debug(f"Settings: get attr: {attr}")
                     setattr(self.__user_settings, attr, getattr(validated_settings, attr))
-                    print(getattr(self.__user_settings, attr))
+                    logger.debug(getattr(self.__user_settings, attr))
 
     def apply_settings_from_file(self):
         """Read, validate and apply settings from file"""
@@ -139,13 +139,13 @@ class Settings:
 
     def apply_settings_from_ui(self, new_settings_data: UserSettingsData):
         """Validate settings and write them to file"""
-        print(f"New settings from ui to apply: {new_settings_data}")
-        print(type(new_settings_data))
+        logger.debug(f"New settings from ui to apply: {new_settings_data}")
+        logger.debug(type(new_settings_data))
         try:
             settings_validated = SettingsDataValidator.model_validate(new_settings_data.__repr__())
         except ValidationError as error:
-            print(error)
-            print(type(error))
+            logger.error(error)
+            logger.error(type(error))
             return
         self.__apply_settings(settings_validated)
         self.save_settings_to_file()
@@ -154,13 +154,13 @@ class Settings:
         """Save settings to file"""
         logger.trace("Settings: save_settings_to_file")
         settings_dict = self._settings_to_dict()
-        print(settings_dict)
-        print(type(settings_dict))
+        logger.debug(settings_dict)
+        logger.debug(type(settings_dict))
         try:
             settings_validated = SettingsDataValidator.model_validate(settings_dict)
         except ValidationError as error:
-            print(error)
-            print(type(error))
+            logger.error(error)
+            logger.error(type(error))
             return
         settings_json = settings_validated.model_dump_json(indent=4)
         logger.debug(f"Settings to file {settings_json}")
