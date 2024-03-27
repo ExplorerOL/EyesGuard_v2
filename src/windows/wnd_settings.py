@@ -39,7 +39,7 @@ class WndSettings(customtkinter.CTkToplevel):
             f"{wnd_width}x{wnd_height}+"
             f"{screen_width - wnd_width - border_x}+{screen_height - wnd_height - border_y}"
         )
-        self.title("EyesGuard v2 - Settings")
+        self.title("EyesGuard v2.0.0 - Settings")
         self.attributes("-topmost", True)
         self.resizable(False, False)
 
@@ -233,7 +233,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.frame_about = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.frame_about.grid_columnconfigure(1, weight=1)
 
-        self.lbl_about_text = "\nAuthor: Dmitry Vorobjev\nE-mail: eyesguard@yandex.ru\n© GPL v3 licence\n2023"
+        self.lbl_about_text = "\nAuthor: Dmitry Vorobjev\nE-mail: eyesguard@yandex.ru\n© GPL v3 licence\n2024"
         self.lbl_about = customtkinter.CTkLabel(self.frame_about, text=self.lbl_about_text, justify="left")
         self.lbl_about.grid(row=1, column=0, padx=20, pady=10, sticky="e")
 

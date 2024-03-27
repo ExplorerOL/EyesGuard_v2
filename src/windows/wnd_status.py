@@ -36,7 +36,7 @@ class WndStatus(customtkinter.CTkToplevel):
             f"{wnd_width}x{wnd_height}+"
             f"{screen_width - wnd_width - border_x}+{screen_height - wnd_height - border_y}"
         )
-        self.title("EyesGuard v2 - Status")
+        self.title("EyesGuard v2.0.0 - Status")
         self.attributes("-topmost", True)
         self.resizable(False, False)
         self.attributes("-toolwindow", True)

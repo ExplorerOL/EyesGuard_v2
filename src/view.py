@@ -33,7 +33,7 @@ class View(customtkinter.CTk):
         self.__wnd_settings = WndSettings(self, self.__settings)
         self.__wnd_break = WndBreak(self, self.__current_state)
         self.__wnd_status = WndStatus(self)
-        self.title("EyesGuard v2")
+        self.title("EyesGuard v2.0.0")
 
         # tray icon
         menu = (
