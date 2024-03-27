@@ -16,6 +16,7 @@ from PIL import Image, ImageTk
 
 from logger import logger
 from model import Model
+from resourses import ResImages
 from settings import Settings
 from states import StepType
 
@@ -56,9 +57,9 @@ class WndSettings(customtkinter.CTkToplevel):
             self.view.image_protection_suspended, size=(50, 50)
         )
         self.img_eyes_protection_off = customtkinter.CTkImage(self.view.image_protection_off, size=(50, 50))
-        self.img_clock = customtkinter.CTkImage(Image.open("res/img/clock.png"), size=(25, 25))
-        self.img_gear = customtkinter.CTkImage(Image.open("res/img/gear.png"), size=(25, 25))
-        self.img_info = customtkinter.CTkImage(Image.open("res/img/info.png"), size=(25, 25))
+        self.img_clock = customtkinter.CTkImage(ResImages.img_clock, size=(25, 25))
+        self.img_gear = customtkinter.CTkImage(ResImages.img_gear, size=(25, 25))
+        self.img_info = customtkinter.CTkImage(ResImages.img_info, size=(25, 25))
 
         # set grid layout 2x2
         self.grid_rowconfigure(0, weight=1)

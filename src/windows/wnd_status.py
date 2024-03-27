@@ -15,6 +15,7 @@ from PIL import Image
 
 from logger import logger
 from model import Model
+from resourses import ResImages
 from states import StepType
 
 
@@ -42,9 +43,9 @@ class WndStatus(customtkinter.CTkToplevel):
         self.attributes("-toolwindow", True)
 
         self.configure(fg_color="LightSteelBlue")
-        self.img_eyes_with_protection = Image.open("res/img/eyes_with_protection.png")
-        self.img_eyes_without_protection = Image.open("res/img/eyes_without_protection.png")
-        self.img_check_mark = Image.open("res/img/check_mark.png")
+        self.img_protection_active = ResImages.img_protection_active
+        self.img_protection_suspended = ResImages.img_protection_suspended
+        self.img_check_mark = ResImages.img_check_mark
 
         self.grid_columnconfigure((0), weight=1)
 
@@ -69,7 +70,7 @@ class WndStatus(customtkinter.CTkToplevel):
             height=30,
             width=120,
             corner_radius=50,
-            image=customtkinter.CTkImage(light_image=self.img_eyes_with_protection, size=(25, 25)),
+            image=customtkinter.CTkImage(light_image=self.img_protection_active, size=(25, 25)),
             border_spacing=0,
             font=("", 13, "bold"),
         )

@@ -24,9 +24,9 @@ class View(customtkinter.CTk):
         customtkinter.set_appearance_mode("light")
         customtkinter.set_default_color_theme("blue")
 
-        self.image_protection_active = ResImages.image_protection_active
-        self.image_protection_suspended = ResImages.image_protection_suspended
-        self.image_protection_off = ResImages.image_protection_off
+        self.image_protection_active = ResImages.img_protection_active
+        self.image_protection_suspended = ResImages.img_protection_suspended
+        self.image_protection_off = ResImages.img_protection_off
 
         self.__settings = Settings()
         self.__current_state = CurrentState()
