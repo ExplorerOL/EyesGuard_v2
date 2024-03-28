@@ -1,0 +1,7 @@
+{
+    "work_duration": 45,
+    "break_duration": 15,
+    "sounds": "on",
+    "notifications": "on",
+    "protection_status": "on"
+}
