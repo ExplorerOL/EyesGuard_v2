@@ -234,7 +234,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.frame_about = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.frame_about.grid_columnconfigure(1, weight=1)
 
-        self.lbl_about_text = "\nAuthor: Dmitry Vorobjev\nE-mail: eyesguard@yandex.ru\n© GPL v3 licence\n2024"
+        self.lbl_about_text = "\nEyesGuard v2.0.0\n\nAuthor: Dmitry Vorobjev\nSite: www.eyesguard.ru\nE-mail: eyesguard@yandex.ru\nLicense: © GPL v3\nYear: 2024"
         self.lbl_about = customtkinter.CTkLabel(self.frame_about, text=self.lbl_about_text, justify="left")
         self.lbl_about.grid(row=1, column=0, padx=20, pady=10, sticky="e")
 
