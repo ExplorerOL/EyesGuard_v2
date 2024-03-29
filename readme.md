@@ -4,7 +4,7 @@ It reminds about necessity to have a break during long work and informs about th
 
 EyesGuard is distributed under GPL v3 licence. By for now it is tested with Python 3.11 and Windows 10.
 
-You can find more info about EyesGuard at [www.eyesguard.ru](www.eyesguard.ru).
+You can find more info about EyesGuard at [www.eyesguard.ru](https://eyesguard.ru).
 
 Command to start app while developing:
 ```
