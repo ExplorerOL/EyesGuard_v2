@@ -106,9 +106,10 @@ class WndBreak(customtkinter.CTkToplevel):
             if self.state() != "normal":
                 self.show()
         else:
+            if self.state() == "normal":
+                self.hide()
+
+            self.pbar_break_progress.set(0)
             self.remaining_break_time.set(
                 f"Remaining break time: {model.steps_data_list[StepType.break_mode].step_duration_td}"
             )
-            if self.state() == "normal":
-                self.pbar_break_progress.set(0)
-                self.hide()
