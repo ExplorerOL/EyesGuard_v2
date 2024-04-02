@@ -1,0 +1,5 @@
+customtkinter==5.2.0
+loguru==0.7.2
+pydantic==2.1.1
+pystray==0.19.4
+pytest==7.4.0
