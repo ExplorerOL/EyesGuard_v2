@@ -1,9 +1,9 @@
 from threading import Thread
 
-from support.logger import logger
-from model import Model
 from config.settings import UserSettingsData
 from config.states import StepType
+from model import Model
+from support.logger import logger
 
 
 class Controller:
@@ -41,7 +41,7 @@ class Controller:
         self.model.apply_new_user_settings(user_settings)
 
     def switch_to_suspended_state(self):
-        self.model.switch_to_suspended_state()
+        self.model.switch_suspended_state()
 
     def set_step(self, new_step_type: StepType):
         logger.trace("Controller: set_step")

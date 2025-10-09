@@ -4,15 +4,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from support.user_activity_monitor import UserActivityMonitor
+
 if TYPE_CHECKING:
     from view import View
 
 import datetime
 import time
 
-from support.logger import logger
 from config.settings import OnOffValue, Settings, UserSettingsData
 from config.states import CurrentState, StepData, StepType
+from support.logger import logger
 
 SETTINGS_FILE = "./settings/settings.json"
 
@@ -32,6 +34,7 @@ class Model:
 
         self.__remaining_time_to_display = datetime.timedelta(seconds=0)
         self.__time_for_work_full = datetime.timedelta(seconds=0)
+        self.__user_activity_monitor = UserActivityMonitor(activity_timeout_s=60)
 
         logger.trace("Model: object was created")
 
@@ -244,14 +247,19 @@ class Model:
                 logger.trace("Model: work_mode actions")
                 self.__view.update_wnd_break(model=self.model)
 
+            case StepType.iddle_mode:
+                logger.trace(f"Model: {StepType.iddle_mode!r} actions")
+                self.__view.show_notification("Eyes Guard switched to iddle mode!", "Attention!")
+
     def wait_for_current_step_is_ended(self):
         logger.trace("Model: __wait_for_current_step_is_ended")
         while True:
             logger.info(f"Current step type: {self.model.__current_state.current_step_type!r}")
             logger.info(f"Step duration: {self.model.__current_state.current_step_duration}")
             logger.info(f"Step elapsed time: {self.model.__current_state.current_step_elapsed_time}")
+            logger.info(f"User activity: {self.__user_activity_monitor.is_user_active!r}")
 
-            if self.__current_state.current_step_type != StepType.off_mode:
+            if self.__current_state.current_step_type not in  (StepType.off_mode, StepType.iddle_mode):
                 if (
                     self.model.__current_state.current_step_elapsed_time
                     < self.model.__current_state.current_step_duration
@@ -259,6 +267,13 @@ class Model:
                     self.model.__current_state.increase_elapsed_time()
                 else:
                     break
+
+            if self.__current_state.current_step_type == StepType.work_mode and not self.__user_activity_monitor.is_user_active:
+                logger.info(f"Switch to iddle mode from work mode")
+                self.set_step(new_step_type=StepType.iddle_mode)
+            elif self.__current_state.current_step_type == StepType.iddle_mode and self.__user_activity_monitor.is_user_active:
+                logger.info(f"Switch to work mode from iddle mode")
+                self.set_step(new_step_type=StepType.work_mode)
 
             # actions during step is in progress
             match self.model.__current_state.current_step_type:
@@ -298,7 +313,7 @@ class Model:
         self.user_settings = user_settings
         self.__init_steps()
 
-    def switch_to_suspended_state(self):
+    def switch_suspended_state(self):
         logger.trace("Model: change_suspended_state")
         if self.current_state.current_step_type != StepType.suspended_mode:
             self.set_step(StepType.suspended_mode)
