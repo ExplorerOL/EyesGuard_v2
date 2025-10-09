@@ -14,11 +14,11 @@ from tkinter import StringVar
 import customtkinter
 from PIL import Image, ImageTk
 
-from logger import logger
+from support.logger import logger
 from model import Model
-from resourses import ResImages
-from settings import Settings
-from states import StepType
+from support.resourses import ResImages
+from config.settings import Settings
+from config.states import StepType
 
 
 class WndSettings(customtkinter.CTkToplevel):

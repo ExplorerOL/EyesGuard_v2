@@ -1,5 +1,5 @@
 from controller import Controller
-from logger import logger
+from support.logger import logger
 from model import Model
 from view import View
 

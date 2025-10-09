@@ -6,11 +6,11 @@ import customtkinter
 import pystray
 
 from controller import Controller
-from logger import logger
+from support.logger import logger
 from model import Model
-from resourses import ResImages
-from settings import Settings, UserSettingsData
-from states import CurrentState, StepType
+from support.resourses import ResImages
+from config.settings import Settings, UserSettingsData
+from config.states import CurrentState, StepType
 from windows.wnd_break import WndBreak
 from windows.wnd_settings import WndSettings
 from windows.wnd_status import WndStatus
