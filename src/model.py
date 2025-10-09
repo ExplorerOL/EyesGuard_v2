@@ -10,9 +10,9 @@ if TYPE_CHECKING:
 import datetime
 import time
 
-from logger import logger
-from settings import OnOffValue, Settings, UserSettingsData
-from states import CurrentState, StepData, StepType
+from support.logger import logger
+from config.settings import OnOffValue, Settings, UserSettingsData
+from config.states import CurrentState, StepData, StepType
 
 SETTINGS_FILE = "./settings/settings.json"
 

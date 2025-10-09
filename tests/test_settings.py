@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from src.settings import Settings, UserSettingsData
+from config.settings import Settings, UserSettingsData
 
 settings_default_str = "{'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', 'sounds': 'on', 'work_duration': 45}"
 

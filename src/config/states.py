@@ -2,7 +2,7 @@ import datetime
 from dataclasses import dataclass
 from enum import IntEnum
 
-from logger import logger
+from support.logger import logger
 
 
 class StepType(IntEnum):

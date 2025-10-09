@@ -1,9 +1,9 @@
 from threading import Thread
 
-from logger import logger
+from support.logger import logger
 from model import Model
-from settings import UserSettingsData
-from states import StepType
+from config.settings import UserSettingsData
+from config.states import StepType
 
 
 class Controller:

@@ -9,7 +9,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError
 
-from logger import logger
+from support.logger import logger
 
 
 class OnOffValue(Enum):

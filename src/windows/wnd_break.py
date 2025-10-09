@@ -14,10 +14,10 @@ from tkinter import StringVar
 import customtkinter
 from PIL import Image
 
-from logger import logger
+from support.logger import logger
 from model import Model
-from resourses import ResImages
-from states import CurrentState, StepType
+from support.resourses import ResImages
+from config.states import CurrentState, StepType
 
 
 class WndBreak(customtkinter.CTkToplevel):
