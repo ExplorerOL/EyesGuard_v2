@@ -133,7 +133,7 @@ class View(customtkinter.CTk):
 
     def switch_suspended_state(self):
         logger.trace("View: switch_suspended_state")
-        self.controller.switch_suspended_state()
+        self.controller.switch_to_suspended_state()
 
     def set_step(self, new_step_type: StepType):
         logger.trace("View: set_step")

@@ -298,7 +298,7 @@ class Model:
         self.user_settings = user_settings
         self.__init_steps()
 
-    def switch_suspended_state(self):
+    def switch_to_suspended_state(self):
         logger.trace("Model: change_suspended_state")
         if self.current_state.current_step_type != StepType.suspended_mode:
             self.set_step(StepType.suspended_mode)
