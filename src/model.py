@@ -247,7 +247,7 @@ class Model:
     def wait_for_current_step_is_ended(self):
         logger.trace("Model: __wait_for_current_step_is_ended")
         while True:
-            logger.info(f"Current step type: {self.model.__current_state.current_step_type}")
+            logger.info(f"Current step type: {self.model.__current_state.current_step_type!r}")
             logger.info(f"Step duration: {self.model.__current_state.current_step_duration}")
             logger.info(f"Step elapsed time: {self.model.__current_state.current_step_elapsed_time}")
 
