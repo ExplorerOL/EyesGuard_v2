@@ -2,6 +2,11 @@ __pycache__
 venv
 tmp
 settings.json
-.*
+.venv*
+.vscode*
+*.pyc
 output
 logs
+build
+dist
+.pylintrc
