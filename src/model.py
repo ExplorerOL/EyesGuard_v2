@@ -21,6 +21,7 @@ SETTINGS_FILE = "./settings/settings.json"
 
 class Model:
     TIME_TICK_S = 1
+    USER_ACTIVITY_TIMEOUT_S = 3 * 60
 
     def __init__(self, settings_file: str = SETTINGS_FILE):
         self.__view: View
@@ -34,7 +35,7 @@ class Model:
 
         self.__remaining_time_to_display = datetime.timedelta(seconds=0)
         self.__time_for_work_full = datetime.timedelta(seconds=0)
-        self.__user_activity_monitor = UserActivityMonitor(activity_timeout_s=60)
+        self.__user_activity_monitor = UserActivityMonitor(activity_timeout_s=self.USER_ACTIVITY_TIMEOUT_S)
 
         logger.trace("Model: object was created")
 
@@ -158,14 +159,19 @@ class Model:
         """settind step data in current state by step type"""
         logger.trace("Model: __set_current_step")
         logger.debug(f"Model: new step {step_type}")
-
-        self.model.__current_state.reset_elapsed_time()
-        self.model.__current_state.set_current_step_data(
-            step_type=step_type, step_duration=self.model.steps_data_list[step_type].step_duration_td
-        )
-        logger.debug(f"Step_type: {self.model.__current_state.current_step_type}")
-        logger.debug(f"Step_duration: {self.model.__current_state.current_step_duration}")
-        logger.debug(f"Steps data list: {self.model.steps_data_list[step_type]}")
+        if step_type != StepType.iddle_mode and self.__current_state.current_step_type != StepType.iddle_mode:
+            self.__current_state.reset_elapsed_time()
+        if step_type == StepType.iddle_mode:
+            self.__current_state.set_current_step_data(
+                step_type=step_type, step_duration=self.steps_data_list[StepType.work_mode].step_duration_td
+            )
+        else:
+            self.__current_state.set_current_step_data(
+                step_type=step_type, step_duration=self.steps_data_list[step_type].step_duration_td
+            )
+        logger.debug(f"Step_type: {self.__current_state.current_step_type}")
+        logger.debug(f"Step_duration: {self.__current_state.current_step_duration}")
+        logger.debug(f"Steps data list: {self.steps_data_list[step_type]}")
 
     @property
     def model(self) -> Model:
@@ -267,7 +273,6 @@ class Model:
                     self.model.__current_state.increase_elapsed_time()
                 else:
                     break
-
             if self.__current_state.current_step_type == StepType.work_mode and not self.__user_activity_monitor.is_user_active:
                 logger.info(f"Switch to iddle mode from work mode")
                 self.set_step(new_step_type=StepType.iddle_mode)
