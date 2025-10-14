@@ -130,7 +130,7 @@ class Model:
                     + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
                 )
 
-            case StepType.work_mode:
+            case StepType.work_mode | StepType.iddle_mode:
                 remaining_time_actual += (
                     self.model.steps_data_list[StepType.work_notified_1].step_duration_td
                     + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
