@@ -19,9 +19,9 @@ class SoundPlayer(PSoundPlayer):
                 f"File {file_path} does not exist. Skipping playing sound!"
             )
             return
-        threading.Thread(target=self.__play_sound, name=self.__class__.__name__, args=(file_path,)).start()
+        threading.Thread(target=self.__play_sound_safely, name=self.__class__.__name__, args=(file_path,)).start()
 
-    def __play_sound(self, file_path: Path) -> None:
+    def __play_sound_safely(self, file_path: Path) -> None:
         try:
             playsound.playsound(sound=file_path)
         except Exception as e:
