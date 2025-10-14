@@ -10,8 +10,8 @@ class LASTINPUTINFO(ctypes.Structure):
 
 
 class UserActivityMonitor:
-    def __init__(self, activity_timeout_s: int = 10000):
-        self._activity_timeout_dt : datetime.timedelta = datetime.timedelta(seconds=activity_timeout_s)
+    def __init__(self, activity_timeout: datetime.timedelta = datetime.timedelta(seconds=60)):
+        self._activity_timeout_dt : datetime.timedelta = activity_timeout
         # self._last_activity_ts : datetime.datetime = datetime.datetime.now()
 
     def get_user_idle_time(self) -> datetime.timedelta:
