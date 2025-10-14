@@ -21,7 +21,6 @@ SETTINGS_FILE = "./settings/settings.json"
 
 class Model:
     TIME_TICK_S = 1
-    USER_ACTIVITY_TIMEOUT_S = 3 * 60
 
     def __init__(self, settings_file: str = SETTINGS_FILE):
         self.__view: View
@@ -35,7 +34,7 @@ class Model:
 
         self.__remaining_time_to_display = datetime.timedelta(seconds=0)
         self.__time_for_work_full = datetime.timedelta(seconds=0)
-        self.__user_activity_monitor = UserActivityMonitor(activity_timeout_s=self.USER_ACTIVITY_TIMEOUT_S)
+        self.__user_activity_monitor = UserActivityMonitor(activity_timeout=self.settings.system_settings.USER_ACTIVITY_TIMEOUT)
 
         logger.trace("Model: object was created")
 
@@ -45,12 +44,12 @@ class Model:
             self.steps_data_list[step_type].step_type = step_type
 
         # setting steps durations
-        self.step_off_duration_td = self.__settings.system_settings.step_suspended_mode_duration
-        self.step_suspended_duration_td = self.__settings.system_settings.step_suspended_mode_duration
+        self.step_off_duration_td = self.__settings.system_settings.STEP_SUSPENDED_MODE_DURATION
+        self.step_suspended_duration_td = self.__settings.system_settings.STEP_SUSPENDED_MODE_DURATION
         self.step_work_duration_td = datetime.timedelta(minutes=self.__settings.user_settings.work_duration)
         self.step_break_duration_td = datetime.timedelta(minutes=self.__settings.user_settings.break_duration)
-        self.step_notification_1_time_td = self.__settings.system_settings.step_notification_1_duration
-        self.step_notification_2_time_td = self.__settings.system_settings.step_notification_2_duration
+        self.step_notification_1_time_td = self.__settings.system_settings.STEP_NOTIFICATION_1_DURATION
+        self.step_notification_2_time_td = self.__settings.system_settings.STEP_NOTIFICATION_2_DURATION
         logger.info(f"step_work_duration_td {self.step_work_duration_td}")
 
         self.steps_data_list[StepType.off_mode].step_duration_td = self.step_suspended_duration_td
@@ -289,7 +288,7 @@ class Model:
                     self.__update_wnd_status()
                     self.__update_tray_icon_values()
 
-            time.sleep(self.TIME_TICK_S)
+            time.sleep(self.settings.system_settings.TIME_TICK_S)
 
     def set_new_step_in_sequence(self):
         logger.trace("Controller: __set_new_step_in_sequence")
