@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from support.sound.sound_notificator import SoundNotificator
+from support.sound.sound_player import sound_player
 from support.user_activity_monitor import UserActivityMonitor
 
 if TYPE_CHECKING:
@@ -35,6 +37,7 @@ class Model:
         self.__remaining_time_to_display = datetime.timedelta(seconds=0)
         self.__time_for_work_full = datetime.timedelta(seconds=0)
         self.__user_activity_monitor = UserActivityMonitor(activity_timeout=self.settings.system_settings.USER_ACTIVITY_TIMEOUT)
+        self.__sound_notificator = SoundNotificator(sound_player=sound_player)
 
         logger.trace("Model: object was created")
 
@@ -236,6 +239,7 @@ class Model:
             case StepType.break_mode:
                 logger.trace("Model: break_mode actions")
                 self.__update_wnd_break()
+                self.__sound_notificator.play_notification_break()
 
             case StepType.work_notified_1:
                 logger.trace("Model: work_notified_1 actions")
@@ -251,10 +255,12 @@ class Model:
             case StepType.work_mode:
                 logger.trace("Model: work_mode actions")
                 self.__view.update_wnd_break(model=self.model)
+                self.__sound_notificator.play_notification_work()
 
             case StepType.iddle_mode:
                 logger.trace(f"Model: {StepType.iddle_mode!r} actions")
                 self.__view.show_notification("Eyes Guard switched to iddle mode!", "Attention!")
+                self.__sound_notificator.play_notification_idle()
 
     def wait_for_current_step_is_ended(self):
         logger.trace("Model: __wait_for_current_step_is_ended")

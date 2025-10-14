@@ -1,5 +1,7 @@
 """Dataclasses for resources"""
 
+from pathlib import Path
+
 from PIL import Image
 
 
@@ -15,3 +17,8 @@ class ResImages:
     img_clock = Image.open("res/img/clock.png")
     img_gear = Image.open("res/img/gear.png")
     img_info = Image.open("res/img/info.png")
+
+class ResSoundsPaths:
+    notification_work = Path('res/sounds/notification_work.mp3')
+    notification_break = Path('res/sounds/notification_break.mp3')
+    notification_idle = Path('res/sounds/notification_idle.mp3')
