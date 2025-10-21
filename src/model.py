@@ -22,8 +22,6 @@ SETTINGS_FILE = "./settings/settings.json"
 
 
 class Model:
-    TIME_TICK_S = 1
-
     def __init__(self, settings_file: str = SETTINGS_FILE):
         self.__view: View
         self.__settings = Settings(settings_file)
@@ -240,11 +238,11 @@ class Model:
                 logger.trace("Model: break_mode actions")
                 self.__update_wnd_break()
                 self.__sound_notificator.play_notification_break()
+                self.__user_activity_monitor.reset_activity_offset()
 
             case StepType.work_notified_1:
                 logger.trace("Model: work_notified_1 actions")
                 if self.__settings.user_settings.notifications == "on":
-                    pass
                     self.__view.show_notification("Break will start in 1 minute!", "Attention!")
 
             case StepType.work_notified_2:
@@ -256,11 +254,14 @@ class Model:
                 logger.trace("Model: work_mode actions")
                 self.__view.update_wnd_break(model=self.model)
                 self.__sound_notificator.play_notification_work()
+                self.__user_activity_monitor.set_activity_offset()
 
             case StepType.iddle_mode:
                 logger.trace(f"Model: {StepType.iddle_mode!r} actions")
                 self.__view.show_notification("Eyes Guard switched to iddle mode!", "Attention!")
                 self.__sound_notificator.play_notification_idle()
+                self.__user_activity_monitor.reset_activity_offset()
+
 
     def wait_for_current_step_is_ended(self):
         logger.trace("Model: __wait_for_current_step_is_ended")
