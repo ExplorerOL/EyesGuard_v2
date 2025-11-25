@@ -212,8 +212,7 @@ class WndSettings(customtkinter.CTkToplevel):
             offvalue="off",
             font=("", 13),
         )
-        # Temporaly not used
-        # self.chbox_sounds.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+        self.chbox_sounds.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
         # notifications setting
         self.chbox_notifications_value = customtkinter.StringVar(
