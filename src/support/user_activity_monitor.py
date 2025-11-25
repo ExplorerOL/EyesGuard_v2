@@ -32,7 +32,7 @@ class UserActivityMonitor:
 
         Args:
             activity_timeout: The time duration after which the user is considered inactive.
-                             Defaults to 60 seconds.
+            Defaults to 60 seconds.
         """
         self._activity_timeout: datetime.timedelta = activity_timeout
         self._idle_time_offset: datetime.timedelta = datetime.timedelta(seconds=0)
@@ -99,5 +99,6 @@ class UserActivityMonitor:
         This method is used to reset the idle time calculation when the user
         becomes active again.
         """
-        self._idle_time_offset = datetime.timedelta(seconds=0)
-        logger.debug("Activity offset reset to zero")
+        if self.is_user_active:
+            self._idle_time_offset = datetime.timedelta(seconds=0)
+            logger.debug("Activity offset reset to zero")

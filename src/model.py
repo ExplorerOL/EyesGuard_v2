@@ -35,7 +35,7 @@ class Model:
         self.__remaining_time_to_display = datetime.timedelta(seconds=0)
         self.__time_for_work_full = datetime.timedelta(seconds=0)
         self.__user_activity_monitor = UserActivityMonitor(activity_timeout=self.settings.system_settings.USER_ACTIVITY_TIMEOUT)
-        self.__sound_notificator = SoundNotificator(sound_player=sound_player)
+        self.__sound_notificator = SoundNotificator(sound_player=sound_player, settings=self.__settings)
 
         logger.trace("Model: object was created")
 
@@ -238,15 +238,17 @@ class Model:
                 logger.trace("Model: break_mode actions")
                 self.__update_wnd_break()
                 self.__sound_notificator.play_notification_break()
-                self.__user_activity_monitor.reset_activity_offset()
+                self.__user_activity_monitor.set_activity_offset()
 
             case StepType.work_notified_1:
                 logger.trace("Model: work_notified_1 actions")
+                self.__user_activity_monitor.set_activity_offset()
                 if self.__settings.user_settings.notifications == "on":
                     self.__view.show_notification("Break will start in 1 minute!", "Attention!")
 
             case StepType.work_notified_2:
                 logger.trace("Model: work_notified_2 actions")
+                self.__user_activity_monitor.set_activity_offset()
                 if self.__settings.user_settings.notifications == "on":
                     self.__view.show_notification("Break will start in 5 seconds!", "Attention!")
 
@@ -279,10 +281,10 @@ class Model:
                     self.model.__current_state.increase_elapsed_time()
                 else:
                     break
-            if self.__current_state.current_step_type == StepType.work_mode and not self.__user_activity_monitor.is_user_active:
+            if not self.__user_activity_monitor.is_user_active and self.__current_state.current_step_type in (StepType.work_mode, StepType.work_notified_1, StepType.work_notified_2):
                 logger.info(f"Switch to iddle mode from work mode")
                 self.set_step(new_step_type=StepType.iddle_mode)
-            elif self.__current_state.current_step_type == StepType.iddle_mode and self.__user_activity_monitor.is_user_active:
+            elif self.__user_activity_monitor.is_user_active and self.__current_state.current_step_type == StepType.iddle_mode :
                 logger.info(f"Switch to work mode from iddle mode")
                 self.set_step(new_step_type=StepType.work_mode)
 
