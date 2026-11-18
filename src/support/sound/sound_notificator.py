@@ -1,4 +1,3 @@
-
 from config.settings import OnOffValue, Settings
 from support.resourses import ResSoundsPaths
 from support.sound.sound_player import PSoundPlayer

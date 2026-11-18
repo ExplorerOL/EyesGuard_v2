@@ -78,9 +78,11 @@ class UserActivityMonitor:
         adjusted_idle_time = idle_time - self._idle_time_offset
         is_active = adjusted_idle_time <= self._activity_timeout
 
-        logger.debug(f"User active check: idle_time={idle_time}, "
-                    f"adjusted={adjusted_idle_time}, timeout={self._activity_timeout}, "
-                    f"active={is_active}")
+        logger.debug(
+            f"User active check: idle_time={idle_time}, "
+            f"adjusted={adjusted_idle_time}, timeout={self._activity_timeout}, "
+            f"active={is_active}"
+        )
         return is_active
 
     def set_activity_offset(self) -> None:
