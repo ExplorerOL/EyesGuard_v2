@@ -42,6 +42,13 @@ uv run pyinstaller EyesGuard.spec
 Result: `dist/EyesGuard.exe` — a single self-contained executable (`res/` resources are bundled inside).
 At runtime the app creates `settings/` and `logs/` directories next to the exe file.
 
+Alternative one-directory build (faster startup: no archive unpacking to %TEMP% at every launch;
+`res/` is shipped next to the exe):
+```
+uv run pyinstaller EyesGuard-onedir.spec
+```
+Result: `dist/EyesGuard/` — a folder with `EyesGuard.exe` and bundled files; run the exe from there.
+
 ### Building from a WSL checkout
 
 PyInstaller builds only for the platform it runs on, so the build must be executed by Windows-native

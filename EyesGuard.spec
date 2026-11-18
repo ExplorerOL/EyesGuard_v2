@@ -7,7 +7,17 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=[
+        'setuptools',
+        'pkg_resources',
+        'pip',
+        'wheel',
+        'unittest',
+        'pydoc_data',
+        'sqlite3',
+        'xml',
+        'pydantic.v1',
+    ],
     noarchive=False,
 )
 pyz = PYZ(a.pure)

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- One-directory build variant (EyesGuard-onedir.spec): no onefile unpacking to %TEMP%, faster startup and file-based resource access
 - User-configurable activity timeout (30-600 seconds): settings window field, persisted in settings.json, applied live without restart
 - PyInstaller packaging: EyesGuard.spec (onefile, bundled res/, tray icon) and pyinstaller dev dependency; README build instructions
 - AI-agent infrastructure: AGENTS.md and .agents/ knowledge base (architecture, state machine, settings, known issues), knowledge graph, retro journal, task directories
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Settings window icon loaded via ResImages: fixed FileNotFoundError for res/img when running the frozen build
 
 ### Changed
+- PyInstaller bundle slimmed via Analysis excludes: unused stdlib modules (sqlite3, xml, unittest, pydoc_data) and pydantic.v1 shim removed from onefile archive
 - playsound installed from vendored wheel (wheels/): its PyPI sdist does not build under PEP 517 (setup.py resolves its path via inspect.getsource); replaces the dependency-metadata workaround
 - Runtime paths resolved for frozen builds: resources via sys._MEIPASS, settings and logs next to the exe (src/support/paths.py); settings directory auto-created on save
 - Linter config adopted from the reference project as-is: full rule set (naming, bugbear, builtins, complexity, pycodestyle, pyflakes, bandit, pydocstyle, isort, print, unicode names, encoding), line-length 120
