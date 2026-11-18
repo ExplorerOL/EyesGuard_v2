@@ -1,6 +1,8 @@
 # Настройки приложения
 
-Код: `src/config/settings.py`. Хранилище: `./settings/settings.json` (относительный путь от корня проекта; константа `SETTINGS_FILE` в `src/model.py`).
+Код: `src/config/settings.py`. Хранилище: `settings/settings.json` — путь задаёт константа
+`SETTINGS_FILE` в `src/model.py` через `support.paths.app_dir()` (dev — от CWD/корня проекта;
+frozen-сборка PyInstaller — рядом с exe). Каталог `settings/` создаётся автоматически при первой записи.
 
 ## Модель
 

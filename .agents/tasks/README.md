@@ -19,4 +19,4 @@
 
 | Задача | Суть | Статус |
 |--------|------|--------|
-| _(пусто — добавляйте по мере работы)_ | | |
+| [pyinstaller-packaging](pyinstaller-packaging/) | Сборка exe через PyInstaller: spec, резолв путей (frozen/dev), README | Реализована (рабочий exe — ручная проверка на Windows) |

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- PyInstaller packaging: EyesGuard.spec (onefile, bundled res/, tray icon) and pyinstaller dev dependency; README build instructions
 - AI-agent infrastructure: AGENTS.md and .agents/ knowledge base (architecture, state machine, settings, known issues), knowledge graph, retro journal, task directories
 - CI workflow (GitHub Actions): ruff + pytest on push/PR
 - Git hooks via prek: ruff check/format on commit (changed files) and push (whole project), plus repo hygiene hooks
@@ -15,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skill `add-user-setting` (end-to-end adding of a user setting) and skills registry in .agents/skills/README.md
 
 ### Changed
+- Runtime paths resolved for frozen builds: resources via sys._MEIPASS, settings and logs next to the exe (src/support/paths.py); settings directory auto-created on save
 - Linter config adopted from the reference project as-is: full rule set (naming, bugbear, builtins, complexity, pycodestyle, pyflakes, bandit, pydocstyle, isort, print, unicode names, encoding), line-length 120
 - Codebase cleaned to zero ruff findings under the full rule set (docstrings, prints, long lines, file encoding)
 - Project migrated to uv: pyproject.toml + uv.lock; pillow added to dependencies; playsound restricted to the win32 marker

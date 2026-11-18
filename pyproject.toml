@@ -17,6 +17,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "pyinstaller==6.22.3",
     "pytest==7.4.0",
     # версия синхронизирована с rev в .pre-commit-config.yaml (ruff-pre-commit)
     "ruff==0.16.4",
