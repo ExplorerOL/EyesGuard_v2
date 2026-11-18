@@ -43,7 +43,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.attributes('-topmost', True)
         self.resizable(False, False)
 
-        self.wnd_icon = ImageTk.PhotoImage(file='res/img/eyes_with_protection.png')
+        self.wnd_icon = ImageTk.PhotoImage(ResImages.img_protection_active)
         self.after(250, lambda: self.iconphoto(False, self.wnd_icon))
 
         self.configure(fg_color='LightSteelBlue')

@@ -35,3 +35,11 @@
   sdist (pure-python, py3-none-any), закоммичен в `wheels/`, подключён через
   `[tool.uv.sources] playsound = { path = ... }`; metadata-хак удалён, lock содержит
   sha256 wheel'а.
+
+## Фикс запуска frozen exe (2026-11-18)
+
+- Первый запуск exe падал: `wnd_settings.py` открывал иконку напрямую
+  `ImageTk.PhotoImage(file='res/img/eyes_with_protection.png')` — относительный путь
+  мимо `ResImages` не существует внутри onefile-архива. Заменено на
+  `ImageTk.PhotoImage(ResImages.img_protection_active)`.
+- Аудит `src/` на прямые пути `res/` повторён — других потребителей нет.
