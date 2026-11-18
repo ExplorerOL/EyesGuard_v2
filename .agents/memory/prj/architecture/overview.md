@@ -15,6 +15,7 @@ src/
 │   └── states.py               # StepType, StepData, CurrentState
 ├── support/                    # инфраструктурные модули
 │   ├── logger.py               # loguru
+│   ├── paths.py                # резолв путей: dev (CWD) / frozen (sys._MEIPASS, каталог exe)
 │   ├── resourses.py            # ResImages (PNG) + ResSoundsPaths (MP3)
 │   ├── user_activity_monitor.py# Windows API: неактивность пользователя
 │   └── sound/
@@ -29,8 +30,20 @@ src/
 Все модули — плоский пакет `src` (без `__init__.py` у корня), импорты абсолютные
 «от корня src»: `from config.settings import Settings`, `from support.logger import logger`.
 
-Приложение запускается как `python ./src/main.py` **из корня проекта** — от CWD зависят
-`res/img/`, `res/sounds/`, `./settings/settings.json`, `./logs/log.log`.
+Приложение запускается как `python ./src/main.py` **из корня проекта**. Пути к данным
+резолвит `support/paths.py`: в dev-режиме — от CWD (`res/img/`, `res/sounds/`,
+`settings/settings.json`, `logs/log.log`), в замороженном (PyInstaller) — ресурсы из
+`sys._MEIPASS`, настройки и логи — рядом с exe (`app_dir()`).
+
+## Сборка (PyInstaller)
+
+- Команда: `uv run pyinstaller EyesGuard.spec` из корня проекта, **только на Windows**.
+- Spec: onefile (`dist/EyesGuard.exe`), `res/` бандлится через `datas`, `console=False`,
+  иконка `res/img/eyes_with_protection.ico`, `hiddenimports=['pystray._win32']`
+  (backend трея выбирается условным импортом).
+- `customtkinter` подхватывается хуком из `pyinstaller-hooks-contrib`; `playsound`
+  ставится только по маркеру win32. Сборка проверена на Linux только механически
+  (datas/модули в архиве) — рабочий exe собирается на Windows.
 
 ## Общая схема
 

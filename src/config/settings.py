@@ -70,7 +70,7 @@ class SettingsDataValidator(BaseModel):
 class Settings:
     """class for managing user settings."""
 
-    def __init__(self, file_name: str | None = None):
+    def __init__(self, file_name: str | Path | None = None):
         self.__user_settings = UserSettingsData()
         self.__system_settings = SystemSettingsData()
         if file_name is not None:
@@ -166,6 +166,7 @@ class Settings:
             return
         settings_json = settings_validated.model_dump_json(indent=4)
         logger.debug(f'Settings to file {settings_json}')
+        self.__settings_file.parent.mkdir(parents=True, exist_ok=True)
         self.__settings_file.write_text(settings_json, encoding='utf-8')
 
     def get_settings_copy(self) -> UserSettingsData:

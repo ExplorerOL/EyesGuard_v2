@@ -2,8 +2,10 @@
 # https://stackoverflow.com/questions/744373/what-happens-when-using-mutual-or-circular-cyclic-imports/67673741#67673741
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
+from support.paths import app_dir
 from support.sound.sound_notificator import SoundNotificator
 from support.sound.sound_player import sound_player
 from support.user_activity_monitor import UserActivityMonitor
@@ -18,11 +20,11 @@ from config.settings import OnOffValue, Settings, UserSettingsData
 from config.states import CurrentState, StepData, StepType
 from support.logger import logger
 
-SETTINGS_FILE = './settings/settings.json'
+SETTINGS_FILE = app_dir() / 'settings' / 'settings.json'
 
 
 class Model:
-    def __init__(self, settings_file: str = SETTINGS_FILE):
+    def __init__(self, settings_file: Path = SETTINGS_FILE):
         self.__view: View
         self.__settings = Settings(settings_file)
         self.__current_state = CurrentState()

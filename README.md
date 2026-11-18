@@ -33,7 +33,9 @@ Command for running tests:
 uv run pytest -v
 ```
 
-Command for building .exe:
+Command for building .exe (Windows only, from the project root):
 ```
-auto-py-to-exe
+uv run pyinstaller EyesGuard.spec
 ```
+Result: `dist/EyesGuard.exe` — a single self-contained executable (`res/` resources are bundled inside).
+At runtime the app creates `settings/` and `logs/` directories next to the exe file.
