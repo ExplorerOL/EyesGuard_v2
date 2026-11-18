@@ -5,7 +5,6 @@ sys.path.insert(0, "./src")
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
 
 from config.settings import Settings, UserSettingsData
 

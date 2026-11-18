@@ -12,12 +12,11 @@ import time
 from tkinter import StringVar
 
 import customtkinter
-from PIL import Image
 
-from support.logger import logger
-from model import Model
-from support.resourses import ResImages
 from config.states import CurrentState, StepType
+from model import Model
+from support.logger import logger
+from support.resourses import ResImages
 
 
 class WndBreak(customtkinter.CTkToplevel):
@@ -32,7 +31,7 @@ class WndBreak(customtkinter.CTkToplevel):
         hs = self.winfo_screenheight()  # height of the screen
         self.attributes("-alpha", 0)
         print(ws, hs)
-        self.geometry("%dx%d" % (ws, hs))
+        self.geometry(f"{ws}x{hs}")
         self.title("EyesGuard v2.0.0")
 
         self.attributes("-topmost", True)
@@ -46,7 +45,7 @@ class WndBreak(customtkinter.CTkToplevel):
 
         self.remaining_break_time = StringVar()
 
-        self.remaining_break_time.set(f"Remaining break time: 0 seconds")
+        self.remaining_break_time.set("Remaining break time: 0 seconds")
         self.lbl_remain_time = customtkinter.CTkLabel(
             self,
             text="Remaining break time: ",

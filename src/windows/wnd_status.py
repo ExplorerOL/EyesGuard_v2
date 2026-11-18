@@ -11,12 +11,11 @@ import datetime
 import time
 
 import customtkinter
-from PIL import Image
 
-from support.logger import logger
-from model import Model
-from support.resourses import ResImages
 from config.states import StepType
+from model import Model
+from support.logger import logger
+from support.resourses import ResImages
 
 
 class WndStatus(customtkinter.CTkToplevel):

@@ -12,13 +12,13 @@ import time
 from tkinter import StringVar
 
 import customtkinter
-from PIL import Image, ImageTk
+from PIL import ImageTk
 
-from support.logger import logger
-from model import Model
-from support.resourses import ResImages
 from config.settings import Settings
 from config.states import StepType
+from model import Model
+from support.logger import logger
+from support.resourses import ResImages
 
 
 class WndSettings(customtkinter.CTkToplevel):
@@ -275,11 +275,9 @@ class WndSettings(customtkinter.CTkToplevel):
 
     def on_focus_in(self, event):
         """Actions on focus at window"""
-        pass
 
     def on_focus_out(self, event):
         """Actions on focus out of window"""
-        pass
 
     def hide(self):
         """Hide window"""
