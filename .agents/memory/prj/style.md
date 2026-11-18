@@ -44,6 +44,14 @@ logger.debug(f"Model: new step {step_type}")        # значимые данн�
 - Тесты не должны требовать GUI и Windows: тестируем `config/settings.py`, `config/states.py`, тайминги `Model` (без создания `View`).
 - Запуск из корня проекта: `python -X utf8 -m pytest ./tests/` (флаг `-X utf8` обязателен).
 
+## Версионирование, CHANGELOG и коммиты
+
+- Версии — SemVer (X.Y.Z).
+- `CHANGELOG.md` — Keep a Changelog 1.1.0: раздел `[Unreleased]` + категории Added / Changed /
+  Deprecated / Removed / Fixed / Security; новая запись — **одна строка** на фичу, язык — английский.
+- Коммиты — Conventional Commits, сообщения на английском: `type(scope): description`
+  (типы: feat, fix, docs, style, refactor, perf, test, build, ci, chore).
+
 ## Чего не делать
 
 - Не переименовывать модули/публичные методы без явного поручения (напр. опечатка `resourses.py` сохранена осознанно).
