@@ -1,12 +1,29 @@
 # Changelog
 
-## Unreleased
-- requirements.txt удалён: единственный источник зависимостей — pyproject.toml + uv.lock
-- Добавлен скилл add-user-setting (сквозное добавление пользовательской настройки: модель → pydantic → виджет → логика → тест) и реестр скиллов в .agents/skills/README.md
-- CI: GitHub Actions workflow (ruff + pytest на push/PR); .python-version (3.11), .editorconfig, [tool.pytest.ini_options] в pyproject
-- Линт-база очищена: `ruff check .` проходит без ошибок (сортировка импортов, неиспользуемые импорты, f-string, noqa на осознанных safe-default исключениях)
-- Добавлена инфраструктура для ИИ-агентов: AGENTS.md, .agents/ (база знаний, граф знаний, ретро, задачи)
-- Проект переведён на uv: pyproject.toml ([project] + dev-группа pytest/ruff), uv.lock; pillow добавлен в зависимости; playsound ограничен маркером win32
+All notable changes to this project will be documented in this file.
 
-## v2.0.0 - 2024-04-02
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- AI-agent infrastructure: AGENTS.md and .agents/ knowledge base (architecture, state machine, settings, known issues), knowledge graph, retro journal, task directories
+- CI workflow (GitHub Actions): ruff + pytest on push/PR
+- Project tooling: .python-version (3.11), .editorconfig, [tool.pytest.ini_options]
+- Skill `add-user-setting` (end-to-end adding of a user setting) and skills registry in .agents/skills/README.md
+
+### Changed
+- Project migrated to uv: pyproject.toml + uv.lock; pillow added to dependencies; playsound restricted to the win32 marker
+- Lint baseline cleaned: `ruff check .` passes with no errors
+
+### Removed
+- requirements.txt: pyproject.toml + uv.lock is now the single source of dependencies
+
+## [2.0.0] - 2024-04-02
+
+### Added
 - First release of EyesGuard for Windows written in Python
+
+[Unreleased]: https://github.com/ExplorerOL/EyesGuard_v2/compare/EyesGuard-v2.0.0..HEAD
+[2.0.0]: https://github.com/ExplorerOL/EyesGuard_v2/releases/tag/EyesGuard-v2.0.0
