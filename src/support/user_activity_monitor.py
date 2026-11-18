@@ -6,7 +6,6 @@ based on the last input time from the Windows operating system.
 
 import ctypes
 import datetime
-from typing import Optional
 
 from support.logger import logger
 
@@ -62,7 +61,8 @@ class UserActivityMonitor:
             logger.debug(f"User idle time: {idle_time}")
             return idle_time
 
-        except Exception as e:
+        # Any OS API failure must not crash the app (safe default: treat user as active)
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error getting user idle time: {e}")
             # Return zero idle time as safe default
             return datetime.timedelta(seconds=0)

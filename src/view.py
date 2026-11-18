@@ -5,12 +5,12 @@ import os
 import customtkinter
 import pystray
 
-from controller import Controller
-from support.logger import logger
-from model import Model
-from support.resourses import ResImages
 from config.settings import Settings, UserSettingsData
 from config.states import CurrentState, StepType
+from controller import Controller
+from model import Model
+from support.logger import logger
+from support.resourses import ResImages
 from windows.wnd_break import WndBreak
 from windows.wnd_settings import WndSettings
 from windows.wnd_status import WndStatus
@@ -97,7 +97,7 @@ class View(customtkinter.CTk):
         except TypeError as error:
             logger.error(f"Error occuired while reading settings from ui: {error}")
 
-        logger.info(f"Settings read from ui: {str(ui_settings_data)}")
+        logger.info(f"Settings read from ui: {ui_settings_data!s}")
 
         return ui_settings_data
 

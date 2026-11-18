@@ -24,7 +24,8 @@ class SoundPlayer(PSoundPlayer):
     def __play_sound_safely(self, file_path: Path) -> None:
         try:
             playsound.playsound(sound=file_path)
-        except Exception as e:
+        # Any third-party playback error must not crash the app (safe default: skip sound)
+        except Exception as e:  # noqa: BLE001
             logger.error(f'Error while playing sound!\n {e!r}')
 
 sound_player = SoundPlayer()

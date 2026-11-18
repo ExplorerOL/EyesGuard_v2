@@ -1,13 +1,13 @@
 from controller import Controller
-from support.logger import logger
 from model import Model
+from support.logger import logger
 from view import View
 
 
 def main():
     """Main function"""
 
-    logger.trace(f"Function started")
+    logger.trace("Function started")
 
     controller = Controller()
     model = Model()

@@ -282,10 +282,10 @@ class Model:
                 else:
                     break
             if not self.__user_activity_monitor.is_user_active and self.__current_state.current_step_type in (StepType.work_mode, StepType.work_notified_1, StepType.work_notified_2):
-                logger.info(f"Switch to iddle mode from work mode")
+                logger.info("Switch to iddle mode from work mode")
                 self.set_step(new_step_type=StepType.iddle_mode)
             elif self.__user_activity_monitor.is_user_active and self.__current_state.current_step_type == StepType.iddle_mode :
-                logger.info(f"Switch to work mode from iddle mode")
+                logger.info("Switch to work mode from iddle mode")
                 self.set_step(new_step_type=StepType.work_mode)
 
             # actions during step is in progress
@@ -306,7 +306,6 @@ class Model:
         match self.__current_state.current_step_type:
             case StepType.off_mode:
                 new_step_type = self.current_state.current_step_type
-                pass
             case StepType.suspended_mode:
                 new_step_type = StepType.work_mode
             case StepType.work_mode:

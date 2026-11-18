@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Линт-база очищена: `ruff check .` проходит без ошибок (сортировка импортов, неиспользуемые импорты, f-string, noqa на осознанных safe-default исключениях)
 - Добавлена инфраструктура для ИИ-агентов: AGENTS.md, .agents/ (база знаний, граф знаний, ретро, задачи)
 - Проект переведён на uv: pyproject.toml ([project] + dev-группа pytest/ruff), uv.lock; pillow добавлен в зависимости; playsound ограничен маркером win32
 
