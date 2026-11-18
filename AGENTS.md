@@ -112,4 +112,5 @@ serena, ast-grep вместо циклов grep/find/Read. Этот промпт
 - Урок из ретроспективы → `.agents/retro/lessons.md` + счётчик в `.agents/retro/index.md`
   (промоушен в правила AGENTS.md после ≥3 повторов за 30 дней или ≥2 задач).
 - Новая задача → директория в `.agents/tasks/` по конвенции из @.agents/tasks/README.md.
+- Новый скилл → `.agents/skills/<name>/SKILL.md` (frontmatter name/description) + дополнить таблицу в @.agents/skills/README.md.
 - Новые файлы/директории в `.agents` → дополни @.agents/index.md.
