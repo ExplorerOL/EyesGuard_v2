@@ -24,3 +24,14 @@
 - Пробная сборка на Linux: exe собрался, res/ и все модули проекта в архиве
   (playsound/pystray._win32/tcl-tk — ожидаемые Linux-предупреждения).
 - Рабочий exe: ручная проверка на Windows.
+
+## Фикс установки playsound (2026-11-18)
+
+- `uv sync` на Windows падал на сборке sdist playsound 1.3.0: setup.py ищет свой путь
+  через `inspect.getsource(lambda:0)` и падает при PEP 517-запуске (exec без файла,
+  `OSError: could not get source code`). Хак `[[tool.uv.dependency-metadata]]` спасал
+  только резолв lock, но не установку.
+- Решение: wheel собран legacy-командой `python setup.py bdist_wheel` из официального
+  sdist (pure-python, py3-none-any), закоммичен в `wheels/`, подключён через
+  `[tool.uv.sources] playsound = { path = ... }`; metadata-хак удалён, lock содержит
+  sha256 wheel'а.

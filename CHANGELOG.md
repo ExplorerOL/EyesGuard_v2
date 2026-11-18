@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skill `add-user-setting` (end-to-end adding of a user setting) and skills registry in .agents/skills/README.md
 
 ### Changed
+- playsound installed from vendored wheel (wheels/): its PyPI sdist does not build under PEP 517 (setup.py resolves its path via inspect.getsource); replaces the dependency-metadata workaround
 - Runtime paths resolved for frozen builds: resources via sys._MEIPASS, settings and logs next to the exe (src/support/paths.py); settings directory auto-created on save
 - Linter config adopted from the reference project as-is: full rule set (naming, bugbear, builtins, complexity, pycodestyle, pyflakes, bandit, pydocstyle, isort, print, unicode names, encoding), line-length 120
 - Codebase cleaned to zero ruff findings under the full rule set (docstrings, prints, long lines, file encoding)
