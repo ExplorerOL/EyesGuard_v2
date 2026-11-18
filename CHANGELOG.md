@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- requirements.txt удалён: единственный источник зависимостей — pyproject.toml + uv.lock
 - Добавлен скилл add-user-setting (сквозное добавление пользовательской настройки: модель → pydantic → виджет → логика → тест) и реестр скиллов в .agents/skills/README.md
 - CI: GitHub Actions workflow (ruff + pytest на push/PR); .python-version (3.11), .editorconfig, [tool.pytest.ini_options] в pyproject
 - Линт-база очищена: `ruff check .` проходит без ошибок (сортировка импортов, неиспользуемые импорты, f-string, noqa на осознанных safe-default исключениях)

@@ -7,7 +7,7 @@
 
 | # | Проблема | Где |
 |---|---|---|
-| 1 | Pillow используется (`support/resourses.py`, окна), но отсутствует в `requirements.txt` | зависимости |
+| 1 | ~~Pillow отсутствует в requirements.txt~~ — решено: зависимости переведены на `pyproject.toml` + `uv.lock` (pillow добавлен, requirements.txt удалён 2026-11-18) | зависимости |
 | 2 | `Controller.stop()` — пустая заглушка; поток `main_loop` не останавливается никогда; выход через `os._exit(0)` | src/controller.py, src/view.py |
 | 3 | Модальные окна обновляются из контроллерного потока — Tkinter формально потоконебезопасен | src/model.py → View.update_* |
 | 4 | logger.py пересоздаёт `logs/log.log` при каждом импорте модуля (`unlink`); sink с уровнем `WARNING`, при этом в коде множество `logger.trace/debug/info` — в файл они не попадают | src/support/logger.py |
