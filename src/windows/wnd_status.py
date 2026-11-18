@@ -59,7 +59,7 @@ class WndStatus(customtkinter.CTkToplevel):
             self, orientation="horizontal", height=20, fg_color="#3B8ED0", progress_color="GreenYellow"
         )
         self.pbar_time_until_break.grid(row=1, column=0, padx=20, pady=(0, 10), sticky="ew")
-        logger.debug(f'progress_color = {self.pbar_time_until_break.cget("progress_color")}')
+        logger.debug(f"progress_color = {self.pbar_time_until_break.cget('progress_color')}")
         # button change protection state
         self.btn_change_suspended_state = customtkinter.CTkButton(
             self,

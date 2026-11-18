@@ -18,7 +18,8 @@ class ResImages:
     img_gear = Image.open("res/img/gear.png")
     img_info = Image.open("res/img/info.png")
 
+
 class ResSoundsPaths:
-    notification_work = Path('res/sounds/notification_work.mp3')
-    notification_break = Path('res/sounds/notification_break.mp3')
-    notification_idle = Path('res/sounds/notification_idle.mp3')
+    notification_work = Path("res/sounds/notification_work.mp3")
+    notification_break = Path("res/sounds/notification_break.mp3")
+    notification_idle = Path("res/sounds/notification_idle.mp3")
