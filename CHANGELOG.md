@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project tooling: .python-version (3.11), .editorconfig, [tool.pytest.ini_options]
 - Skill `add-user-setting` (end-to-end adding of a user setting) and skills registry in .agents/skills/README.md
 
+### Fixed
+- Settings window icon loaded via ResImages: fixed FileNotFoundError for res/img when running the frozen build
+
 ### Changed
 - playsound installed from vendored wheel (wheels/): its PyPI sdist does not build under PEP 517 (setup.py resolves its path via inspect.getsource); replaces the dependency-metadata workaround
 - Runtime paths resolved for frozen builds: resources via sys._MEIPASS, settings and logs next to the exe (src/support/paths.py); settings directory auto-created on save
