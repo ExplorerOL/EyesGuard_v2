@@ -1,3 +1,35 @@
+[project]
+name = "eyeguard"
+version = "2.1.0"
+description = "EyesGuard: desktop reminders to take breaks during PC work (Windows 10)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "GPL-3.0-only" }
+dependencies = [
+    "customtkinter==5.2.0",
+    "loguru==0.7.2",
+    "pillow>=10.0.0",
+    # звук работает только на Windows; на Linux playsound 1.3.0 не собирается (баг setup.py)
+    "playsound==1.3.0; sys_platform == 'win32'",
+    "pydantic==2.1.1",
+    "pystray==0.19.4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==7.4.0",
+    "ruff>=0.5",
+]
+
+[tool.uv]
+# playsound 1.3.0 собирается только на Windows (баг setup.py: inspect.getsource на не-Windows).
+# Статические метаданные позволяют uv закрыть universal-lock без запуска его build backend,
+# а маркер sys_platform исключает установку пакета на Linux (звук — Windows-only фича).
+[[tool.uv.dependency-metadata]]
+name = "playsound"
+version = "1.3.0"
+requires-dist = []
+
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
 exclude = [
@@ -28,6 +60,7 @@ exclude = [
     "site-packages",
     "venv",
     ".venv*",
+    ".agents",
 ]
 
 # Same as Black.
@@ -38,7 +71,14 @@ indent-width = 4
 target-version = "py311"
 
 [tool.ruff.format]
-quote-style = "single"
+# Весь существующий код проекта написан с двойными кавычками — не менять на single!
+quote-style = "double"
 
 [tool.ruff.lint]
 fixable = ["ALL"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
