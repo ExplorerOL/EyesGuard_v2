@@ -1,0 +1,30 @@
+line-length = 110
+indent-width = 4
+
+extend-exclude = [
+  ".agents",
+  ".git",
+  "__pycache__",
+  "build",
+  "dist",
+  "venv",
+  ".venv",
+  "*.ipynb"
+]
+
+# Настройки линтера
+[lint]
+# Какие правила активны; подробности — https://docs.astral.sh/ruff/rules/
+fixable = ["ALL"]
+
+[lint.mccabe]
+max-complexity = 10
+
+[lint.pydocstyle]
+convention = "google"
+
+# Настройки форматирования
+# double — стиль всего существующего кода проекта (не менять на single!)
+[format]
+quote-style = "double"
+indent-style = "space"

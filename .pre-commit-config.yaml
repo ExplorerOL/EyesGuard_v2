@@ -1,0 +1,40 @@
+# .pre-commit-config.yaml — git hooks managed by prek (Rust drop-in for pre-commit)
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.4
+    hooks:
+    # ---- COMMIT: changed files only ----
+      - id: ruff-check
+        name: ruff check (lint - changed files)
+        stages: [pre-commit]
+        args: [--fix, --exit-non-zero-on-fix, --config=./linter_ruff.toml]
+
+      - id: ruff-format
+        name: ruff format (format - changed files)
+        stages: [pre-commit]
+        args: [--config=./linter_ruff.toml]
+
+    # ---- PUSH: whole project ----
+      - id: ruff-check
+        name: ruff check (lint - all files)
+        stages: [pre-push]
+        args: [--no-cache, --fix, --exit-non-zero-on-fix, --config=./linter_ruff.toml]
+        pass_filenames: false
+
+      - id: ruff-format
+        name: ruff format (format - all files)
+        stages: [pre-push]
+        args: [--config=./linter_ruff.toml]
+        pass_filenames: false
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-json
+        # tests/data/settings_invalid_not_invalid_json.json — намеренно битый fixture для теста Settings
+        exclude: ^tests/data/settings_invalid_not_invalid_json\.json$
+      - id: name-tests-test
+        args: [--pytest-test-first]
