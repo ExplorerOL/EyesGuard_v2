@@ -18,7 +18,8 @@ def app_dir() -> Path:
 def resource_dir() -> Path:
     """Directory with bundled read-only resources (res/).
 
-    In frozen mode it is the PyInstaller onefile extraction folder (sys._MEIPASS);
+    In frozen mode it is the bundle directory (sys._MEIPASS is set by
+    PyInstaller for both onefile and onedir builds);
     in development mode it is the current working directory (project root).
     """
     if getattr(sys, 'frozen', False):
