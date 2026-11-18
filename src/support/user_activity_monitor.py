@@ -14,8 +14,8 @@ class LASTINPUTINFO(ctypes.Structure):
     """Structure for holding last input information from Windows API."""
 
     _fields_ = [
-        ("cbSize", ctypes.c_uint),
-        ("dwTime", ctypes.c_uint),
+        ('cbSize', ctypes.c_uint),
+        ('dwTime', ctypes.c_uint),
     ]
 
 
@@ -35,7 +35,7 @@ class UserActivityMonitor:
         """
         self._activity_timeout: datetime.timedelta = activity_timeout
         self._idle_time_offset: datetime.timedelta = datetime.timedelta(seconds=0)
-        logger.debug(f"UserActivityMonitor initialized with timeout: {activity_timeout}")
+        logger.debug(f'UserActivityMonitor initialized with timeout: {activity_timeout}')
 
     def __get_user_idle_time_from_os(self) -> datetime.timedelta:
         """Get the user idle time from the operating system.
@@ -50,7 +50,7 @@ class UserActivityMonitor:
             # Get last input time from Windows API
             result = ctypes.windll.user32.GetLastInputInfo(ctypes.byref(last_input_info))
             if not result:
-                logger.warning("Failed to get last input info from Windows API")
+                logger.warning('Failed to get last input info from Windows API')
                 return datetime.timedelta(seconds=0)
 
             # Get system uptime using 64-bit function to avoid 49.7-day wraparound
@@ -58,12 +58,12 @@ class UserActivityMonitor:
             time_ms = tick_count - last_input_info.dwTime
             idle_time = datetime.timedelta(milliseconds=time_ms)
 
-            logger.debug(f"User idle time: {idle_time}")
+            logger.debug(f'User idle time: {idle_time}')
             return idle_time
 
         # Any OS API failure must not crash the app (safe default: treat user as active)
         except Exception as e:  # noqa: BLE001
-            logger.error(f"Error getting user idle time: {e}")
+            logger.error(f'Error getting user idle time: {e}')
             # Return zero idle time as safe default
             return datetime.timedelta(seconds=0)
 
@@ -79,9 +79,9 @@ class UserActivityMonitor:
         is_active = adjusted_idle_time <= self._activity_timeout
 
         logger.debug(
-            f"User active check: idle_time={idle_time}, "
-            f"adjusted={adjusted_idle_time}, timeout={self._activity_timeout}, "
-            f"active={is_active}"
+            f'User active check: idle_time={idle_time}, '
+            f'adjusted={adjusted_idle_time}, timeout={self._activity_timeout}, '
+            f'active={is_active}'
         )
         return is_active
 
@@ -93,7 +93,7 @@ class UserActivityMonitor:
         """
         if not self.is_user_active:
             self._idle_time_offset = self.__get_user_idle_time_from_os()
-            logger.debug(f"Activity offset set to: {self._idle_time_offset}")
+            logger.debug(f'Activity offset set to: {self._idle_time_offset}')
 
     def reset_activity_offset(self) -> None:
         """Reset the activity offset to zero.
@@ -103,4 +103,4 @@ class UserActivityMonitor:
         """
         if self.is_user_active:
             self._idle_time_offset = datetime.timedelta(seconds=0)
-            logger.debug("Activity offset reset to zero")
+            logger.debug('Activity offset reset to zero')

@@ -24,7 +24,6 @@ max-complexity = 10
 convention = "google"
 
 # Настройки форматирования
-# double — стиль всего существующего кода проекта (не менять на single!)
 [format]
-quote-style = "double"
+quote-style = "single"
 indent-style = "space"
