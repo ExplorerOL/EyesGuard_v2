@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Project migrated to uv: pyproject.toml + uv.lock; pillow added to dependencies; playsound restricted to the win32 marker
 - Ruff config moved from pyproject.toml to linter_ruff.toml; ruff pinned to 0.16.4 (synced with pre-commit hook rev)
+- Codebase reformatted to single quotes (ruff format, quote-style = "single")
 - Legacy files reformatted by ruff format (baseline for format hooks)
 - Lint baseline cleaned: `ruff check .` passes with no errors
 
