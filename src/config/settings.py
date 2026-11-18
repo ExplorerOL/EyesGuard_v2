@@ -24,7 +24,6 @@ class SystemSettingsData:
     STEP_SUSPENDED_MODE_DURATION = datetime.timedelta(minutes=60)
     STEP_NOTIFICATION_1_DURATION = datetime.timedelta(seconds=55)
     STEP_NOTIFICATION_2_DURATION = datetime.timedelta(seconds=5)
-    USER_ACTIVITY_TIMEOUT = datetime.timedelta(seconds=3 * 60)
     TIME_TICK_S = 1
 
 
@@ -34,6 +33,7 @@ class UserSettingsData:
 
     work_duration: int = 45
     break_duration: int = 15
+    activity_timeout: int = 180
     sounds = OnOffValue.on.value
     notifications = OnOffValue.on.value
     protection_status = OnOffValue.on.value
@@ -62,6 +62,7 @@ class SettingsDataValidator(BaseModel):
 
     work_duration: int = Field(default=45, gt=0, lt=101)
     break_duration: int = Field(default=15, gt=0, lt=101)
+    activity_timeout: int = Field(default=180, ge=30, le=600)
     sounds: Literal['on', 'off'] = 'on'
     notifications: Literal['on', 'off'] = 'on'
     protection_status: Literal['on', 'off'] = 'on'

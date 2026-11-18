@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- User-configurable activity timeout (30-600 seconds): settings window field, persisted in settings.json, applied live without restart
 - PyInstaller packaging: EyesGuard.spec (onefile, bundled res/, tray icon) and pyinstaller dev dependency; README build instructions
 - AI-agent infrastructure: AGENTS.md and .agents/ knowledge base (architecture, state machine, settings, known issues), knowledge graph, retro journal, task directories
 - CI workflow (GitHub Actions): ruff + pytest on push/PR

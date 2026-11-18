@@ -19,6 +19,7 @@ frozen-сборка PyInstaller — рядом с exe). Каталог `settings
 |---|---|---|---|
 | `work_duration` | int | 45 | 0 < x < 101 (мин) |
 | `break_duration` | int | 15 | 0 < x < 101 (мин) |
+| `activity_timeout` | int | 180 | 30 <= x <= 600 (сек; порог `is_user_active` в `UserActivityMonitor`) |
 | `sounds` | Literal["on","off"] | "on" | — (управляет `SoundNotificator`) |
 | `notifications` | Literal["on","off"] | "on" | — (управляет уведомлениями трея) |
 | `protection_status` | Literal["on","off"] | "on" | — (начальный шаг при старте) |
@@ -30,8 +31,13 @@ frozen-сборка PyInstaller — рядом с exe). Каталог `settings
 | `STEP_SUSPENDED_MODE_DURATION` | 60 мин | off_mode / suspended_mode |
 | `STEP_NOTIFICATION_1_DURATION` | 55 с | work_notified_1 |
 | `STEP_NOTIFICATION_2_DURATION` | 5 с | work_notified_2 |
-| `USER_ACTIVITY_TIMEOUT` | 3 мин | порог неактивности в `UserActivityMonitor` |
 | `TIME_TICK_S` | 1 с | тик `wait_for_current_step_is_ended` |
+
+> Примечание: раньше порог неактивности был константой `USER_ACTIVITY_TIMEOUT` в
+> `SystemSettingsData`; с версии с настройкой `activity_timeout` он вынесен в
+> пользовательские настройки (виджет в секции Time settings окна настроек).
+> `Model.apply_new_user_settings` пересоздаёт `UserActivityMonitor` — смена порога
+> применяется без перезапуска приложения.
 
 ## Поведение при ошибках
 

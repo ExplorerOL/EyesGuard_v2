@@ -20,3 +20,4 @@
 | Задача | Суть | Статус |
 |--------|------|--------|
 | [pyinstaller-packaging](pyinstaller-packaging/) | Сборка exe через PyInstaller: spec, резолв путей (frozen/dev), README | Реализована (рабочий exe — ручная проверка на Windows) |
+| [activity-timeout-setting](activity-timeout-setting/) | Пользовательская настройка activity_timeout (30–600 сек): UI, сохранение, применение без перезапуска | Реализована (ручная проверка UI на Windows) |

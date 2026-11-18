@@ -9,7 +9,8 @@ import pytest
 from config.settings import Settings, UserSettingsData
 
 settings_default_str = (
-    "{'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', 'sounds': 'on', 'work_duration': 45}"
+    "{'activity_timeout': 180, 'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', "
+    "'sounds': 'on', 'work_duration': 45}"
 )
 
 
@@ -19,35 +20,35 @@ settings_default_str = (
         (
             'tests/data/settings_valid_min_values.json',
             '{'
-            "'break_duration': 1, 'notifications': 'off', 'protection_status': 'on', "
+            "'activity_timeout': 30, 'break_duration': 1, 'notifications': 'off', 'protection_status': 'on', "
             "'sounds': 'off', 'work_duration': 1"
             '}',
         ),
         (
             'tests/data/settings_valid_mean_values.json',
             '{'
-            "'break_duration': 50, 'notifications': 'on', 'protection_status': 'on', "
+            "'activity_timeout': 315, 'break_duration': 50, 'notifications': 'on', 'protection_status': 'on', "
             "'sounds': 'off', 'work_duration': 50"
             '}',
         ),
         (
             'tests/data/settings_valid_max_values.json',
             '{'
-            "'break_duration': 100, 'notifications': 'on', 'protection_status': 'on', "
+            "'activity_timeout': 600, 'break_duration': 100, 'notifications': 'on', 'protection_status': 'on', "
             "'sounds': 'on', 'work_duration': 100"
             '}',
         ),
         (
             'tests/data/settings_valid_empty.json',
             '{'
-            "'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', "
+            "'activity_timeout': 180, 'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', "
             "'sounds': 'on', 'work_duration': 45"
             '}',
         ),
         (
             'tests/data/settings_valid_no_param.json',
             '{'
-            "'break_duration': 15, 'notifications': 'off', 'protection_status': 'on', "
+            "'activity_timeout': 180, 'break_duration': 15, 'notifications': 'off', 'protection_status': 'on', "
             "'sounds': 'off', 'work_duration': 1"
             '}',
         ),
@@ -74,6 +75,30 @@ def test_read_settings_from_invalid_file(settings_file_name):
     assert settings_str == settings_default_str
 
 
+@pytest.mark.parametrize(
+    'settings_file_name, expected_activity_timeout',
+    [
+        ('tests/data/settings_valid_activity_timeout_min.json', 30),
+        ('tests/data/settings_valid_activity_timeout_max.json', 600),
+    ],
+)
+def test_read_activity_timeout_boundaries(settings_file_name, expected_activity_timeout):
+    settings = Settings(settings_file_name)
+    assert settings.user_settings.activity_timeout == expected_activity_timeout
+
+
+@pytest.mark.parametrize(
+    'settings_file_name',
+    [
+        ('tests/data/settings_invalid_activity_timeout_low.json'),
+        ('tests/data/settings_invalid_activity_timeout_high.json'),
+    ],
+)
+def test_read_settings_with_invalid_activity_timeout(settings_file_name):
+    settings = Settings(settings_file_name)
+    assert settings.user_settings.activity_timeout == 180
+
+
 def test_write_default_user_settings_to_file():
     file_to_write = 'tests/data/settings_written_file.json'
     Path(file_to_write).unlink(missing_ok=True)
@@ -87,7 +112,7 @@ def test_write_default_user_settings_to_file():
     written_file_content = Path(file_to_write).read_text(encoding='utf-8')
 
     expected_file_content = (
-        '{\n    "work_duration": 45,\n    "break_duration": 15,\n'
+        '{\n    "work_duration": 45,\n    "break_duration": 15,\n    "activity_timeout": 180,\n'
         '    "sounds": "on",\n    "notifications": "on",\n    "protection_status": "on"\n}'
     )
     assert written_file_content == expected_file_content, 'Written content and expected content are not same!'
@@ -109,7 +134,7 @@ def test_write_invalid_settings_to_file():
 
     written_file_content = Path(file_to_write).read_text(encoding='utf-8')
     expected_file_content = (
-        '{\n    "work_duration": 45,\n    "break_duration": 15,\n'
+        '{\n    "work_duration": 45,\n    "break_duration": 15,\n    "activity_timeout": 180,\n'
         '    "sounds": "on",\n    "notifications": "on",\n    "protection_status": "on"\n}'
     )
     assert written_file_content == expected_file_content, 'Written content and expected content are not same!'
