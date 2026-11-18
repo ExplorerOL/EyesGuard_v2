@@ -1,4 +1,4 @@
-"""Dataclasses for resources"""
+"""Dataclasses for resources."""
 
 from pathlib import Path
 

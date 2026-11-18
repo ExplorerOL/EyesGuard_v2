@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skill `add-user-setting` (end-to-end adding of a user setting) and skills registry in .agents/skills/README.md
 
 ### Changed
+- Linter config adopted from the reference project as-is: full rule set (naming, bugbear, builtins, complexity, pycodestyle, pyflakes, bandit, pydocstyle, isort, print, unicode names, encoding), line-length 120
+- Codebase cleaned to zero ruff findings under the full rule set (docstrings, prints, long lines, file encoding)
 - Project migrated to uv: pyproject.toml + uv.lock; pillow added to dependencies; playsound restricted to the win32 marker
 - Ruff config moved from pyproject.toml to linter_ruff.toml; ruff pinned to 0.16.4 (synced with pre-commit hook rev)
 - Codebase reformatted to single quotes (ruff format, quote-style = "single")

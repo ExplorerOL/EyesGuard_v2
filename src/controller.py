@@ -7,19 +7,19 @@ from support.logger import logger
 
 
 class Controller:
-    """Class for time and break control"""
+    """Class for time and break control."""
 
     def __init__(self):
         logger.trace('Controller: object was created')
 
     def set_model(self, model: Model):
-        """Assigning model to controller"""
+        """Assigning model to controller."""
         logger.trace('Controller: set_model')
         self.model = model
         self.thread_alg = None
 
     def start(self):
-        """Start controller in separated thread"""
+        """Start controller in separated thread."""
         if self.thread_alg is None:
             self.thread_alg = Thread(target=self.main_loop)
             self.thread_alg.start()
@@ -28,8 +28,7 @@ class Controller:
         pass
 
     def main_loop(self):
-        """Controller main loop in separated thread"""
-
+        """Controller main loop in separated thread."""
         logger.trace('Controller: main_loop')
         while True:
             self.model.do_current_step_actions()

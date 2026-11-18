@@ -6,7 +6,7 @@ from support.logger import logger
 
 
 class StepType(IntEnum):
-    """Types of programm steps"""
+    """Types of programm steps."""
 
     off_mode = 0
     suspended_mode = 1
@@ -20,14 +20,14 @@ class StepType(IntEnum):
 
 @dataclass
 class StepData:
-    """Data for step control"""
+    """Data for step control."""
 
     step_type: StepType = StepType.off_mode
     step_duration_td: datetime.timedelta = datetime.timedelta(seconds=0)
 
 
 class CurrentState:
-    """Data about current step"""
+    """Data about current step."""
 
     def __init__(self):
         self.__step_type: StepType = StepType.work_mode
@@ -48,11 +48,11 @@ class CurrentState:
         return self_dict
 
     def __repr__(self) -> dict:
-        # convertation object to dict
+        """Object representation as dict."""
         return self.__self_to_dict()
 
     def __str__(self) -> str:
-        # convertation object to string
+        """Object as string."""
         return str(self.__self_to_dict())
 
     @property
@@ -78,7 +78,7 @@ class CurrentState:
     def set_current_step_data(
         self, step_type: StepType, step_duration: datetime.timedelta = datetime.timedelta(seconds=0)
     ):
-        """Setting current step type and its duration"""
+        """Setting current step type and its duration."""
         logger.trace('CurrentState: set_current_step_data')
         self.__step_type = step_type
         self.__step_duration_dt = step_duration

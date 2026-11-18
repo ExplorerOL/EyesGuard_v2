@@ -1,4 +1,4 @@
-"""Module with status window of application"""
+"""Module with status window of application."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from support.resourses import ResImages
 
 
 class WndStatus(customtkinter.CTkToplevel):
-    """Status window"""
+    """Status window."""
 
     def __init__(self, view: View, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -33,8 +33,7 @@ class WndStatus(customtkinter.CTkToplevel):
         screen_width = self.winfo_screenwidth()  # width of the screen
         screen_height = self.winfo_screenheight()  # height of the screen
         self.geometry(
-            f'{wnd_width}x{wnd_height}+'
-            f'{screen_width - wnd_width - border_x}+{screen_height - wnd_height - border_y}'
+            f'{wnd_width}x{wnd_height}+{screen_width - wnd_width - border_x}+{screen_height - wnd_height - border_y}'
         )
         self.title('EyesGuard v2.0.0 - Status')
         self.attributes('-topmost', True)
@@ -95,19 +94,18 @@ class WndStatus(customtkinter.CTkToplevel):
         self.withdraw()
 
     def on_focus_out(self, event):
-        """Action in calse of loosing focus"""
+        """Action in calse of loosing focus."""
         self.hide()
 
     def hide(self):
-        """Hide window"""
+        """Hide window."""
         for i in range(100):
             self.attributes('-alpha', 1 - i / 100)
             time.sleep(0.006)
         self.withdraw()
 
     def show(self):
-        """Show window"""
-        print('Showing status wnd')
+        """Show window."""
         self.deiconify()
 
         for i in range(100):
@@ -115,16 +113,16 @@ class WndStatus(customtkinter.CTkToplevel):
             time.sleep(0.006)
 
     def __btn_change_protection_state_action(self):
-        """Action for pressing changeing protection state button"""
+        """Action for pressing changeing protection state button."""
         self.view.switch_suspended_state()
 
     def __btn_take_break_action(self):
-        """Action for pressing button for taking a break"""
+        """Action for pressing button for taking a break."""
         logger.trace('Wnd_status: __btn_take_break_action')
         self.view.set_step(StepType.break_mode)
 
     def update(self, model: Model):
-        """Updating status window elements states"""
+        """Updating status window elements states."""
         logger.trace('Wnd status: update')
         if model.time_for_work_full > datetime.timedelta(seconds=0):
             pbar_value = 1 - model.remaining_working_time_to_display / model.time_for_work_full
@@ -139,9 +137,7 @@ class WndStatus(customtkinter.CTkToplevel):
                     self.lbl_time_until_break.configure(text='Time until break: ∞ : ∞ : ∞')
                     self.btn_change_suspended_state.configure(
                         text='Protection off',
-                        image=customtkinter.CTkImage(
-                            light_image=self.view.image_protection_off, size=(30, 30)
-                        ),
+                        image=customtkinter.CTkImage(light_image=self.view.image_protection_off, size=(30, 30)),
                         require_redraw=True,
                         state='disabled',
                     )
@@ -154,24 +150,21 @@ class WndStatus(customtkinter.CTkToplevel):
                     self.btn_change_suspended_state.configure(
                         text='Protection suspended',
                         text_color='Tomato',
-                        image=customtkinter.CTkImage(
-                            light_image=self.view.image_protection_suspended, size=(30, 30)
-                        ),
+                        image=customtkinter.CTkImage(light_image=self.view.image_protection_suspended, size=(30, 30)),
                         require_redraw=True,
                     )
                 self.lbl_time_until_break.configure(
-                    text=f'Time until normal mode: {model.current_state.current_step_duration - model.current_state.current_step_elapsed_time}'
+                    text=(
+                        f'Time until normal mode: '
+                        f'{model.current_state.current_step_duration - model.current_state.current_step_elapsed_time}'
+                    )
                 )
             case _:
-                self.lbl_time_until_break.configure(
-                    text=f'Time until break: {model.remaining_working_time_to_display}'
-                )
+                self.lbl_time_until_break.configure(text=f'Time until break: {model.remaining_working_time_to_display}')
                 self.btn_change_suspended_state.configure(
                     text='Protection active',
                     text_color='GreenYellow',
-                    image=customtkinter.CTkImage(
-                        light_image=self.view.image_protection_active, size=(30, 30)
-                    ),
+                    image=customtkinter.CTkImage(light_image=self.view.image_protection_active, size=(30, 30)),
                     require_redraw=True,
                 )
                 if self.btn_take_break.cget('state') != 'normal':

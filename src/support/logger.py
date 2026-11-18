@@ -5,7 +5,10 @@ import loguru as __loguru
 __LOG_LEVEL_DEBUG = 'DEBUG'
 __LOG_LEVEL_TRACE = 'TRACE'
 __LOG_LEVEL_WARNING = 'WARNING'
-__LOG_FORMAT = '<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | {file}:{line}: <level><b>{message}</b></level>'
+__LOG_FORMAT = (
+    '<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | '
+    '{file}:{line}: <level><b>{message}</b></level>'
+)
 
 __LOG_FILE = './logs/log.log'
 

@@ -1,4 +1,4 @@
-"""Module with break window of application"""
+"""Module with break window of application."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ from support.resourses import ResImages
 
 
 class WndBreak(customtkinter.CTkToplevel):
-    """Break window"""
+    """Break window."""
 
     def __init__(self, view: View, current_state: CurrentState, *args, **kwargs):
         super().__init__(*args, fg_color='#000000', **kwargs)
@@ -30,7 +30,6 @@ class WndBreak(customtkinter.CTkToplevel):
         ws = self.winfo_screenwidth()  # width of the screen
         hs = self.winfo_screenheight()  # height of the screen
         self.attributes('-alpha', 0)
-        print(ws, hs)
         self.geometry(f'{ws}x{hs}')
         self.title('EyesGuard v2.0.0')
 
@@ -65,7 +64,7 @@ class WndBreak(customtkinter.CTkToplevel):
         self.withdraw()
 
     def hide(self):
-        """Hide window"""
+        """Hide window."""
         logger.trace('Wnd break: hide')
 
         for i in range(100):
@@ -79,7 +78,7 @@ class WndBreak(customtkinter.CTkToplevel):
         self.view.set_step(new_step_type=StepType.work_mode)
 
     def show(self):
-        """Show window"""
+        """Show window."""
         logger.trace('Break wnd: show')
 
         self.deiconify()
@@ -93,15 +92,13 @@ class WndBreak(customtkinter.CTkToplevel):
 
         if model.current_state.current_step_type == StepType.break_mode:
             if model.current_state.current_step_elapsed_time > datetime.timedelta(seconds=0):
-                pbar_value = (
-                    model.current_state.current_step_elapsed_time / model.current_state.current_step_duration
-                )
+                pbar_value = model.current_state.current_step_elapsed_time / model.current_state.current_step_duration
             else:
                 pbar_value = 0
             self.pbar_break_progress.set(pbar_value)
-            self.remaining_break_time.set(
-                f'Remaining break time: {model.steps_data_list[StepType.break_mode].step_duration_td - model.current_state.current_step_elapsed_time}'
-            )
+            step_duration = model.steps_data_list[StepType.break_mode].step_duration_td
+            elapsed_time = model.current_state.current_step_elapsed_time
+            self.remaining_break_time.set(f'Remaining break time: {step_duration - elapsed_time}')
             if self.state() != 'normal':
                 self.show()
         else:

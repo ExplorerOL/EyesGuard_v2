@@ -5,8 +5,7 @@ from view import View
 
 
 def main():
-    """Main function"""
-
+    """Main function."""
     logger.trace('Function started')
 
     controller = Controller()
