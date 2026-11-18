@@ -13,6 +13,7 @@ uv sync
 ```
 
 Creates `.venv` from `pyproject.toml` + `uv.lock` (sound dependency `playsound` is Windows-only and is skipped on other platforms automatically).
+`playsound` is installed from the vendored wheel `wheels/playsound-1.3.0-py3-none-any.whl`: its PyPI sdist does not build under PEP 517 (buggy `setup.py` that resolves its own path via `inspect.getsource`).
 
 ## Commands
 
@@ -39,3 +40,20 @@ uv run pyinstaller EyesGuard.spec
 ```
 Result: `dist/EyesGuard.exe` — a single self-contained executable (`res/` resources are bundled inside).
 At runtime the app creates `settings/` and `logs/` directories next to the exe file.
+
+### Building from a WSL checkout
+
+PyInstaller builds only for the platform it runs on, so the build must be executed by Windows-native
+`uv`/Python — WSL produces a Linux binary instead of `.exe`. Do not run `uv` from Windows against a
+WSL checkout (`\\wsl.localhost\...`): Windows `uv` breaks the Linux `.venv` over the UNC share.
+Recommended workflow — development in WSL, build in a one-time clone on a native NTFS folder:
+
+```
+git clone \\wsl.localhost\Debian\home\<user>\git\github\ExplorerOL\EyesGuard_v2 C:\Users\<user>\EyesGuard_build
+cd C:\Users\<user>\EyesGuard_build
+uv sync
+uv run pyinstaller EyesGuard.spec
+```
+
+The clone remembers the WSL path as origin: after new commits in WSL run `git pull` in the build
+clone and rebuild. `.venv` is gitignored, so WSL and the clone keep independent virtual environments.
