@@ -30,7 +30,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.view = view
         self.settings = settings
         wnd_width = 500
-        wnd_height = 350
+        wnd_height = 420
         border_x = 50
         border_y = 150
         self.attributes('-alpha', 0)
@@ -179,6 +179,24 @@ class WndSettings(customtkinter.CTkToplevel):
         )
         self.entry_break_duration.grid(row=1, column=1, padx=(20, 20), pady=(20, 20), sticky='e')
 
+        # activity timeout setting
+        self.lbl_activity_timeout = customtkinter.CTkLabel(
+            self.frame_time_settings, text='Activity timeout (seconds)', font=('', 13)
+        )
+        self.lbl_activity_timeout.grid(row=2, column=0, padx=20, pady=10)
+
+        self.activity_timeout_value = StringVar()
+        self.activity_timeout_value.set(self.settings.get_settings_copy().activity_timeout)
+        verify_cmd_activity_timeout = (self.register(self.is_valid_activity_timeout_entry), '%P')
+        self.entry_activity_timeout = customtkinter.CTkEntry(
+            self.frame_time_settings,
+            textvariable=self.activity_timeout_value,
+            justify='center',
+            validate='key',
+            validatecommand=verify_cmd_activity_timeout,
+        )
+        self.entry_activity_timeout.grid(row=2, column=1, padx=(20, 20), pady=(20, 20), sticky='e')
+
         # --- create general settings frame ---
         self.frame_general_settings = customtkinter.CTkFrame(self, corner_radius=0, fg_color='transparent')
         self.frame_time_settings.grid_columnconfigure(1, weight=1)
@@ -288,6 +306,10 @@ class WndSettings(customtkinter.CTkToplevel):
         result = re.match('^[1-9][0-9]{0,1}$|^$', value) is not None
         return result
 
+    def is_valid_activity_timeout_entry(self, value: str):
+        result = re.match('^[1-9][0-9]{0,2}$|^$', value) is not None
+        return result
+
     def update_protection_status_image(self, model: Model):
         """Updating protection status at settings window."""
         match model.current_state.current_step_type:
@@ -310,6 +332,7 @@ class WndSettings(customtkinter.CTkToplevel):
 
         self.work_duration_value.set(str(model.user_settings.work_duration))
         self.break_duration_value.set(str(model.user_settings.break_duration))
+        self.activity_timeout_value.set(str(model.user_settings.activity_timeout))
         self.chbox_sounds_value.set(value=model.user_settings.sounds)
         self.chbox_notifications_value.set(value=model.user_settings.notifications)
         self.chbox_protection_status_value.set(value=model.user_settings.protection_status)

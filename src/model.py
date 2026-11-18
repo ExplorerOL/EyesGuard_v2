@@ -37,7 +37,7 @@ class Model:
         self.__remaining_time_to_display = datetime.timedelta(seconds=0)
         self.__time_for_work_full = datetime.timedelta(seconds=0)
         self.__user_activity_monitor = UserActivityMonitor(
-            activity_timeout=self.settings.system_settings.USER_ACTIVITY_TIMEOUT
+            activity_timeout=datetime.timedelta(seconds=self.settings.user_settings.activity_timeout)
         )
         self.__sound_notificator = SoundNotificator(sound_player=sound_player, settings=self.__settings)
 
@@ -332,6 +332,9 @@ class Model:
     def apply_new_user_settings(self, user_settings: UserSettingsData) -> None:
         logger.trace('Model: apply_new_settings')
         self.user_settings = user_settings
+        self.__user_activity_monitor = UserActivityMonitor(
+            activity_timeout=datetime.timedelta(seconds=self.settings.user_settings.activity_timeout)
+        )
         self.__init_steps()
 
     def switch_suspended_state(self):
