@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skill `add-user-setting` (end-to-end adding of a user setting) and skills registry in .agents/skills/README.md
 
 ### Fixed
+- Sound playback: vendored playsound wheel patched with the upstream MCI fix (PR #76, never released on PyPI) to stop winmm Error 305 during playback
 - Settings window icon loaded via ResImages: fixed FileNotFoundError for res/img when running the frozen build
 
 ### Changed

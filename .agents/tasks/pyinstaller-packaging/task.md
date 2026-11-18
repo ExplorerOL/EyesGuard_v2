@@ -36,6 +36,18 @@
   `[tool.uv.sources] playsound = { path = ... }`; metadata-хак удалён, lock содержит
   sha256 wheel'а.
 
+## Фикс звука в frozen exe (2026-11-18, Error 305)
+
+- Симптом: `PlaysoundException Error 305` (MCI winmm: «Лишние символы после текстовой
+  строки, заключенной в кавычки») при `open` mp3 из `_MEI.../res/sounds/`.
+- Причина (upstream TaylorSMarks/playsound#75): 1.3.0 передаёт в `mciSendStringW`
+  байты `encode('utf-16')` без argtypes — ctypes отдаёт их как `char*`, MCI-парсер
+  получает мусор. Фикс PR #76 (argtypes + `create_unicode_buffer`, передача `str`)
+  есть только в git master — релиз на PyPI так и не вышел.
+- Решение: вендоренный wheel пересобран с наложенным патчем PR #76
+  (hash `65816450...`), `uv lock` обновлён. Исходники патча — /tmp сборка
+  из официального sdist + diff PR #76.
+
 ## Фикс запуска frozen exe (2026-11-18)
 
 - Первый запуск exe падал: `wnd_settings.py` открывал иконку напрямую
