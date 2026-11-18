@@ -60,10 +60,19 @@ Python 3.11, GUI на CustomTkinter, трей на pystray, настройки �
   (известный техдолг зафиксирован в @.agents/memory/prj/known-issues.md).
 
 **Линт и формат (обязательные команды):**
-- lint: `uv run ruff check --fix <затронутые файлы>`
-- format: `uv run ruff format <затронутые файлы>`
-- Конфиг берётся из `pyproject.toml` (`[tool.ruff]`) — отдельный файл конфига не используется.
-- Запуск на всём проекте запрещён: на legacy ~100+ находок — массовый автофикс недопустим, только затронутые файлы.
+- lint: `uv run ruff check --fix --config=./linter_ruff.toml <затронутые файлы>`
+- format: `uv run ruff format --config=./linter_ruff.toml <затронутые файлы>`
+- `--config=./linter_ruff.toml` обязателен: ruff-конфиг вынесен из pyproject.toml в отдельный файл
+  и без явного `--config` применяются дефолты ruff (другой набор правил — ложные ошибки).
+- Версия ruff зафиксирована (pyproject `==0.16.4` = rev в `.pre-commit-config.yaml`) — менять только синхронно.
+- Запуск check без списка файлов на всём проекте допускается только в CI и pre-push хуке.
+
+**Git-хуки (prek — Rust-альтернатива pre-commit):**
+- `.pre-commit-config.yaml`: на commit — ruff check --fix и ruff format по изменённым файлам;
+  на push — по всему проекту; плюс check-yaml/json, large-files, merge-conflict, name-tests-test.
+- Хук формата переформатирует изменённые файлы при коммите — это ожидаемо, не откатывать его правки.
+- Активация после клонирования: `prek install && prek install --hook-type pre-push`.
+- Ручной прогон всех хуков на всех файлах: `prek run --all-files`.
 
 **Тесты (обязательная команда):**
 - `uv run pytest -v` (эквивалент `python -X utf8 -m pytest ./tests/`, из корня проекта).

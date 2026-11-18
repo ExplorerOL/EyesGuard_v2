@@ -10,11 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - AI-agent infrastructure: AGENTS.md and .agents/ knowledge base (architecture, state machine, settings, known issues), knowledge graph, retro journal, task directories
 - CI workflow (GitHub Actions): ruff + pytest on push/PR
+- Git hooks via prek: ruff check/format on commit (changed files) and push (whole project), plus repo hygiene hooks
 - Project tooling: .python-version (3.11), .editorconfig, [tool.pytest.ini_options]
 - Skill `add-user-setting` (end-to-end adding of a user setting) and skills registry in .agents/skills/README.md
 
 ### Changed
 - Project migrated to uv: pyproject.toml + uv.lock; pillow added to dependencies; playsound restricted to the win32 marker
+- Ruff config moved from pyproject.toml to linter_ruff.toml; ruff pinned to 0.16.4 (synced with pre-commit hook rev)
+- Legacy files reformatted by ruff format (baseline for format hooks)
 - Lint baseline cleaned: `ruff check .` passes with no errors
 
 ### Removed

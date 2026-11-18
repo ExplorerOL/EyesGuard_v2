@@ -22,7 +22,7 @@ jobs:
         run: uv sync
 
       - name: Lint (ruff)
-        run: uv run ruff check .
+        run: uv run ruff check . --config=./linter_ruff.toml
 
       - name: Tests (pytest)
         run: uv run pytest
