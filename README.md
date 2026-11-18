@@ -14,6 +14,7 @@ uv sync
 
 Creates `.venv` from `pyproject.toml` + `uv.lock` (sound dependency `playsound` is Windows-only and is skipped on other platforms automatically).
 `playsound` is installed from the vendored wheel `wheels/playsound-1.3.0-py3-none-any.whl`: its PyPI sdist does not build under PEP 517 (buggy `setup.py` that resolves its own path via `inspect.getsource`).
+The wheel also carries the upstream MCI fix (playsound PR #76, never released to PyPI) — without it `winmm` may fail playback with `Error 305` on some systems.
 
 ## Commands
 

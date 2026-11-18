@@ -234,7 +234,7 @@ name = "playsound"
 version = "1.3.0"
 source = { path = "wheels/playsound-1.3.0-py3-none-any.whl" }
 wheels = [
-    { filename = "playsound-1.3.0-py3-none-any.whl", hash = "sha256:5278eba7ef6a3564f8d20a0b4c4eb8e2ed127dfc269cbea3888a21c3d528d57e" },
+    { filename = "playsound-1.3.0-py3-none-any.whl", hash = "sha256:658164508a6234a1db52e91951d6e274a077d4d26c987c20fb27be96d981e7aa" },
 ]
 
 [[package]]
