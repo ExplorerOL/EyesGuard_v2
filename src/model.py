@@ -59,12 +59,11 @@ class Model:
         self.steps_data_list[StepType.suspended_mode].step_duration_td = self.step_suspended_duration_td
         if self.step_work_duration_td > self.step_notification_1_time_td + self.step_notification_2_time_td:
             logger.info(
-                f'cond 1 {self.step_work_duration_td}  {self.step_notification_1_time_td + self.step_notification_2_time_td}'
+                f'cond 1 {self.step_work_duration_td}  '
+                f'{self.step_notification_1_time_td + self.step_notification_2_time_td}'
             )
             self.steps_data_list[StepType.work_mode].step_duration_td = (
-                self.step_work_duration_td
-                - self.step_notification_1_time_td
-                - self.step_notification_2_time_td
+                self.step_work_duration_td - self.step_notification_1_time_td - self.step_notification_2_time_td
             )
         else:
             self.steps_data_list[StepType.work_mode].step_duration_td = datetime.timedelta(seconds=0)
@@ -91,7 +90,7 @@ class Model:
         self.__view.update_all_wnd_values(self.model)
 
     def __update_view(self):
-        """View initialization with model data"""
+        """View initialization with model data."""
         logger.trace('Model: __init_view function')
         self.__init_steps()
 
@@ -99,14 +98,14 @@ class Model:
             self.__view.update_all_wnd_values(self.model)
 
     def __update_tray_icon_values(self):
-        """Updating tray icon values"""
+        """Updating tray icon values."""
         logger.trace('Controller: __update_tray_icon_values')
 
         self.__calculate_remaining_time_for_work()
         self.__view.update_tray_icon_values(self.model)
 
     def __update_wnd_status(self):
-        """Updating status window values"""
+        """Updating status window values."""
         logger.trace('Controller: __update_wnd_status_values')
 
         self.__remaining_time_to_display = self.__calculate_remaining_time_for_work()
@@ -117,7 +116,7 @@ class Model:
         self.__view.update_wnd_settings(self.model)
 
     def __update_wnd_break(self):
-        """Updating break window values"""
+        """Updating break window values."""
         logger.trace('Controller: __update_wnd_break_values')
         self.__view.update_wnd_break(self.model)
 
@@ -158,7 +157,7 @@ class Model:
         return time_for_work
 
     def __set_current_step(self, step_type: StepType) -> None:
-        """settind step data in current state by step type"""
+        """Settind step data in current state by step type."""
         logger.trace('Model: __set_current_step')
         logger.debug(f'Model: new step {step_type}')
         if step_type != StepType.iddle_mode and self.__current_state.current_step_type != StepType.iddle_mode:
@@ -215,7 +214,7 @@ class Model:
         self.__settings.apply_settings_from_ui(user_settings)
 
     def set_view(self, view: View) -> None:
-        """Assigning controller to view"""
+        """Assigning controller to view."""
         logger.trace('Model: set_view started')
         self.__view = view
         self.__update_view()

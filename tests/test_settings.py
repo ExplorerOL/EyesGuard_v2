@@ -8,7 +8,9 @@ import pytest
 
 from config.settings import Settings, UserSettingsData
 
-settings_default_str = "{'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', 'sounds': 'on', 'work_duration': 45}"
+settings_default_str = (
+    "{'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', 'sounds': 'on', 'work_duration': 45}"
+)
 
 
 @pytest.mark.parametrize(
@@ -16,30 +18,44 @@ settings_default_str = "{'break_duration': 15, 'notifications': 'on', 'protectio
     [
         (
             'tests/data/settings_valid_min_values.json',
-            "{'break_duration': 1, 'notifications': 'off', 'protection_status': 'on', 'sounds': 'off', 'work_duration': 1}",
+            '{'
+            "'break_duration': 1, 'notifications': 'off', 'protection_status': 'on', "
+            "'sounds': 'off', 'work_duration': 1"
+            '}',
         ),
         (
             'tests/data/settings_valid_mean_values.json',
-            "{'break_duration': 50, 'notifications': 'on', 'protection_status': 'on', 'sounds': 'off', 'work_duration': 50}",
+            '{'
+            "'break_duration': 50, 'notifications': 'on', 'protection_status': 'on', "
+            "'sounds': 'off', 'work_duration': 50"
+            '}',
         ),
         (
             'tests/data/settings_valid_max_values.json',
-            "{'break_duration': 100, 'notifications': 'on', 'protection_status': 'on', 'sounds': 'on', 'work_duration': 100}",
+            '{'
+            "'break_duration': 100, 'notifications': 'on', 'protection_status': 'on', "
+            "'sounds': 'on', 'work_duration': 100"
+            '}',
         ),
         (
             'tests/data/settings_valid_empty.json',
-            "{'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', 'sounds': 'on', 'work_duration': 45}",
+            '{'
+            "'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', "
+            "'sounds': 'on', 'work_duration': 45"
+            '}',
         ),
         (
             'tests/data/settings_valid_no_param.json',
-            "{'break_duration': 15, 'notifications': 'off', 'protection_status': 'on', 'sounds': 'off', 'work_duration': 1}",
+            '{'
+            "'break_duration': 15, 'notifications': 'off', 'protection_status': 'on', "
+            "'sounds': 'off', 'work_duration': 1"
+            '}',
         ),
     ],
 )
 def test_read_settings_from_valid_file(settings_file_name, expected_settings_str):
     settings = Settings(settings_file_name)
     settings_str = str(settings)
-    print(settings_str)
     assert settings_str == expected_settings_str
 
 
@@ -55,7 +71,6 @@ def test_read_settings_from_valid_file(settings_file_name, expected_settings_str
 def test_read_settings_from_invalid_file(settings_file_name):
     settings = Settings(settings_file_name)
     settings_str = str(settings)
-    print(settings_str)
     assert settings_str == settings_default_str
 
 
@@ -69,10 +84,12 @@ def test_write_default_user_settings_to_file():
 
     settings.save_settings_to_file()
 
-    written_file_content = Path(file_to_write).read_text()
-    print(f'Written file content = {written_file_content}')
+    written_file_content = Path(file_to_write).read_text(encoding='utf-8')
 
-    expected_file_content = '{\n    "work_duration": 45,\n    "break_duration": 15,\n    "sounds": "on",\n    "notifications": "on",\n    "protection_status": "on"\n}'
+    expected_file_content = (
+        '{\n    "work_duration": 45,\n    "break_duration": 15,\n'
+        '    "sounds": "on",\n    "notifications": "on",\n    "protection_status": "on"\n}'
+    )
     assert written_file_content == expected_file_content, 'Written content and expected content are not same!'
 
 
@@ -90,7 +107,9 @@ def test_write_invalid_settings_to_file():
 
     settings.save_settings_to_file()
 
-    written_file_content = Path(file_to_write).read_text()
-    print(f'Written file content = {written_file_content}')
-    expected_file_content = '{\n    "work_duration": 45,\n    "break_duration": 15,\n    "sounds": "on",\n    "notifications": "on",\n    "protection_status": "on"\n}'
+    written_file_content = Path(file_to_write).read_text(encoding='utf-8')
+    expected_file_content = (
+        '{\n    "work_duration": 45,\n    "break_duration": 15,\n'
+        '    "sounds": "on",\n    "notifications": "on",\n    "protection_status": "on"\n}'
+    )
     assert written_file_content == expected_file_content, 'Written content and expected content are not same!'

@@ -1,4 +1,4 @@
-"""Module for settings management in application"""
+"""Module for settings management in application."""
 
 import copy
 import datetime
@@ -19,7 +19,7 @@ class OnOffValue(Enum):
 
 @dataclass
 class SystemSettingsData:
-    """class for storing system settings"""
+    """class for storing system settings."""
 
     STEP_SUSPENDED_MODE_DURATION = datetime.timedelta(minutes=60)
     STEP_NOTIFICATION_1_DURATION = datetime.timedelta(seconds=55)
@@ -30,7 +30,7 @@ class SystemSettingsData:
 
 @dataclass
 class UserSettingsData:
-    """class for storing user settings"""
+    """class for storing user settings."""
 
     work_duration: int = 45
     break_duration: int = 15
@@ -49,16 +49,16 @@ class UserSettingsData:
         return settings_dict
 
     def __repr__(self) -> dict:
-        # convertation object to string
+        """Object representation as dict."""
         return self._settings_to_dict()
 
     def __str__(self) -> str:
-        # convertation object to string
+        """Object as string."""
         return str(self._settings_to_dict())
 
 
 class SettingsDataValidator(BaseModel):
-    """Validation model for settings"""
+    """Validation model for settings."""
 
     work_duration: int = Field(default=45, gt=0, lt=101)
     break_duration: int = Field(default=15, gt=0, lt=101)
@@ -68,7 +68,7 @@ class SettingsDataValidator(BaseModel):
 
 
 class Settings:
-    """class for managing user settings"""
+    """class for managing user settings."""
 
     def __init__(self, file_name: str | None = None):
         self.__user_settings = UserSettingsData()
@@ -78,7 +78,7 @@ class Settings:
             self.apply_settings_from_file()
 
     def _settings_to_dict(self) -> dict:
-        """Convertation settings object to dict"""
+        """Convertation settings object to dict."""
         settings_dict = {}
         for attr in dir(self.__user_settings):
             if not attr.startswith('_'):
@@ -86,15 +86,15 @@ class Settings:
         return settings_dict
 
     def __repr__(self) -> dict:
-        """Convertation settings object to view in terminal"""
+        """Convertation settings object to view in terminal."""
         return self._settings_to_dict()
 
     def __str__(self) -> str:
-        """Convertation object to string"""
+        """Convertation object to string."""
         return str(self._settings_to_dict())
 
     def __read_settings_from_file(self) -> str | None:
-        """Reading settings from file on disk"""
+        """Reading settings from file on disk."""
         settings_str = None
         try:
             settings_str = self.__settings_file.read_text('utf-8')
@@ -109,7 +109,7 @@ class Settings:
         return settings_str
 
     def __validate_settings_str(self, settings_str: str) -> SettingsDataValidator | None:
-        """Validation settings"""
+        """Validation settings."""
         logger.debug(settings_str)
         if settings_str is not None:
             try:
@@ -123,7 +123,7 @@ class Settings:
         return None
 
     def __apply_settings(self, validated_settings: SettingsDataValidator) -> None:
-        """Apply given settings to the app"""
+        """Apply given settings to the app."""
         if validated_settings is not None:
             for attr in dir(self.__user_settings):
                 if not attr.startswith('_'):
@@ -132,7 +132,7 @@ class Settings:
                     logger.debug(getattr(self.__user_settings, attr))
 
     def apply_settings_from_file(self):
-        """Read, validate and apply settings from file"""
+        """Read, validate and apply settings from file."""
         logger.trace('Settings: apply_settings_from_file')
         settings_from_file_str = self.__read_settings_from_file()
         settings_validated = self.__validate_settings_str(settings_from_file_str)
@@ -140,7 +140,7 @@ class Settings:
         self.__apply_settings(settings_validated)
 
     def apply_settings_from_ui(self, new_settings_data: UserSettingsData):
-        """Validate settings and write them to file"""
+        """Validate settings and write them to file."""
         logger.debug(f'New settings from ui to apply: {new_settings_data}')
         logger.debug(type(new_settings_data))
         try:
@@ -153,7 +153,7 @@ class Settings:
         self.save_settings_to_file()
 
     def save_settings_to_file(self):
-        """Save settings to file"""
+        """Save settings to file."""
         logger.trace('Settings: save_settings_to_file')
         settings_dict = self._settings_to_dict()
         logger.debug(settings_dict)
@@ -169,15 +169,15 @@ class Settings:
         self.__settings_file.write_text(settings_json, encoding='utf-8')
 
     def get_settings_copy(self) -> UserSettingsData:
-        """Return copy of settings object"""
+        """Return copy of settings object."""
         return copy.copy(self.__user_settings)
 
     @property
     def user_settings(self) -> UserSettingsData:
-        """Return of user settings object"""
+        """User settings object."""
         return self.__user_settings
 
     @property
     def system_settings(self) -> SystemSettingsData:
-        """Return of system settings object"""
+        """System settings object."""
         return self.__system_settings

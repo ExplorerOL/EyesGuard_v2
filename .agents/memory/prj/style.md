@@ -7,7 +7,7 @@
 
 - Python 3.11; именование: классы `CamelCase`, методы/переменные `snake_case`, константы dataclass-настроек `UPPER_SNAKE_CASE`.
 - Комментарии, docstrings, тексты логов и сообщений UI — на английском.
-- Длина строки ≤ 110 (`linter_ruff.toml`), кавычки одинарные (`ruff format`, `quote-style = "single"`).
+- Длина строки ≤ 120 (`linter_ruff.toml`, идентичен эталонному проекту), кавычки одинарные (`ruff format`, `quote-style = 'single'`).
 - Вызовы — с именованными аргументами там, где это улучшает читаемость: `set_step(new_step_type=StepType.work_mode)`.
 - Приватные поля класса — с двойным подчёркиванием: `self.__settings`; «защищённые» — с одним: `self._activity_timeout`.
 

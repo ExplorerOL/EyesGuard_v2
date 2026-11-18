@@ -1,4 +1,4 @@
-"""Module with main widnow of application"""
+"""Module with main widnow of application."""
 
 import os
 
@@ -17,7 +17,7 @@ from windows.wnd_status import WndStatus
 
 
 class View(customtkinter.CTk):
-    """Main window of application"""
+    """Main window of application."""
 
     def __init__(self):
         super().__init__()
@@ -49,12 +49,12 @@ class View(customtkinter.CTk):
         logger.trace('View: object was created')
 
     def __show_status_wnd(self):
-        """Show status wnd"""
+        """Show status wnd."""
         logger.trace('View: show status wnd')
         self.__wnd_status.show()
 
     def __show_settings_wnd(self):
-        """Show settings wnd"""
+        """Show settings wnd."""
         logger.trace('View: show settings wnd')
         self.__wnd_settings.show()
 
@@ -63,19 +63,19 @@ class View(customtkinter.CTk):
         self.__tray_icon.notify(title, text)
 
     def set_controller(self, controller: Controller):
-        """Assigning controller to view"""
+        """Assigning controller to view."""
         self.controller = controller
         logger.trace('View: controller was set')
 
     def exit_app(self):
-        """Exit from app"""
+        """Exit from app."""
         self.__tray_icon.visible = False
         self.__tray_icon.stop()
         self.quit()
         os._exit(0)
 
     def update_all_wnd_values(self, model: Model):
-        """Init all data at windows"""
+        """Init all data at windows."""
         logger.trace('View: init_all_views function started')
         self.__wnd_status.update(model)
         self.__wnd_settings.update(model)
@@ -85,7 +85,7 @@ class View(customtkinter.CTk):
         self.controller.apply_view_user_settings(self.__get_user_settings_from_wnd_settings())
 
     def __get_user_settings_from_wnd_settings(self) -> UserSettingsData:
-        """Get data from all widgets with settings"""
+        """Get data from all widgets with settings."""
         ui_settings_data = UserSettingsData()
         try:
             ui_settings_data.work_duration = int(self.__wnd_settings.work_duration_value.get())
@@ -125,9 +125,7 @@ class View(customtkinter.CTk):
             self.__tray_icon.icon = self.image_protection_off
         elif model.current_state.current_step_type == StepType.suspended_mode:
             self.__tray_icon.icon = self.image_protection_suspended
-            self.__tray_icon.title = (
-                f'Time until normal mode: {model.current_state.current_step_remaining_time}'
-            )
+            self.__tray_icon.title = f'Time until normal mode: {model.current_state.current_step_remaining_time}'
         else:
             self.__tray_icon.icon = self.image_protection_active
 
