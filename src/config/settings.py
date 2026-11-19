@@ -113,6 +113,11 @@ class Settings:
             logger.error(error)
             logger.error(type(error))
             return None
+        # any other filesystem problem (PermissionError, IsADirectoryError,
+        # OSError) must not crash the app: keep defaults (known issue 25)
+        except OSError as error:
+            logger.error(f'Failed to read settings file {self.__settings_file}: {error!r}')
+            return None
         return settings_str
 
     def __validate_settings_str(self, settings_str: str) -> SettingsDataValidator | None:
@@ -157,22 +162,34 @@ class Settings:
         self.__apply_settings(settings_validated)
         self.save_settings_to_file()
 
-    def save_settings_to_file(self):
-        """Save settings to file."""
+    def save_settings_to_file(self) -> bool:
+        """Save settings to file atomically.
+
+        Writes a temporary file in the same directory and replaces the target
+        with it: a failed write never damages the previous valid file
+        (known issue 25). Returns True on success.
+        """
         logger.trace('Settings: save_settings_to_file')
         settings_dict = self.to_dict()
         logger.debug(settings_dict)
-        logger.debug(type(settings_dict))
         try:
             settings_validated = SettingsDataValidator.model_validate(settings_dict)
         except ValidationError as error:
             logger.error(error)
             logger.error(type(error))
-            return
+            return False
         settings_json = settings_validated.model_dump_json(indent=4)
         logger.debug(f'Settings to file {settings_json}')
-        self.__settings_file.parent.mkdir(parents=True, exist_ok=True)
-        self.__settings_file.write_text(settings_json, encoding='utf-8')
+        temp_file = self.__settings_file.with_suffix(self.__settings_file.suffix + '.tmp')
+        try:
+            self.__settings_file.parent.mkdir(parents=True, exist_ok=True)
+            temp_file.write_text(settings_json, encoding='utf-8')
+            temp_file.replace(self.__settings_file)
+        except OSError as error:
+            logger.error(f'Failed to save settings file {self.__settings_file}: {error!r}')
+            temp_file.unlink(missing_ok=True)
+            return False
+        return True
 
     def get_settings_copy(self) -> UserSettingsData:
         """Return copy of settings object."""

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from conftest import fixture_path
 
@@ -301,3 +303,58 @@ def test_settings_repr_is_string(tmp_path):
 
     assert isinstance(representation, str)
     assert "'work_duration': 45" in representation
+
+
+def test_read_settings_from_directory_returns_defaults(tmp_path):
+    """Regression for known issue 25: a directory instead of the file must not crash."""
+    settings_dir = tmp_path / 'settings.json'
+    settings_dir.mkdir()
+
+    settings = Settings(settings_dir)
+
+    assert settings.to_dict() == settings_default
+
+
+def test_read_settings_unreadable_file_returns_defaults(tmp_path, monkeypatch):
+    settings_file = tmp_path / 'settings.json'
+    settings_file.write_text('{}', encoding='utf-8')
+
+    def deny_read(self, *args, **kwargs):
+        raise PermissionError('read denied')
+
+    monkeypatch.setattr(Path, 'read_text', deny_read)
+    settings = Settings(settings_file)
+
+    assert settings.to_dict() == settings_default
+
+
+def test_save_settings_failure_preserves_old_file_and_returns_false(tmp_path, monkeypatch):
+    """Regression for known issue 25: failed save must not damage the previous file."""
+    settings_file = tmp_path / 'settings.json'
+    settings = Settings(settings_file)
+    settings.apply_settings_from_ui(new_settings_data=UserSettingsData())
+    old_content = settings_file.read_text(encoding='utf-8')
+
+    def fail_replace(self, target):
+        raise OSError('replace denied')
+
+    monkeypatch.setattr(Path, 'replace', fail_replace)
+    assert settings.save_settings_to_file() is False
+
+    assert settings_file.read_text(encoding='utf-8') == old_content
+    # no temporary artifacts left behind
+    assert list(tmp_path.iterdir()) == [settings_file]
+
+
+def test_save_settings_creates_missing_parent_directories(tmp_path):
+    settings_file = tmp_path / 'nested' / 'dir' / 'settings.json'
+    settings = Settings(settings_file)
+
+    assert settings.save_settings_to_file() is True
+    assert settings_file.exists()
+
+
+def test_save_settings_returns_true_on_success(tmp_path):
+    settings = Settings(tmp_path / 'settings.json')
+
+    assert settings.save_settings_to_file() is True
