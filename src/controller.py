@@ -120,7 +120,6 @@ class Controller:
         try:
             while not self.stop_request.is_set():
                 self.__process_commands()
-                self.model.do_current_step_actions()
                 while not self.model.tick():
                     if self.stop_request.is_set():
                         return
@@ -128,6 +127,7 @@ class Controller:
                     self.__wake.wait(timeout=self.model.settings.system_settings.TIME_TICK_S)
                     self.__wake.clear()
                     self.__process_commands()
+                # effects for the new step run exactly once inside set_step (known issue 14)
                 self.model.set_new_step_in_sequence()
         except Exception as error:  # noqa: BLE001 — the engine must not die silently
             logger.exception(f'Controller: main loop crashed: {error}')

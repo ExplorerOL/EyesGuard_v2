@@ -372,7 +372,11 @@ class Model:
                 new_step_type = StepType.work_mode
 
         logger.debug(f'Model: new step = {new_step_type}')
-        self.__set_current_step(new_step_type)
+        if new_step_type == self.__current_state.current_step_type:
+            logger.debug('Model: no transition, keeping the current step')
+            return
+        # full transition: state change + effects exactly once (known issue 14)
+        self.set_step(new_step_type)
 
     def apply_new_user_settings(self, user_settings: UserSettingsData) -> None:
         """Apply new settings: recompute durations, keep the current step (known issue 13).
@@ -412,12 +416,10 @@ class Model:
             self.__current_state.set_elapsed_time(time_delta=step_duration)
 
     def switch_suspended_state(self):
+        """Toggle suspended state; effects run once via set_step actions (known issue 14)."""
         logger.trace('Model: change_suspended_state')
         if self.current_state.current_step_type != StepType.suspended_mode:
             self.set_step(StepType.suspended_mode)
-            logger.debug('Model: show notification')
-            self.__view.show_notification('Eyes Guard protection suspended!', 'Attention!')
-
         else:
             self.set_step(StepType.work_mode)
 

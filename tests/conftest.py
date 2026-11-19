@@ -64,17 +64,37 @@ class FakeView:
         self.notifications.append((title, text))
 
 
+class FakeSoundNotificator:
+    """Records sound notification plays instead of playing files."""
+
+    def __init__(self, sound_player=None, settings=None):
+        self.work_plays = 0
+        self.break_plays = 0
+        self.idle_plays = 0
+
+    def play_notification_work(self):
+        self.work_plays += 1
+
+    def play_notification_break(self):
+        self.break_plays += 1
+
+    def play_notification_idle(self):
+        self.idle_plays += 1
+
+
 def make_model(tmp_path: Path, monkeypatch, settings: dict | None = None, inactive_reads: int = 0):
-    """Create a Model with stubbed activity monitor and a recording FakeView.
+    """Create a Model with stubbed activity monitor, sound notificator and a FakeView.
 
     `inactive_reads` scripts the monitor: the first N reads report the user
     inactive, afterwards the user is active. Returns
-    (model, view, activity_monitor).
+    (model, view, activity_monitor, sound_notificator).
     """
     import model as model_module
 
     activity_monitor = FakeActivityMonitor(active=True, inactive_reads=inactive_reads)
     monkeypatch.setattr(model_module, 'UserActivityMonitor', lambda activity_timeout: activity_monitor)
+    sound_notificator = FakeSoundNotificator()
+    monkeypatch.setattr(model_module, 'SoundNotificator', lambda sound_player, settings: sound_notificator)
 
     settings_file = tmp_path / 'settings.json'
     settings_file.write_text(json.dumps(settings or {}), encoding='utf-8')
@@ -82,7 +102,7 @@ def make_model(tmp_path: Path, monkeypatch, settings: dict | None = None, inacti
     model = model_module.Model(settings_file=settings_file)
     view = FakeView()
     model.set_view(view=view)
-    return model, view, activity_monitor
+    return model, view, activity_monitor, sound_notificator
 
 
 def run_ticks_until_step_ends(model, max_ticks: int = 100_000) -> int:

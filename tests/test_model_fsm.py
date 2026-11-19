@@ -17,7 +17,7 @@ SUSPENDED_DURATION = datetime.timedelta(minutes=60)
 
 
 def test_initial_step_is_work_mode_when_protection_on(tmp_path, monkeypatch):
-    model, view, _ = make_model(tmp_path, monkeypatch, settings={'protection_status': 'on'})
+    model, view, _, _ = make_model(tmp_path, monkeypatch, settings={'protection_status': 'on'})
 
     assert model.current_state.current_step_type == StepType.work_mode
     # initial setup publishes several snapshots (init + first step actions)
@@ -26,7 +26,7 @@ def test_initial_step_is_work_mode_when_protection_on(tmp_path, monkeypatch):
 
 
 def test_snapshot_contains_state_and_settings_copy(tmp_path, monkeypatch):
-    model, view, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 25})
+    model, view, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 25})
 
     snapshot = view.snapshots[-1]
 
@@ -45,7 +45,7 @@ def test_snapshot_contains_state_and_settings_copy(tmp_path, monkeypatch):
 
 
 def test_set_step_publishes_break_snapshot(tmp_path, monkeypatch):
-    model, view, _ = make_model(tmp_path, monkeypatch)
+    model, view, _, _ = make_model(tmp_path, monkeypatch)
 
     model.set_step(new_step_type=StepType.break_mode)
 
@@ -54,14 +54,14 @@ def test_set_step_publishes_break_snapshot(tmp_path, monkeypatch):
 
 
 def test_initial_step_is_off_mode_when_protection_off(tmp_path, monkeypatch):
-    model, view, _ = make_model(tmp_path, monkeypatch, settings={'protection_status': 'off'})
+    model, view, _, _ = make_model(tmp_path, monkeypatch, settings={'protection_status': 'off'})
 
     assert model.current_state.current_step_type == StepType.off_mode
     assert view.notifications == [('Eyes Guard protection is off!', 'Attention!')]
 
 
 def test_steps_durations_from_settings(tmp_path, monkeypatch):
-    model, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 50, 'break_duration': 20})
+    model, _, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 50, 'break_duration': 20})
 
     steps = model.steps_data_list
     assert len(steps) == len(StepType)
@@ -77,14 +77,14 @@ def test_steps_durations_from_settings(tmp_path, monkeypatch):
 
 def test_steps_durations_min_work_duration(tmp_path, monkeypatch):
     """Work duration below notifications total collapses the work step to zero."""
-    model, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 1})
+    model, _, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 1})
 
     steps = model.steps_data_list
     assert steps[StepType.work_mode].step_duration_td == datetime.timedelta(seconds=0)
 
 
 def test_linear_step_sequence(tmp_path, monkeypatch):
-    model, _, _ = make_model(tmp_path, monkeypatch)
+    model, _, _, _ = make_model(tmp_path, monkeypatch)
 
     transitions = [
         (StepType.work_mode, StepType.work_notified_1),
@@ -99,7 +99,7 @@ def test_linear_step_sequence(tmp_path, monkeypatch):
 
 
 def test_off_mode_keeps_step_in_sequence(tmp_path, monkeypatch):
-    model, _, _ = make_model(tmp_path, monkeypatch, settings={'protection_status': 'off'})
+    model, _, _, _ = make_model(tmp_path, monkeypatch, settings={'protection_status': 'off'})
 
     model.set_new_step_in_sequence()
 
@@ -107,7 +107,7 @@ def test_off_mode_keeps_step_in_sequence(tmp_path, monkeypatch):
 
 
 def test_suspended_mode_returns_to_work_in_sequence(tmp_path, monkeypatch):
-    model, _, _ = make_model(tmp_path, monkeypatch)
+    model, _, _, _ = make_model(tmp_path, monkeypatch)
 
     model.set_step(new_step_type=StepType.suspended_mode)
     model.set_new_step_in_sequence()
@@ -116,7 +116,7 @@ def test_suspended_mode_returns_to_work_in_sequence(tmp_path, monkeypatch):
 
 
 def test_set_step_resets_elapsed_and_sets_duration(tmp_path, monkeypatch):
-    model, _, _ = make_model(tmp_path, monkeypatch)
+    model, _, _, _ = make_model(tmp_path, monkeypatch)
     model.current_state.increase_elapsed_time(time_delta=datetime.timedelta(seconds=30))
 
     model.set_step(new_step_type=StepType.break_mode)
@@ -128,7 +128,7 @@ def test_set_step_resets_elapsed_and_sets_duration(tmp_path, monkeypatch):
 
 def test_wait_for_step_ends_when_duration_elapsed(tmp_path, monkeypatch):
     """Zero-duration work step (work_duration=1) ends on the first wait iteration."""
-    model, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 1})
+    model, _, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 1})
 
     run_ticks_until_step_ends(model)
     model.set_new_step_in_sequence()
@@ -143,7 +143,7 @@ def test_wait_loop_switches_to_idle_and_back_when_activity_scripted(tmp_path, mo
     is scripted: a few inactive reads, then active. work_duration=2 makes the
     work step exactly 60 seconds, so the step ends soon after returning.
     """
-    model, view, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 2}, inactive_reads=3)
+    model, view, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 2}, inactive_reads=3)
 
     run_ticks_until_step_ends(model)
     idle_entered = any('iddle' in message for message, _ in view.notifications)
@@ -154,7 +154,7 @@ def test_wait_loop_switches_to_idle_and_back_when_activity_scripted(tmp_path, mo
 
 def test_wait_loop_ends_work_step_by_duration(tmp_path, monkeypatch):
     """Active user: the tick loop ends only when the step duration is elapsed."""
-    model, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 1})
+    model, _, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 1})
 
     ended_on_first_tick = model.tick()
 
@@ -168,7 +168,7 @@ def test_sequence_transition_from_idle_mode_returns_to_work(tmp_path, monkeypatc
     Entering set_new_step_in_sequence from iddle_mode must not raise
     UnboundLocalError and must fall back to work_mode.
     """
-    model, _, _ = make_model(tmp_path, monkeypatch)
+    model, _, _, _ = make_model(tmp_path, monkeypatch)
 
     model.set_step(new_step_type=StepType.iddle_mode)
     model.set_new_step_in_sequence()
@@ -178,7 +178,7 @@ def test_sequence_transition_from_idle_mode_returns_to_work(tmp_path, monkeypatc
 
 def test_apply_settings_does_not_grow_steps_data_list(tmp_path, monkeypatch):
     """Regression for known issue 12: steps_data_list must be rebuilt, not appended."""
-    model, _, _ = make_model(tmp_path, monkeypatch)
+    model, _, _, _ = make_model(tmp_path, monkeypatch)
     assert len(model.steps_data_list) == len(StepType)
 
     for _ in range(3):
@@ -196,7 +196,7 @@ def volume_only_settings(volume: int) -> UserSettingsData:
 
 def test_apply_volume_only_preserves_work_step_and_progress(tmp_path, monkeypatch):
     """Regression for known issue 13: Apply must not reset the step timer."""
-    model, _, _ = make_model(tmp_path, monkeypatch)
+    model, _, _, _ = make_model(tmp_path, monkeypatch)
     model.current_state.increase_elapsed_time(time_delta=datetime.timedelta(seconds=30))
 
     model.apply_new_user_settings(user_settings=volume_only_settings(volume=33))
@@ -206,7 +206,7 @@ def test_apply_volume_only_preserves_work_step_and_progress(tmp_path, monkeypatc
 
 
 def test_apply_volume_only_during_break_keeps_break_step(tmp_path, monkeypatch):
-    model, _, _ = make_model(tmp_path, monkeypatch)
+    model, _, _, _ = make_model(tmp_path, monkeypatch)
     model.set_step(new_step_type=StepType.break_mode)
     model.current_state.increase_elapsed_time(time_delta=datetime.timedelta(seconds=20))
 
@@ -217,7 +217,7 @@ def test_apply_volume_only_during_break_keeps_break_step(tmp_path, monkeypatch):
 
 
 def test_apply_volume_only_during_suspended_keeps_suspended_step(tmp_path, monkeypatch):
-    model, _, _ = make_model(tmp_path, monkeypatch)
+    model, _, _, _ = make_model(tmp_path, monkeypatch)
     model.set_step(new_step_type=StepType.suspended_mode)
 
     model.apply_new_user_settings(user_settings=volume_only_settings(volume=10))
@@ -226,7 +226,7 @@ def test_apply_volume_only_during_suspended_keeps_suspended_step(tmp_path, monke
 
 
 def test_apply_enabling_protection_starts_work_step(tmp_path, monkeypatch):
-    model, _, _ = make_model(tmp_path, monkeypatch, settings={'protection_status': 'off'})
+    model, _, _, _ = make_model(tmp_path, monkeypatch, settings={'protection_status': 'off'})
     assert model.current_state.current_step_type == StepType.off_mode
 
     enabled = UserSettingsData()
@@ -237,7 +237,7 @@ def test_apply_enabling_protection_starts_work_step(tmp_path, monkeypatch):
 
 
 def test_apply_disabling_protection_switches_to_off_step(tmp_path, monkeypatch):
-    model, _, _ = make_model(tmp_path, monkeypatch)
+    model, _, _, _ = make_model(tmp_path, monkeypatch)
 
     disabled = UserSettingsData()
     disabled.protection_status = 'off'
@@ -248,7 +248,7 @@ def test_apply_disabling_protection_switches_to_off_step(tmp_path, monkeypatch):
 
 def test_apply_shorter_work_duration_clamps_elapsed(tmp_path, monkeypatch):
     """Progress above the new duration must clamp: the step ends on the next tick."""
-    model, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 5})
+    model, _, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 5})
     model.current_state.increase_elapsed_time(time_delta=datetime.timedelta(seconds=240))
 
     shorter = UserSettingsData()
@@ -257,3 +257,38 @@ def test_apply_shorter_work_duration_clamps_elapsed(tmp_path, monkeypatch):
 
     assert model.current_state.current_step_duration == datetime.timedelta(seconds=0)
     assert model.current_state.current_step_remaining_time == datetime.timedelta(seconds=0)
+
+
+def test_suspend_notification_shown_once(tmp_path, monkeypatch):
+    """Regression for known issue 14: no duplicate suspend notification."""
+    model, view, _, _ = make_model(tmp_path, monkeypatch)
+
+    model.switch_suspended_state()
+
+    suspended_notifications = sum('suspended' in message for message, _ in view.notifications)
+    assert suspended_notifications == 1
+
+
+def test_startup_runs_step_actions_once_per_transition(tmp_path, monkeypatch):
+    """Regression for known issue 14: the startup work sound plays exactly once.
+
+    With work_duration=1 the work step lasts zero seconds: the controller
+    starts, the initial work actions run once, then the step ends and the
+    transition to work_notified_1 must not replay the work sound.
+    """
+    import time as time_module
+
+    from controller import Controller
+
+    model, _, _, sounds = make_model(tmp_path, monkeypatch, settings={'work_duration': 1})
+    controller = Controller()
+    controller.set_model(model=model)
+    controller.start()
+
+    deadline = time_module.monotonic() + 5
+    while model.current_state.current_step_type != StepType.work_notified_1 and time_module.monotonic() < deadline:
+        time_module.sleep(0.01)
+    controller.stop()
+
+    assert model.current_state.current_step_type == StepType.work_notified_1
+    assert sounds.work_plays == 1
