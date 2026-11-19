@@ -358,3 +358,9 @@ def test_save_settings_returns_true_on_success(tmp_path):
     settings = Settings(tmp_path / 'settings.json')
 
     assert settings.save_settings_to_file() is True
+
+
+def test_settings_requires_file_path():
+    """Regression for known issue 26: no pathless Settings objects with broken save."""
+    with pytest.raises(TypeError):
+        Settings()

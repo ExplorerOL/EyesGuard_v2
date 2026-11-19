@@ -79,14 +79,17 @@ class SettingsDataValidator(BaseModel):
 
 
 class Settings:
-    """class for managing user settings."""
+    """class for managing user settings.
 
-    def __init__(self, file_name: str | Path | None = None):
+    The settings file path is required (known issue 26): a pathless object
+    used to break on save with AttributeError.
+    """
+
+    def __init__(self, file_name: str | Path):
         self.__user_settings = UserSettingsData()
         self.__system_settings = SystemSettingsData()
-        if file_name is not None:
-            self.__settings_file = Path(file_name)
-            self.apply_settings_from_file()
+        self.__settings_file = Path(file_name)
+        self.apply_settings_from_file()
 
     def to_dict(self) -> dict:
         """Convertation settings object to dict."""
