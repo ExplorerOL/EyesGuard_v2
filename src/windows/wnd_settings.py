@@ -29,6 +29,10 @@ class WndSettings(customtkinter.CTkToplevel):
 
         self.view = view
         self.settings = settings
+        # dirty form: unsaved user edits must not be overwritten by snapshots
+        # from the background engine (known issue 31)
+        self.__is_dirty = False
+        self.__updating_from_snapshot = False
         wnd_width = 500
         wnd_height = 420
         border_x = 50
@@ -378,7 +382,28 @@ class WndSettings(customtkinter.CTkToplevel):
         self.bind('<FocusIn>', self.on_focus_in)
         self.protocol('WM_DELETE_WINDOW', self.hide)
         self.event_btn_time_settings_click()
+        self.__track_user_edits()
         self.withdraw()
+
+    def __track_user_edits(self) -> None:
+        """Mark the form dirty on any user edit (known issue 31)."""
+        variables = (
+            self.work_duration_value,
+            self.break_duration_value,
+            self.activity_timeout_value,
+            self.chbox_protection_status_value,
+            self.chbox_notifications_value,
+            self.chbox_sounds_value,
+            self.chbox_screensaver_block_value,
+            self.chbox_suspend_on_video_value,
+            self.chbox_reset_work_time_in_idle_value,
+        )
+        for variable in variables:
+            variable.trace_add('write', self.__mark_dirty)
+
+    def __mark_dirty(self, *args) -> None:
+        if not self.__updating_from_snapshot:
+            self.__is_dirty = True
 
     def on_focus_in(self, event):
         """Actions on focus at window."""
@@ -388,6 +413,7 @@ class WndSettings(customtkinter.CTkToplevel):
 
     def hide(self):
         """Hide window."""
+        self.__is_dirty = False
         for i in range(100):
             self.attributes('-alpha', 1 - i / 100)
             time.sleep(0.006)
@@ -425,10 +451,26 @@ class WndSettings(customtkinter.CTkToplevel):
                 )
 
     def update(self, snapshot: ModelSnapshot):
-        """Updating settings window elements from a model snapshot."""
+        """Updating settings window elements from a model snapshot.
+
+        A dirty form (unsaved user edits) is not overwritten by background
+        snapshots (known issue 31): only the protection decoration refreshes.
+        """
         logger.trace('Settings wnd: update function started')
         logger.debug(f'Model settings: {snapshot.user_settings}')
 
+        self.update_protection_status_image(snapshot)
+        if self.__is_dirty:
+            logger.debug('Settings wnd: form is dirty, skipping field refresh')
+            return
+
+        self.__updating_from_snapshot = True
+        try:
+            self.__update_fields(snapshot)
+        finally:
+            self.__updating_from_snapshot = False
+
+    def __update_fields(self, snapshot: ModelSnapshot) -> None:
         user_settings = snapshot.user_settings
         self.work_duration_value.set(str(user_settings.work_duration))
         self.break_duration_value.set(str(user_settings.break_duration))
@@ -441,8 +483,6 @@ class WndSettings(customtkinter.CTkToplevel):
         self.chbox_screensaver_block_value.set(value=user_settings.screensaver_block)
         self.chbox_suspend_on_video_value.set(value=user_settings.suspend_on_video)
         self.chbox_reset_work_time_in_idle_value.set(value=user_settings.reset_work_time_in_idle)
-
-        self.update_protection_status_image(snapshot)
 
     def select_frame_by_name(self, name: str) -> None:
         self.btn_time_settings.configure(fg_color='LightSteelBlue' if name == 'frame_time_settings' else 'transparent')
@@ -493,6 +533,7 @@ class WndSettings(customtkinter.CTkToplevel):
 
     def event_volume_slider_move(self, value: float) -> None:
         """Update the volume label while the slider is moving."""
+        self.__mark_dirty()
         self.lbl_volume.configure(text=f'Volume: {int(value)} %')
 
     def event_btn_about_click(self) -> None:
@@ -500,4 +541,5 @@ class WndSettings(customtkinter.CTkToplevel):
 
     def apply_ui_settings(self):
         """Coll method of view for applying new settings."""
+        self.__is_dirty = False
         self.view.apply_view_user_settings()
