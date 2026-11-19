@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from view import View
 
 import datetime
-import time
 from tkinter import StringVar
 
 import customtkinter
@@ -17,6 +16,7 @@ from config.app_constants import APP_VERSION
 from config.states import ModelSnapshot, StepType
 from support.logger import logger
 from support.resourses import ResImages
+from windows.window_fade import fade_window
 
 
 class WndBreak(customtkinter.CTkToplevel):
@@ -63,13 +63,9 @@ class WndBreak(customtkinter.CTkToplevel):
         self.withdraw()
 
     def hide(self):
-        """Hide window."""
+        """Hide window with a non-blocking fade (known issue 17)."""
         logger.trace('Wnd break: hide')
-
-        for i in range(100):
-            self.attributes('-alpha', 1 - i / 100)
-            time.sleep(0.006)
-        self.withdraw()
+        fade_window(self, showing=False, on_done=self.withdraw)
 
     def on_close_action(self):
         logger.trace('Wnd break: on_close_action')
@@ -77,14 +73,11 @@ class WndBreak(customtkinter.CTkToplevel):
         self.view.set_step(new_step_type=StepType.work_mode)
 
     def show(self):
-        """Show window."""
+        """Show window with a non-blocking fade (known issue 17)."""
         logger.trace('Break wnd: show')
 
         self.deiconify()
-
-        for i in range(100):
-            self.attributes('-alpha', i / 100)
-            time.sleep(0.006)
+        fade_window(self, showing=True)
 
     def update(self, snapshot: ModelSnapshot):
         logger.trace('WndBreak: update')

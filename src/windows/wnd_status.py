@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from view import View
 
 import datetime
-import time
 
 import customtkinter
 
@@ -16,6 +15,7 @@ from config.app_constants import APP_VERSION
 from config.states import ModelSnapshot, StepType
 from support.logger import logger
 from support.resourses import ResImages
+from windows.window_fade import fade_window
 
 
 class WndStatus(customtkinter.CTkToplevel):
@@ -98,19 +98,13 @@ class WndStatus(customtkinter.CTkToplevel):
         self.hide()
 
     def hide(self):
-        """Hide window."""
-        for i in range(100):
-            self.attributes('-alpha', 1 - i / 100)
-            time.sleep(0.006)
-        self.withdraw()
+        """Hide window with a non-blocking fade (known issue 17)."""
+        fade_window(self, showing=False, on_done=self.withdraw)
 
     def show(self):
-        """Show window."""
+        """Show window with a non-blocking fade (known issue 17)."""
         self.deiconify()
-
-        for i in range(100):
-            self.attributes('-alpha', i / 100)
-            time.sleep(0.006)
+        fade_window(self, showing=True)
 
     def __btn_change_protection_state_action(self):
         """Action for pressing changeing protection state button."""

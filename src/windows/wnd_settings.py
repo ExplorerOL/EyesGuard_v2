@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from view import View
 
 import re
-import time
 from tkinter import StringVar
 
 import customtkinter
@@ -19,6 +18,7 @@ from config.settings import UserSettingsData
 from config.states import ModelSnapshot, StepType
 from support.logger import logger
 from support.resourses import ResImages
+from windows.window_fade import fade_window
 
 
 class WndSettings(customtkinter.CTkToplevel):
@@ -412,20 +412,14 @@ class WndSettings(customtkinter.CTkToplevel):
         """Actions on focus out of window."""
 
     def hide(self):
-        """Hide window."""
+        """Hide window with a non-blocking fade (known issue 17)."""
         self.__is_dirty = False
-        for i in range(100):
-            self.attributes('-alpha', 1 - i / 100)
-            time.sleep(0.006)
-        self.withdraw()
+        fade_window(self, showing=False, on_done=self.withdraw)
 
     def show(self):
-        """Show window."""
+        """Show window with a non-blocking fade (known issue 17)."""
         self.deiconify()
-
-        for i in range(100):
-            self.attributes('-alpha', i / 100)
-            time.sleep(0.006)
+        fade_window(self, showing=True)
 
     def is_valid_duration_entry(self, value: str):
         result = re.match('^[1-9][0-9]{0,1}$|^$', value) is not None
