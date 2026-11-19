@@ -27,6 +27,9 @@
 └── tasks/                   — рабочие директории задач (см. tasks/README.md)
 ```
 
+Шаблон финального SDD-ревью —
+[skills/subagent-driven-development/final-reviewer-prompt.md](skills/subagent-driven-development/final-reviewer-prompt.md).
+
 ## knowledge-graph.jsonl
 
 Граф знаний (сущности: MVC-слои, окна, модули, концепции + связи между ними).

@@ -19,7 +19,7 @@
 | `grill-with-docs/` | То же + попутное создание документации (ADR, глоссарий) |
 | `skill-agent-retro/` | Ретроспектива сессий по логам: анализ, журнал уроков (пишет в `retro/`) |
 | `skill-create-ai-ready-task/` | Подготовка ai-ready задачи (шаблон из 9 полей) |
-| `skill-implement-task/` | Выполнение задачи: прожаривание, ai-ready задача, реализация через субагентов и ревью |
+| `skill-implement-task/` | Выполнение задачи в режиме Simple/Standard/Complex: исследование, AI-ready задание, реализация, проверки и ревью |
 | `subagent-driven-development/` | Выполнение планов реализации через субагентов (промпты имплементера/ревьюеров, скрипты) |
 
 ## Файлы скиллов
@@ -29,4 +29,4 @@
 | `SKILL.md` | Манифест и инструкция скилла (frontmatter: name, description) |
 | `agents/openai.yaml` | Конфигурация субагента скилла (у domain-modeling, grilling, grill-with-docs) |
 | `domain-modeling/ADR-FORMAT.md`, `CONTEXT-FORMAT.md` | Шаблоны форматов ADR и CONTEXT.md |
-| `subagent-driven-development/*.md`, `scripts/` | Промпты субагентов и скрипты конвейера |
+| `subagent-driven-development/*.md`, `scripts/` | Промпты имплементера, ревьюеров (включая `final-reviewer-prompt.md`) и скрипты конвейера |
