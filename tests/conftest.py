@@ -75,7 +75,6 @@ def make_model(tmp_path: Path, monkeypatch, settings: dict | None = None, inacti
 
     activity_monitor = FakeActivityMonitor(active=True, inactive_reads=inactive_reads)
     monkeypatch.setattr(model_module, 'UserActivityMonitor', lambda activity_timeout: activity_monitor)
-    monkeypatch.setattr(model_module.time, 'sleep', lambda seconds: None)
 
     settings_file = tmp_path / 'settings.json'
     settings_file.write_text(json.dumps(settings or {}), encoding='utf-8')
@@ -84,3 +83,13 @@ def make_model(tmp_path: Path, monkeypatch, settings: dict | None = None, inacti
     view = FakeView()
     model.set_view(view=view)
     return model, view, activity_monitor
+
+
+def run_ticks_until_step_ends(model, max_ticks: int = 100_000) -> int:
+    """Drive model.tick() until the current step ends (no real waiting)."""
+    ticks = 0
+    while not model.tick():
+        ticks += 1
+        if ticks > max_ticks:
+            raise AssertionError('model.tick() did not end the step within the tick limit')
+    return ticks

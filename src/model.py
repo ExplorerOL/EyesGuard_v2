@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from view import View
 
 import datetime
-import time
 
 from config.settings import OnOffValue, Settings, UserSettingsData
 from config.states import CurrentState, ModelSnapshot, StepData, StepType
@@ -287,62 +286,64 @@ class Model:
                 self.__sound_notificator.play_notification_idle()
                 self.__user_activity_monitor.reset_activity_offset()
 
-    def wait_for_current_step_is_ended(self):
-        logger.trace('Model: __wait_for_current_step_is_ended')
-        while True:
-            logger.info(f'Current step type: {self.model.__current_state.current_step_type!r}')
-            logger.info(f'Step duration: {self.model.__current_state.current_step_duration}')
-            logger.info(f'Step elapsed time: {self.model.__current_state.current_step_elapsed_time}')
-            logger.info(f'User activity: {self.__user_activity_monitor.is_user_active!r}')
+    def tick(self) -> bool:
+        """Run a single wait-loop iteration for the current step.
 
-            # this loop runs in the controller thread only: safe for the thread-bound blocker
-            self.__process_screensaver_block()
+        Must be called from the controller thread only (the screensaver
+        blocker state is thread-bound). Pacing between ticks belongs to the
+        Controller: the Model never sleeps (known issue 11). Returns True
+        when the current step has ended.
+        """
+        logger.trace('Model: tick')
+        logger.debug(f'Current step type: {self.model.__current_state.current_step_type!r}')
+        logger.debug(f'Step duration: {self.model.__current_state.current_step_duration}')
+        logger.debug(f'Step elapsed time: {self.model.__current_state.current_step_elapsed_time}')
+        logger.debug(f'User activity: {self.__user_activity_monitor.is_user_active!r}')
 
-            if self.__current_state.current_step_type not in (StepType.off_mode, StepType.iddle_mode):
-                if (
-                    self.model.__current_state.current_step_elapsed_time
-                    < self.model.__current_state.current_step_duration
-                ):
-                    self.model.__current_state.increase_elapsed_time()
-                else:
-                    break
-            # video detection is skipped for break_mode: the break window is fullscreen
-            # itself and our own screensaver block raises ES_DISPLAY_REQUIRED
-            video_active = False
-            if self.__current_state.current_step_type in (
-                StepType.work_mode,
-                StepType.work_notified_1,
-                StepType.work_notified_2,
-                StepType.iddle_mode,
-            ):
-                video_active = (
-                    self.__settings.user_settings.suspend_on_video == OnOffValue.on.value
-                    and self.__video_activity_monitor.is_video_playing
-                )
-            if (
-                not self.__user_activity_monitor.is_user_active or video_active
-            ) and self.__current_state.current_step_type in (
-                StepType.work_mode,
-                StepType.work_notified_1,
-                StepType.work_notified_2,
-            ):
-                if video_active:
-                    logger.info('Switch to iddle mode on video playback')
-                else:
-                    logger.info('Switch to iddle mode from work mode')
-                self.set_step(new_step_type=StepType.iddle_mode)
-            elif (
-                self.__user_activity_monitor.is_user_active
-                and not video_active
-                and self.__current_state.current_step_type == StepType.iddle_mode
-            ):
-                logger.info('Switch to work mode from iddle mode')
-                self.set_step(new_step_type=StepType.work_mode)
+        # this code runs in the controller thread only: safe for the thread-bound blocker
+        self.__process_screensaver_block()
 
-            # publish fresh state for the GUI during the step
-            self.__publish_snapshot()
+        if self.__current_state.current_step_type not in (StepType.off_mode, StepType.iddle_mode):
+            if self.model.__current_state.current_step_elapsed_time < self.model.__current_state.current_step_duration:
+                self.model.__current_state.increase_elapsed_time()
+            else:
+                return True
+        # video detection is skipped for break_mode: the break window is fullscreen
+        # itself and our own screensaver block raises ES_DISPLAY_REQUIRED
+        video_active = False
+        if self.__current_state.current_step_type in (
+            StepType.work_mode,
+            StepType.work_notified_1,
+            StepType.work_notified_2,
+            StepType.iddle_mode,
+        ):
+            video_active = (
+                self.__settings.user_settings.suspend_on_video == OnOffValue.on.value
+                and self.__video_activity_monitor.is_video_playing
+            )
+        if (
+            not self.__user_activity_monitor.is_user_active or video_active
+        ) and self.__current_state.current_step_type in (
+            StepType.work_mode,
+            StepType.work_notified_1,
+            StepType.work_notified_2,
+        ):
+            if video_active:
+                logger.info('Switch to iddle mode on video playback')
+            else:
+                logger.info('Switch to iddle mode from work mode')
+            self.set_step(new_step_type=StepType.iddle_mode)
+        elif (
+            self.__user_activity_monitor.is_user_active
+            and not video_active
+            and self.__current_state.current_step_type == StepType.iddle_mode
+        ):
+            logger.info('Switch to work mode from iddle mode')
+            self.set_step(new_step_type=StepType.work_mode)
 
-            time.sleep(self.settings.system_settings.TIME_TICK_S)
+        # publish fresh state for the GUI during the step
+        self.__publish_snapshot()
+        return False
 
     def set_new_step_in_sequence(self):
         logger.trace('Controller: __set_new_step_in_sequence')

@@ -6,7 +6,7 @@ is stubbed, the sound player is the no-op one, view calls are recorded.
 
 import datetime
 
-from conftest import make_model
+from conftest import make_model, run_ticks_until_step_ends
 
 from config.settings import UserSettingsData
 from config.states import StepType
@@ -130,7 +130,7 @@ def test_wait_for_step_ends_when_duration_elapsed(tmp_path, monkeypatch):
     """Zero-duration work step (work_duration=1) ends on the first wait iteration."""
     model, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 1})
 
-    model.wait_for_current_step_is_ended()
+    run_ticks_until_step_ends(model)
     model.set_new_step_in_sequence()
 
     assert model.current_state.current_step_type == StepType.work_notified_1
@@ -139,13 +139,13 @@ def test_wait_for_step_ends_when_duration_elapsed(tmp_path, monkeypatch):
 def test_wait_loop_switches_to_idle_and_back_when_activity_scripted(tmp_path, monkeypatch):
     """Inactive user switches work step to idle; returned activity exits idle.
 
-    The wait loop cannot terminate while the user stays idle, so the monitor
+    The tick loop cannot terminate while the user stays idle, so the monitor
     is scripted: a few inactive reads, then active. work_duration=2 makes the
-    work step exactly 60 seconds, so the loop ends soon after returning.
+    work step exactly 60 seconds, so the step ends soon after returning.
     """
     model, view, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 2}, inactive_reads=3)
 
-    model.wait_for_current_step_is_ended()
+    run_ticks_until_step_ends(model)
     idle_entered = any('iddle' in message for message, _ in view.notifications)
 
     assert model.current_state.current_step_type == StepType.work_mode
@@ -153,10 +153,10 @@ def test_wait_loop_switches_to_idle_and_back_when_activity_scripted(tmp_path, mo
 
 
 def test_wait_loop_ends_work_step_by_duration(tmp_path, monkeypatch):
-    """Active user: the wait loop ends only when the step duration is elapsed."""
+    """Active user: the tick loop ends only when the step duration is elapsed."""
     model, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 1})
 
-    model.wait_for_current_step_is_ended()
+    ended_on_first_tick = model.tick()
 
+    assert ended_on_first_tick is True
     assert model.current_state.current_step_type == StepType.work_mode
-    assert model.current_state.current_step_elapsed_time >= model.current_state.current_step_duration

@@ -132,7 +132,7 @@ class View(customtkinter.CTk):
 
     def apply_view_user_settings(self):
         logger.trace('View: applying new settings')
-        self.controller.apply_view_user_settings(self.__get_user_settings_from_wnd_settings())
+        self.controller.submit_apply_settings(self.__get_user_settings_from_wnd_settings())
 
     def __get_user_settings_from_wnd_settings(self) -> UserSettingsData:
         """Get data from all widgets with settings."""
@@ -179,8 +179,8 @@ class View(customtkinter.CTk):
 
     def switch_suspended_state(self):
         logger.trace('View: switch_suspended_state')
-        self.controller.switch_to_suspended_state()
+        self.controller.submit_suspend()
 
     def set_step(self, new_step_type: StepType):
         logger.trace('View: set_step')
-        self.controller.set_step(new_step_type)
+        self.controller.submit_set_step(new_step_type)
