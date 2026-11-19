@@ -1,6 +1,10 @@
 # Машина состояний приложения
 
-Источник кода: `src/config/states.py` (`StepType`, `StepData`, `CurrentState`), переходы — `src/model.py` (`set_new_step_in_sequence`, `do_current_step_actions`, `wait_for_current_step_is_ended`, `__init_steps`).
+Источник кода: `src/config/states.py` (`StepType`, `StepData`, `CurrentState`, `ModelSnapshot`), переходы — `src/model.py` (`set_new_step_in_sequence`, `do_current_step_actions`, `tick`, `__build_steps`/`__init_steps`).
+
+Тайминги — deadline-based от инжектируемых monotonic-часов (`Model(clock=...)`, `__step_started_at`):
+elapsed вычисляется от часов в `tick()`, pacing-sleep принадлежит Controller. Эффекты шага
+запускаются ровно один раз на фактический переход — внутри `set_step`.
 
 ## Шаги StepType (IntEnum)
 
@@ -36,12 +40,15 @@
 ```
 
 Переходы в/из `iddle_mode` выполняются **внутри** `wait_for_current_step_is_ended`
-(проверка активности каждый тик), а не в `set_new_step_in_sequence`:
+(проверка активности каждый тик в `Model.tick()`), а не в `set_new_step_in_sequence`:
 
 - неактивен ИЛИ играет видео (при `suspend_on_video = "on"`, см. ниже) и текущий шаг
   ∈ {work_mode, work_notified_1, work_notified_2} → `set_step(StepType.iddle_mode)`;
-- активен И видео НЕ играет и текущий шаг = iddle_mode → `set_step(StepType.work_mode)`;
-- `set_new_step_in_sequence` для `iddle_mode` перехода не содержит — попадание туда означало бы UnboundLocalError; этого не происходит, т.к. время в iddle не тикает и wait-цикл переключает шаг раньше.
+- активен И видео НЕ играет и текущий шаг = iddle_mode → `__exit_idle_mode()`:
+  при `reset_work_time_in_idle=off` восстанавливается сохранённый перед idle рабочий шаг
+  (`__idle_saved_step`: тип + remaining), при `on` — свежий `work_mode`;
+- `set_new_step_in_sequence` содержит exhaustive-переходы для всех шагов (для `iddle_mode` —
+  возврат в `work_mode`); повторный переход в тот же шаг игнорируется (эффекты не дублируются).
 
 ### Видео-idle (suspend_on_video)
 
