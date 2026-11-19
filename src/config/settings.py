@@ -64,7 +64,15 @@ class UserSettingsData:
 
 
 class SettingsDataValidator(BaseModel):
-    """Validation model for settings."""
+    """Validation model for settings.
+
+    Type contract (known issue 37): validation is intentionally NON-STRICT
+    (pydantic lax mode) so a hand-edited settings.json survives — quoted
+    numbers ("45") and integral floats (45.0) are coerced to int. Fractional
+    floats, nulls and wrong literal types are rejected; a file with at least
+    one invalid field is rejected as a whole (defaults are kept). Unknown
+    fields are ignored and dropped on the next save.
+    """
 
     work_duration: int = Field(default=45, gt=0, lt=101)
     break_duration: int = Field(default=15, gt=0, lt=101)

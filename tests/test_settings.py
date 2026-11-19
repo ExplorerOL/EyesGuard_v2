@@ -386,3 +386,59 @@ def test_apply_settings_from_ui_returns_result(tmp_path):
     assert settings.apply_settings_from_ui(new_settings_data=valid) is True
     assert settings.apply_settings_from_ui(new_settings_data=invalid) is False
     assert settings.user_settings.work_duration == 45
+
+
+@pytest.mark.parametrize(
+    'file_content, expected_volume',
+    [
+        # documented coercion: quoted numbers and integral floats are accepted
+        ('{"volume": "55"}', 55),
+        ('{"volume": 55.0}', 55),
+    ],
+)
+def test_settings_coercion_contract_accepts_number_like_values(tmp_path, file_content, expected_volume):
+    settings_file = tmp_path / 'settings.json'
+    settings_file.write_text(file_content, encoding='utf-8')
+
+    settings = Settings(settings_file)
+
+    assert settings.user_settings.volume == expected_volume
+
+
+@pytest.mark.parametrize(
+    'file_content',
+    [
+        # fractional floats, nulls and wrong literal types are rejected
+        ('{"volume": 55.5}'),
+        ('{"volume": null}'),
+        ('{"sounds": 1}'),
+    ],
+)
+def test_settings_coercion_contract_rejects_wrong_types(tmp_path, file_content):
+    settings_file = tmp_path / 'settings.json'
+    settings_file.write_text(file_content, encoding='utf-8')
+
+    settings = Settings(settings_file)
+
+    assert settings.user_settings.volume == 100
+
+
+def test_settings_unknown_fields_are_ignored(tmp_path):
+    settings_file = tmp_path / 'settings.json'
+    settings_file.write_text('{"unknown_field": 1, "volume": 55}', encoding='utf-8')
+
+    settings = Settings(settings_file)
+
+    assert settings.user_settings.volume == 55
+    assert not hasattr(settings.user_settings, 'unknown_field')
+
+
+def test_settings_mixed_file_with_one_invalid_field_is_rejected_as_a_whole(tmp_path):
+    """Policy: all-or-nothing — valid fields of a partially invalid file are not applied."""
+    settings_file = tmp_path / 'settings.json'
+    settings_file.write_text('{"volume": 55, "work_duration": 999}', encoding='utf-8')
+
+    settings = Settings(settings_file)
+
+    assert settings.user_settings.volume == 100
+    assert settings.user_settings.work_duration == 45
