@@ -174,3 +174,15 @@ def test_sequence_transition_from_idle_mode_returns_to_work(tmp_path, monkeypatc
     model.set_new_step_in_sequence()
 
     assert model.current_state.current_step_type == StepType.work_mode
+
+
+def test_apply_settings_does_not_grow_steps_data_list(tmp_path, monkeypatch):
+    """Regression for known issue 12: steps_data_list must be rebuilt, not appended."""
+    model, _, _ = make_model(tmp_path, monkeypatch)
+    assert len(model.steps_data_list) == len(StepType)
+
+    for _ in range(3):
+        model.apply_new_user_settings(user_settings=UserSettingsData())
+
+    assert len(model.steps_data_list) == len(StepType)
+    assert [step.step_type for step in model.steps_data_list] == list(StepType)

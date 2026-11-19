@@ -47,6 +47,8 @@ class Model:
         logger.trace('Model: object was created')
 
     def __init_steps(self):
+        # rebuild the list from scratch: repeated Apply must not grow it (known issue 12)
+        self.steps_data_list = []
         for step_type in StepType:
             self.steps_data_list.insert(step_type, StepData())
             self.steps_data_list[step_type].step_type = step_type
