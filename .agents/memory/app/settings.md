@@ -24,6 +24,9 @@ frozen-сборка PyInstaller — рядом с exe). Каталог `settings
 | `sounds` | Literal["on","off"] | "on" | — (управляет `SoundNotificator`) |
 | `notifications` | Literal["on","off"] | "on" | — (управляет уведомлениями трея) |
 | `protection_status` | Literal["on","off"] | "on" | — (начальный шаг при старте) |
+| `screensaver_block` | Literal["on","off"] | "on" | — (блокировка скринсейвера на время break; `src/support/display/`) |
+| `suspend_on_video` | Literal["on","off"] | "on" | — (переход в iddle при видео — системный флаг `ES_DISPLAY_REQUIRED`) |
+| `reset_work_time_in_idle` | Literal["on","off"] | "off" | — (сброс elapsed при входе в iddle_mode; off = существующая заморозка) |
 
 ## SystemSettingsData (константы, UPPER_SNAKE_CASE)
 
@@ -47,6 +50,14 @@ frozen-сборка PyInstaller — рядом с exe). Каталог `settings
 > Громкость передаётся в `play(file_path, volume)` при каждом вызове — смена
 > применяется к следующему воспроизведению без перезапуска. Платформенная
 > конвенция: Windows-only код — в `src/support/<module>/windows/`.
+
+> Дисплей (после v2.2.0): чекбоксы `screensaver_block` и `suspend_on_video` живут на
+> вкладке Display окна настроек (иконка `res/img/monitor.png` с fallback на `gear.png`);
+> `reset_work_time_in_idle` — на вкладке Time settings. Windows-реализации —
+> `src/support/display/windows/` (`SetThreadExecutionState` для блокировки скринсейвера
+> на break; `CallNtPowerInformation(SystemExecutionState)` → `ES_DISPLAY_REQUIRED` как
+> детектор видео с debounce ~5 тиков); фабрики по `sys.platform` (иначе noop). Подробности:
+> `state-machine.md`, задача `.agents/tasks/screen-saver-interactions/`.
 
 ## Поведение при ошибках
 

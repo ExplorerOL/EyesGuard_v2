@@ -57,6 +57,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.img_gear = customtkinter.CTkImage(ResImages.img_gear, size=(25, 25))
         self.img_info = customtkinter.CTkImage(ResImages.img_info, size=(25, 25))
         self.img_sounds = customtkinter.CTkImage(ResImages.img_sounds, size=(25, 25))
+        self.img_monitor = customtkinter.CTkImage(ResImages.img_monitor, size=(25, 25))
 
         # set grid layout 2x2
         self.grid_rowconfigure(0, weight=1)
@@ -103,7 +104,7 @@ class WndSettings(customtkinter.CTkToplevel):
             command=self.event_btn_time_settings_click,
             image=self.img_clock,
         )
-        self.btn_time_settings.grid(row=2, column=0, sticky='ew')
+        self.btn_time_settings.grid(row=3, column=0, sticky='ew')
 
         self.btn_general_settings = customtkinter.CTkButton(
             self.navigation_frame,
@@ -121,7 +122,7 @@ class WndSettings(customtkinter.CTkToplevel):
             command=self.event_btn_general_settings_click,
             image=self.img_gear,
         )
-        self.btn_general_settings.grid(row=3, column=0, sticky='ew')
+        self.btn_general_settings.grid(row=2, column=0, sticky='ew')
 
         self.btn_sounds_settings = customtkinter.CTkButton(
             self.navigation_frame,
@@ -139,7 +140,25 @@ class WndSettings(customtkinter.CTkToplevel):
             command=self.event_btn_sounds_settings_click,
             image=self.img_sounds,
         )
-        self.btn_sounds_settings.grid(row=4, column=0, sticky='ew')
+        self.btn_sounds_settings.grid(row=5, column=0, sticky='ew')
+
+        self.btn_display_settings = customtkinter.CTkButton(
+            self.navigation_frame,
+            corner_radius=0,
+            height=40,
+            border_spacing=5,
+            border_width=1,
+            text='Display',
+            font=('', 14, 'bold'),
+            fg_color='transparent',
+            text_color=('gray10', 'gray90'),
+            hover_color=('LightSkyBlue', 'gray30'),
+            border_color='LightSteelBlue',
+            anchor='w',
+            command=self.event_btn_display_settings_click,
+            image=self.img_monitor,
+        )
+        self.btn_display_settings.grid(row=4, column=0, sticky='ew')
 
         self.btn_about = customtkinter.CTkButton(
             self.navigation_frame,
@@ -157,69 +176,84 @@ class WndSettings(customtkinter.CTkToplevel):
             command=self.event_btn_about_click,
             image=self.img_info,
         )
-        self.btn_about.grid(row=5, column=0, sticky='ew')
+        self.btn_about.grid(row=6, column=0, sticky='ew')
 
         # --- create time settings frame ---
         self.frame_time_settings = customtkinter.CTkFrame(self, corner_radius=0, fg_color='transparent')
-        self.frame_time_settings.grid_columnconfigure(1, weight=1)
 
         # work duratrion setting
         self.lbl_work_duration = customtkinter.CTkLabel(
             self.frame_time_settings, text='Work duration (minutes)', font=('', 13)
         )
-        self.lbl_work_duration.grid(row=0, column=0, padx=20, pady=10)
+        self.lbl_work_duration.grid(row=0, column=0, padx=(20, 5), pady=10, sticky='w')
 
         self.work_duration_value = StringVar()
         self.work_duration_value.set(self.settings.get_settings_copy().work_duration)
         verify_cmd_work_duration = (self.register(self.is_valid_duration_entry), '%P')
         self.entry_work_duration = customtkinter.CTkEntry(
             self.frame_time_settings,
+            width=70,
             textvariable=self.work_duration_value,
             justify='center',
             validate='key',
             validatecommand=verify_cmd_work_duration,
         )
-        self.entry_work_duration.grid(row=0, column=1, padx=20, pady=20, sticky='e')
+        self.entry_work_duration.grid(row=0, column=1, padx=(5, 15), pady=10, sticky='w')
 
         # break duratrion setting
         self.lbl_break_duration = customtkinter.CTkLabel(
             self.frame_time_settings, text='Break duration (minutes)', font=('', 13)
         )
-        self.lbl_break_duration.grid(row=1, column=0, padx=20, pady=10)
+        self.lbl_break_duration.grid(row=1, column=0, padx=(20, 5), pady=10, sticky='w')
 
         self.break_duration_value = StringVar()
         self.break_duration_value.set(self.settings.get_settings_copy().break_duration)
         verify_cmd_break_duration = (self.register(self.is_valid_duration_entry), '%P')
         self.entry_break_duration = customtkinter.CTkEntry(
             self.frame_time_settings,
+            width=70,
             textvariable=self.break_duration_value,
             justify='center',
             validate='key',
             validatecommand=verify_cmd_break_duration,
         )
-        self.entry_break_duration.grid(row=1, column=1, padx=(20, 20), pady=(20, 20), sticky='e')
+        self.entry_break_duration.grid(row=1, column=1, padx=(5, 15), pady=10, sticky='w')
 
         # activity timeout setting
         self.lbl_activity_timeout = customtkinter.CTkLabel(
             self.frame_time_settings, text='Activity timeout (seconds)', font=('', 13)
         )
-        self.lbl_activity_timeout.grid(row=2, column=0, padx=20, pady=10)
+        self.lbl_activity_timeout.grid(row=2, column=0, padx=(20, 5), pady=10, sticky='w')
 
         self.activity_timeout_value = StringVar()
         self.activity_timeout_value.set(self.settings.get_settings_copy().activity_timeout)
         verify_cmd_activity_timeout = (self.register(self.is_valid_activity_timeout_entry), '%P')
         self.entry_activity_timeout = customtkinter.CTkEntry(
             self.frame_time_settings,
+            width=70,
             textvariable=self.activity_timeout_value,
             justify='center',
             validate='key',
             validatecommand=verify_cmd_activity_timeout,
         )
-        self.entry_activity_timeout.grid(row=2, column=1, padx=(20, 20), pady=(20, 20), sticky='e')
+        self.entry_activity_timeout.grid(row=2, column=1, padx=(5, 15), pady=10, sticky='w')
+
+        # reset work time in idle mode setting
+        self.chbox_reset_work_time_in_idle_value = customtkinter.StringVar(
+            value=self.settings.get_settings_copy().reset_work_time_in_idle
+        )
+        self.chbox_reset_work_time_in_idle = customtkinter.CTkCheckBox(
+            self.frame_time_settings,
+            text='Reset working time in idle mode',
+            variable=self.chbox_reset_work_time_in_idle_value,
+            onvalue='on',
+            offvalue='off',
+            font=('', 13),
+        )
+        self.chbox_reset_work_time_in_idle.grid(row=3, column=0, columnspan=2, padx=20, pady=10, sticky='w')
 
         # --- create general settings frame ---
         self.frame_general_settings = customtkinter.CTkFrame(self, corner_radius=0, fg_color='transparent')
-        self.frame_time_settings.grid_columnconfigure(1, weight=1)
 
         # protextion status setting
         self.chbox_protection_status_value = customtkinter.StringVar(
@@ -281,6 +315,38 @@ class WndSettings(customtkinter.CTkToplevel):
         )
         self.slider_volume.set(self.settings.get_settings_copy().volume)
         self.slider_volume.grid(row=1, column=1, padx=20, pady=20, sticky='ew')
+
+        # --- create display settings frame ---
+        self.frame_display_settings = customtkinter.CTkFrame(self, corner_radius=0, fg_color='transparent')
+        self.frame_display_settings.grid_columnconfigure(1, weight=1)
+
+        # screensaver block setting
+        self.chbox_screensaver_block_value = customtkinter.StringVar(
+            value=self.settings.get_settings_copy().screensaver_block
+        )
+        self.chbox_screensaver_block = customtkinter.CTkCheckBox(
+            self.frame_display_settings,
+            text='Block screensaver during breaks',
+            variable=self.chbox_screensaver_block_value,
+            onvalue='on',
+            offvalue='off',
+            font=('', 13),
+        )
+        self.chbox_screensaver_block.grid(row=0, column=0, padx=20, pady=10, sticky='ew')
+
+        # suspend on video playback setting
+        self.chbox_suspend_on_video_value = customtkinter.StringVar(
+            value=self.settings.get_settings_copy().suspend_on_video
+        )
+        self.chbox_suspend_on_video = customtkinter.CTkCheckBox(
+            self.frame_display_settings,
+            text='Switch to idle mode on video playback',
+            variable=self.chbox_suspend_on_video_value,
+            onvalue='on',
+            offvalue='off',
+            font=('', 13),
+        )
+        self.chbox_suspend_on_video.grid(row=1, column=0, padx=20, pady=10, sticky='ew')
 
         # --- create frame about---
         self.frame_about = customtkinter.CTkFrame(self, corner_radius=0, fg_color='transparent')
@@ -380,6 +446,9 @@ class WndSettings(customtkinter.CTkToplevel):
         self.chbox_sounds_value.set(value=model.user_settings.sounds)
         self.chbox_notifications_value.set(value=model.user_settings.notifications)
         self.chbox_protection_status_value.set(value=model.user_settings.protection_status)
+        self.chbox_screensaver_block_value.set(value=model.user_settings.screensaver_block)
+        self.chbox_suspend_on_video_value.set(value=model.user_settings.suspend_on_video)
+        self.chbox_reset_work_time_in_idle_value.set(value=model.user_settings.reset_work_time_in_idle)
 
         self.update_protection_status_image(model)
 
@@ -390,6 +459,9 @@ class WndSettings(customtkinter.CTkToplevel):
         )
         self.btn_sounds_settings.configure(
             fg_color='LightSteelBlue' if name == 'frame_sounds_settings' else 'transparent'
+        )
+        self.btn_display_settings.configure(
+            fg_color='LightSteelBlue' if name == 'frame_display_settings' else 'transparent'
         )
         self.btn_about.configure(fg_color='LightSteelBlue' if name == 'frame_about' else 'transparent')
 
@@ -406,6 +478,10 @@ class WndSettings(customtkinter.CTkToplevel):
             self.frame_sounds_settings.grid(row=0, column=1, sticky='nsew')
         else:
             self.frame_sounds_settings.grid_forget()
+        if name == 'frame_display_settings':
+            self.frame_display_settings.grid(row=0, column=1, sticky='nsew')
+        else:
+            self.frame_display_settings.grid_forget()
         if name == 'frame_about':
             self.frame_about.grid(row=0, column=1, sticky='nsew')
         else:
@@ -419,6 +495,9 @@ class WndSettings(customtkinter.CTkToplevel):
 
     def event_btn_sounds_settings_click(self) -> None:
         self.select_frame_by_name('frame_sounds_settings')
+
+    def event_btn_display_settings_click(self) -> None:
+        self.select_frame_by_name('frame_display_settings')
 
     def event_volume_slider_move(self, value: float) -> None:
         """Update the volume label while the slider is moving."""

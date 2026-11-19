@@ -5,6 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from support.display.screensaver_blocker import create_screensaver_blocker
+from support.display.video_activity_monitor import create_video_activity_monitor
 from support.paths import app_dir
 from support.sound.sound_notificator import SoundNotificator
 from support.sound.sound_player import sound_player
@@ -40,6 +42,8 @@ class Model:
             activity_timeout=datetime.timedelta(seconds=self.settings.user_settings.activity_timeout)
         )
         self.__sound_notificator = SoundNotificator(sound_player=sound_player, settings=self.__settings)
+        self.__screensaver_blocker = create_screensaver_blocker()
+        self.__video_activity_monitor = create_video_activity_monitor()
 
         logger.trace('Model: object was created')
 
@@ -162,9 +166,14 @@ class Model:
         """Settind step data in current state by step type."""
         logger.trace('Model: __set_current_step')
         logger.debug(f'Model: new step {step_type}')
+        # drop the debounce memory: the new step must start with an honest video poll
+        self.__video_activity_monitor.reset_debounce()
         if step_type != StepType.iddle_mode and self.__current_state.current_step_type != StepType.iddle_mode:
             self.__current_state.reset_elapsed_time()
         if step_type == StepType.iddle_mode:
+            if self.__settings.user_settings.reset_work_time_in_idle == OnOffValue.on.value:
+                logger.info('Model: reset work time on entering iddle mode')
+                self.__current_state.reset_elapsed_time()
             self.__current_state.set_current_step_data(
                 step_type=step_type, step_duration=self.steps_data_list[StepType.work_mode].step_duration_td
             )
@@ -221,6 +230,23 @@ class Model:
         self.__view = view
         self.__update_view()
 
+    def __process_screensaver_block(self):
+        """Block the screensaver for the whole break step and release it otherwise.
+
+        Must run in the controller thread only (the wait loop): SetThreadExecutionState
+        binds the execution state to the calling thread, so block()/release() coming
+        from different threads (e.g. the Tk thread via set_step) would not pair up.
+        """
+        logger.trace('Model: __process_screensaver_block')
+        should_block = (
+            self.model.__current_state.current_step_type == StepType.break_mode
+            and self.__settings.user_settings.screensaver_block == OnOffValue.on.value
+        )
+        if should_block:
+            self.__screensaver_blocker.block()
+        else:
+            self.__screensaver_blocker.release()
+
     def do_current_step_actions(self):
         logger.trace('Model: __do_current_step_actions')
         logger.debug(f'Model: New current step {(self.__current_state.current_step_type)}')
@@ -275,6 +301,9 @@ class Model:
             logger.info(f'Step elapsed time: {self.model.__current_state.current_step_elapsed_time}')
             logger.info(f'User activity: {self.__user_activity_monitor.is_user_active!r}')
 
+            # this loop runs in the controller thread only: safe for the thread-bound blocker
+            self.__process_screensaver_block()
+
             if self.__current_state.current_step_type not in (StepType.off_mode, StepType.iddle_mode):
                 if (
                     self.model.__current_state.current_step_elapsed_time
@@ -283,15 +312,34 @@ class Model:
                     self.model.__current_state.increase_elapsed_time()
                 else:
                     break
-            if not self.__user_activity_monitor.is_user_active and self.__current_state.current_step_type in (
+            # video detection is skipped for break_mode: the break window is fullscreen
+            # itself and our own screensaver block raises ES_DISPLAY_REQUIRED
+            video_active = False
+            if self.__current_state.current_step_type in (
+                StepType.work_mode,
+                StepType.work_notified_1,
+                StepType.work_notified_2,
+                StepType.iddle_mode,
+            ):
+                video_active = (
+                    self.__settings.user_settings.suspend_on_video == OnOffValue.on.value
+                    and self.__video_activity_monitor.is_video_playing
+                )
+            if (
+                not self.__user_activity_monitor.is_user_active or video_active
+            ) and self.__current_state.current_step_type in (
                 StepType.work_mode,
                 StepType.work_notified_1,
                 StepType.work_notified_2,
             ):
-                logger.info('Switch to iddle mode from work mode')
+                if video_active:
+                    logger.info('Switch to iddle mode on video playback')
+                else:
+                    logger.info('Switch to iddle mode from work mode')
                 self.set_step(new_step_type=StepType.iddle_mode)
             elif (
                 self.__user_activity_monitor.is_user_active
+                and not video_active
                 and self.__current_state.current_step_type == StepType.iddle_mode
             ):
                 logger.info('Switch to work mode from iddle mode')

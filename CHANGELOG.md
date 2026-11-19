@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-11-19
+
+### Added
+- Display settings tab: block screensaver during breaks (`screensaver_block`) and switch to idle mode on video playback (`suspend_on_video`)
+- Time settings tab: reset working time on entering idle mode (`reset_work_time_in_idle`)
+- Idle mode on video playback: video is detected via the system `ES_DISPLAY_REQUIRED` flag, entering idle keeps the work timer paused
+
 ## [2.2.0] - 2026-11-19
 
 ### Added

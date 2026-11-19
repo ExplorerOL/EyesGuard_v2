@@ -5,5 +5,8 @@
     "volume": 100,
     "sounds": "on",
     "notifications": "on",
-    "protection_status": "on"
+    "protection_status": "on",
+    "screensaver_block": "on",
+    "suspend_on_video": "on",
+    "reset_work_time_in_idle": "off"
 }
