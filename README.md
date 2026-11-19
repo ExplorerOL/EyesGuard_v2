@@ -65,3 +65,19 @@ uv run pyinstaller EyesGuard.spec
 
 The clone remembers the WSL path as origin: after new commits in WSL run `git pull` in the build
 clone and rebuild. `.venv` is gitignored, so WSL and the clone keep independent virtual environments.
+
+## Releases
+
+Releases are automated by the `release` workflow (`.github/workflows/release.yml`, GitHub Actions)
+on pushes to `master`. A release is created only when the version in `pyproject.toml` changes and
+the tag `EyesGuard-v<version>` does not exist yet; any other push to `master` skips the build.
+
+Each release ships two artifacts:
+- `EyesGuard-v<version>-win64.exe` — onefile build;
+- `EyesGuard-v<version>-win64.zip` — onedir build: unpack the `EyesGuard-v<version>/` folder and run the exe.
+
+Release checklist (one commit to `master`):
+1. Move the `[Unreleased]` CHANGELOG section to `## [X.Y.Z] - <date>` and trim it.
+2. Bump `version` in `pyproject.toml` and run `uv lock` (a test keeps `APP_VERSION` in sync).
+3. Push to `master`: the workflow builds, tags `EyesGuard-v<X.Y.Z>` and publishes the release;
+   release notes are taken from the matching CHANGELOG section.

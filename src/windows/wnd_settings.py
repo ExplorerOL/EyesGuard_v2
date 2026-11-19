@@ -14,6 +14,7 @@ from tkinter import StringVar
 import customtkinter
 from PIL import ImageTk
 
+from config.app_version import APP_VERSION
 from config.settings import Settings
 from config.states import StepType
 from model import Model
@@ -39,7 +40,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.geometry(
             f'{wnd_width}x{wnd_height}+{screen_width - wnd_width - border_x}+{screen_height - wnd_height - border_y}'
         )
-        self.title('EyesGuard v2.0.0 - Settings')
+        self.title(f'EyesGuard v{APP_VERSION} - Settings')
         self.attributes('-topmost', True)
         self.resizable(False, False)
 
@@ -245,7 +246,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.frame_about.grid_columnconfigure(1, weight=1)
 
         self.lbl_about_text = (
-            '\nEyesGuard v2.0.0\n\nAuthor: Dmitry Vorobjev\nSite: www.eyesguard.ru\n'
+            f'\nEyesGuard v{APP_VERSION}\n\nAuthor: Dmitry Vorobjev\nSite: www.eyesguard.ru\n'
             'E-mail: eyesguard@yandex.ru\nLicense: © GPL v3\nYear: 2024'
         )
         self.lbl_about = customtkinter.CTkLabel(self.frame_about, text=self.lbl_about_text, justify='left')

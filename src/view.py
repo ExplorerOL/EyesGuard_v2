@@ -5,6 +5,7 @@ import os
 import customtkinter
 import pystray
 
+from config.app_version import APP_VERSION
 from config.settings import Settings, UserSettingsData
 from config.states import CurrentState, StepType
 from controller import Controller
@@ -33,7 +34,7 @@ class View(customtkinter.CTk):
         self.__wnd_settings = WndSettings(self, self.__settings)
         self.__wnd_break = WndBreak(self, self.__current_state)
         self.__wnd_status = WndStatus(self)
-        self.title('EyesGuard v2.0.0')
+        self.title(f'EyesGuard v{APP_VERSION}')
 
         # tray icon
         menu = (

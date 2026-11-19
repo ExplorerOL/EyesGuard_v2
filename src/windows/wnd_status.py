@@ -12,6 +12,7 @@ import time
 
 import customtkinter
 
+from config.app_version import APP_VERSION
 from config.states import StepType
 from model import Model
 from support.logger import logger
@@ -35,7 +36,7 @@ class WndStatus(customtkinter.CTkToplevel):
         self.geometry(
             f'{wnd_width}x{wnd_height}+{screen_width - wnd_width - border_x}+{screen_height - wnd_height - border_y}'
         )
-        self.title('EyesGuard v2.0.0 - Status')
+        self.title(f'EyesGuard v{APP_VERSION} - Status')
         self.attributes('-topmost', True)
         self.resizable(False, False)
         self.attributes('-toolwindow', True)
