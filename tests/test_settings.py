@@ -63,19 +63,41 @@ def test_read_settings_from_valid_file(settings_file_name, expected_settings_str
     assert settings_str == expected_settings_str
 
 
+def test_read_settings_from_missing_file_returns_defaults():
+    """A missing settings file must fall back to defaults (FileNotFoundError branch)."""
+    settings = Settings(fixture_path('settings_not_existing.json'))
+    assert str(settings) == settings_default_str
+
+
+def test_read_settings_from_malformed_json_returns_defaults(tmp_path):
+    """JSON syntax error must go through ValidationError and keep all defaults.
+
+    The malformed content is generated at runtime: a broken JSON file must not
+    live in the repo (pre-commit check-json would reject it).
+    """
+    malformed_file = tmp_path / 'settings_malformed.json'
+    malformed_file.write_text('{"work_duration": asd", "sounds": "on"}', encoding='utf-8')
+    settings = Settings(malformed_file)
+    assert str(settings) == settings_default_str
+
+
 @pytest.mark.parametrize(
     'settings_file_name',
     [
-        ('./adc.json'),
-        ('settings_invalid_not_invalid_json.json'),
+        # work_duration is a non-numeric string: int coercion fails
         ('settings_invalid_not_int.json'),
+        # sounds is an int instead of the on/off literal
         ('settings_invalid_not_string.json'),
     ],
 )
-def test_read_settings_from_invalid_file(settings_file_name):
-    settings = Settings(settings_file_name)
-    settings_str = str(settings)
-    assert settings_str == settings_default_str
+def test_read_settings_from_invalid_file_returns_defaults(settings_file_name):
+    """Invalid file content must be fully rejected: all fields keep defaults.
+
+    Policy: all-or-nothing — a file that fails validation does not partially
+    apply its valid fields.
+    """
+    settings = Settings(fixture_path(settings_file_name))
+    assert str(settings) == settings_default_str
 
 
 @pytest.mark.parametrize(
