@@ -11,9 +11,9 @@
 uv sync
 ```
 
-Создаёт `.venv` из `pyproject.toml` + `uv.lock`. Зависимость звука `playsound`
-помечена маркером `sys_platform == 'win32'` — на других платформах пропускается автоматически
-(её setup.py не собирается вне Windows).
+Создаёт `.venv` из `pyproject.toml` + `uv.lock`. Windows-специфичные модули звука
+(`support/sound/windows/`, MCI) импортируются фабрикой только на win32 — на других
+платформах используется `NoopSoundPlayer`.
 
 ## Запуск приложения (только Windows)
 

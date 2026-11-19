@@ -15,12 +15,13 @@ src/
 │   └── states.py               # StepType, StepData, CurrentState
 ├── support/                    # инфраструктурные модули
 │   ├── logger.py               # loguru
-│   ├── paths.py                # резолв путей: dev (CWD) / frozen (sys._MEIPASS, каталог exe)
+│   ├── paths.py                # резолв путей: dev (CWD) / frozen (sys._MEIPASS, %LOCALAPPDATA%)
 │   ├── resourses.py            # ResImages (PNG) + ResSoundsPaths (MP3)
 │   ├── user_activity_monitor.py# Windows API: неактивность пользователя
 │   └── sound/
-│       ├── sound_player.py     # playsound в отдельном потоке (синглтон sound_player)
-│       └── sound_notificator.py# SoundNotificator: звук если sounds=on
+│       ├── sound_player.py     # фабрика плееров + NoopSoundPlayer (синглтон sound_player)
+│       ├── sound_notificator.py# SoundNotificator: звук если sounds=on
+│       └── windows/sound_player.py # MciSoundPlayer (winmm): worker-поток + очередь
 └── windows/                    # окна приложения
     ├── wnd_status.py
     ├── wnd_settings.py
@@ -33,17 +34,19 @@ src/
 Приложение запускается как `python ./src/main.py` **из корня проекта**. Пути к данным
 резолвит `support/paths.py`: в dev-режиме — от CWD (`res/img/`, `res/sounds/`,
 `settings/settings.json`, `logs/log.log`), в замороженном (PyInstaller) — ресурсы из
-`sys._MEIPASS`, настройки и логи — рядом с exe (`app_dir()`).
+`sys._MEIPASS`, настройки и логи — в `%LOCALAPPDATA%/EyesGuard` (`app_dir()`, миграция
+из каталога exe при первом запуске).
 
 ## Сборка (PyInstaller)
 
-- Команда: `uv run pyinstaller EyesGuard.spec` из корня проекта, **только на Windows**.
+- Команды: `uv run pyinstaller EyesGuard-onefile.spec` или `uv run pyinstaller EyesGuard-onedir.spec`
+  из корня проекта, **только на Windows**.
 - Spec: onefile (`dist/EyesGuard.exe`), `res/` бандлится через `datas`, `console=False`,
   иконка `res/img/eyes_with_protection.ico`, `hiddenimports=['pystray._win32']`
   (backend трея выбирается условным импортом).
-- `customtkinter` подхватывается хуком из `pyinstaller-hooks-contrib`; `playsound`
-  ставится только по маркеру win32. Сборка проверена на Linux только механически
-  (datas/модули в архиве) — рабочий exe собирается на Windows.
+- `customtkinter` подхватывается хуком из `pyinstaller-hooks-contrib`; MCI-плеер
+  (`support/sound/windows/`) импортируется фабрикой только на win32. Сборка проверена
+  на Linux только механически (datas/модули в архиве) — рабочий exe собирается на Windows.
 
 ## Общая схема
 
@@ -59,7 +62,7 @@ Controller ─────► Model ◄──────────── View
                    │   └── StepType     └── ResImages (PIL)
                    ├── steps_data_list
                    ├── UserActivityMonitor  (Windows API, idle)
-                   └── SoundNotificator ── SoundPlayer (playsound)
+                   └── SoundNotificator ── sound_player (MCI/Noop)
 ```
 
 ## Поток выполнения
@@ -82,23 +85,27 @@ Controller ─────► Model ◄──────────── View
 
 Особенности, которые надо учитывать при правках:
 
-- Model ссылается на себя через property `model` (`src/model.py`) — не «выпрямлять» без необходимости.
 - Циклический импорт Model ↔ View разорван через `from __future__ import annotations` + `TYPE_CHECKING`.
-- View создаёт собственные `Settings()` и `CurrentState()` для окон (двойное владение состоянием — осознанное упрощение).
+- View создаётся из копии настроек Model (`View(initial_settings=...)`); собственные источники состояния у View отсутствуют.
 - `Model` владеет `UserActivityMonitor` и `SoundNotificator`; `sound_player` — модульный синглтон.
 
 ## Потоки (threading)
 
-- Tkinter mainloop — главный поток; `pystray` — `run_detached()`; `Controller.main_loop` — отдельный `Thread`;
-  проигрывание звука — ещё один короткоживущий `Thread` на каждый звук (`SoundPlayer.play`).
-- Обновления окон из контроллерного потока идут напрямую — при доработках помнить про потокобезопасность Tkinter.
-- Выход из приложения — жёсткий `os._exit(0)` в `View.exit_app` (не останавливает потоки штатно).
+- Tkinter mainloop — главный поток; `pystray` — `run_detached()`; `Controller.main_loop` — отдельный `Thread`
+  (единственный писатель Model: команды из UI идут через очередь `Controller.submit_*`);
+  звук — один daemon-worker `MciSoundPlayer` с очередью воспроизведений.
+- Model публикует неизменяемые `ModelSnapshot` в очередь; Tk-поток сам применяет их поллером `after()`
+  (`View.__poll_queues`) — из фоновых потоков Tk не вызывается.
+- Выход из приложения штатный: `View.__shutdown` (Tk-поток) → `Controller.stop()` (join) →
+  `tray.stop()` → `mainloop` завершается → `view.destroy()` + `sound_player.close()`.
 
 ## Платформенная специфика
 
 - `UserActivityMonitor` использует `ctypes.windll` — **только Windows**. На Linux API недоступен (безопасный дефолт в методе, но сам вызов упадёт).
-- `playsound` на Windows использует winsound-бэкенд; звук — фича только для запущенного приложения на Windows.
-- GUI-часть в автоматических тестах не покрывается; на Linux тестируются только `config/settings.py` (+ потенциально `states`).
+- Звук — собственный MCI-плеер (winmm), фича только для Windows; на других платформах — `NoopSoundPlayer`.
+- На Linux в автотестах покрываются `config/settings.py`, `config/states.py`, FSM/tайминги `Model`
+  (каркас `make_model` с фейками View/мониторов/звука), `Controller` (очередь команд), мониторы и пути;
+  GUI (Tk/трей/MCI/WinAPI) — только ручная проверка на Windows.
 
 ## Границы расширения
 

@@ -36,10 +36,9 @@ uv run pytest -v
 
 Command for building .exe (Windows only, from the project root):
 ```
-uv run pyinstaller EyesGuard.spec
+uv run pyinstaller EyesGuard-onefile.spec
 ```
 Result: `dist/EyesGuard.exe` — a single self-contained executable (`res/` resources are bundled inside).
-At runtime the app creates `settings/` and `logs/` directories next to the exe file.
 
 Alternative one-directory build (faster startup: no archive unpacking to %TEMP% at every launch;
 `res/` is shipped next to the exe):
@@ -47,6 +46,9 @@ Alternative one-directory build (faster startup: no archive unpacking to %TEMP% 
 uv run pyinstaller EyesGuard-onedir.spec
 ```
 Result: `dist/EyesGuard/` — a folder with `EyesGuard.exe` and bundled files; run the exe from there.
+
+At runtime the app stores `settings/` and `logs/` in `%LOCALAPPDATA%/EyesGuard`
+(created on first start; settings from the exe directory are migrated once).
 
 ### Building from a WSL checkout
 
@@ -59,7 +61,7 @@ Recommended workflow — development in WSL, build in a one-time clone on a nati
 git clone \\wsl.localhost\Debian\home\<user>\git\github\ExplorerOL\EyesGuard_v2 C:\Users\<user>\EyesGuard_build
 cd C:\Users\<user>\EyesGuard_build
 uv sync
-uv run pyinstaller EyesGuard.spec
+uv run pyinstaller EyesGuard-onefile.spec
 ```
 
 The clone remembers the WSL path as origin: after new commits in WSL run `git pull` in the build
