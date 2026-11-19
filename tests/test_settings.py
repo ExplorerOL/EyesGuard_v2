@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 from conftest import fixture_path
 
@@ -148,47 +146,51 @@ def test_read_settings_with_invalid_volume(settings_file_name):
     assert settings.user_settings.volume == 100
 
 
-def test_write_default_user_settings_to_file():
-    file_to_write = fixture_path('settings_written_file.json')
-    Path(file_to_write).unlink(missing_ok=True)
-
-    user_settings = UserSettingsData()
-    settings = Settings(file_to_write)
-    settings.apply_settings_from_ui(new_settings_data=user_settings)
-
-    settings.save_settings_to_file()
-
-    written_file_content = Path(file_to_write).read_text(encoding='utf-8')
-
-    expected_file_content = (
-        '{\n    "work_duration": 45,\n    "break_duration": 15,\n    "activity_timeout": 180,\n'
-        '    "volume": 100,\n    "sounds": "on",\n    "notifications": "on",\n    "protection_status": "on",\n'
-        '    "screensaver_block": "on",\n    "suspend_on_video": "on",\n    "reset_work_time_in_idle": "off"\n}'
-    )
-    assert written_file_content == expected_file_content, 'Written content and expected content are not same!'
+expected_file_content_default = (
+    '{\n    "work_duration": 45,\n    "break_duration": 15,\n    "activity_timeout": 180,\n'
+    '    "volume": 100,\n    "sounds": "on",\n    "notifications": "on",\n    "protection_status": "on",\n'
+    '    "screensaver_block": "on",\n    "suspend_on_video": "on",\n    "reset_work_time_in_idle": "off"\n}'
+)
 
 
-def test_write_invalid_settings_to_file():
-    file_to_write = fixture_path('settings_written_file.json')
-    Path(file_to_write).unlink(missing_ok=True)
+def test_apply_settings_from_ui_saves_to_file(tmp_path):
+    """Apply from UI must persist settings itself, without an extra save call."""
+    settings_file = tmp_path / 'settings.json'
+    settings = Settings(settings_file)
 
-    user_settings = UserSettingsData()
-    user_settings.work_duration = 111
-    user_settings.break_duration = 91
-    user_settings.sounds = 'off'
-    user_settings.notifications = 'off'
-    settings = Settings(file_to_write)
-    settings.apply_settings_from_ui(new_settings_data=user_settings)
+    settings.apply_settings_from_ui(new_settings_data=UserSettingsData())
+
+    written_file_content = settings_file.read_text(encoding='utf-8')
+    assert written_file_content == expected_file_content_default
+
+
+def test_save_settings_to_file_writes_valid_json(tmp_path):
+    """Direct save of valid current settings must write the canonical JSON."""
+    settings_file = tmp_path / 'settings.json'
+    settings = Settings(settings_file)
 
     settings.save_settings_to_file()
 
-    written_file_content = Path(file_to_write).read_text(encoding='utf-8')
-    expected_file_content = (
-        '{\n    "work_duration": 45,\n    "break_duration": 15,\n    "activity_timeout": 180,\n'
-        '    "volume": 100,\n    "sounds": "on",\n    "notifications": "on",\n    "protection_status": "on",\n'
-        '    "screensaver_block": "on",\n    "suspend_on_video": "on",\n    "reset_work_time_in_idle": "off"\n}'
-    )
-    assert written_file_content == expected_file_content, 'Written content and expected content are not same!'
+    written_file_content = settings_file.read_text(encoding='utf-8')
+    assert written_file_content == expected_file_content_default
+
+
+def test_apply_invalid_settings_from_ui_keeps_previous_file(tmp_path):
+    """Rejected UI settings must not overwrite the previously saved valid file."""
+    settings_file = tmp_path / 'settings.json'
+    settings = Settings(settings_file)
+    valid_settings = UserSettingsData()
+    valid_settings.work_duration = 30
+    valid_settings.break_duration = 10
+    settings.apply_settings_from_ui(new_settings_data=valid_settings)
+    content_before = settings_file.read_text(encoding='utf-8')
+
+    invalid_settings = UserSettingsData()
+    invalid_settings.work_duration = 111
+    invalid_settings.break_duration = 91
+    settings.apply_settings_from_ui(new_settings_data=invalid_settings)
+
+    assert settings_file.read_text(encoding='utf-8') == content_before
 
 
 def test_read_display_settings_from_valid_file():
