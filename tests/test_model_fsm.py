@@ -292,3 +292,84 @@ def test_startup_runs_step_actions_once_per_transition(tmp_path, monkeypatch):
 
     assert model.current_state.current_step_type == StepType.work_notified_1
     assert sounds.work_plays == 1
+
+
+def test_idle_restores_work_notified_1_with_remaining_time(tmp_path, monkeypatch):
+    """Regression for known issue 21: idle must restore the saved work step.
+
+    Entering idle from work_notified_1 with 15 seconds left: after activity
+    returns the step is work_notified_1 again (not a fresh work_mode), with
+    the same remaining time.
+    """
+    model, _, _, _ = make_model(
+        tmp_path,
+        monkeypatch,
+        settings={'work_duration': 2, 'reset_work_time_in_idle': 'off'},
+        inactive_reads=2,
+    )
+    model.set_step(new_step_type=StepType.work_notified_1)
+    model.current_state.increase_elapsed_time(time_delta=datetime.timedelta(seconds=40))
+
+    model.tick()
+    assert model.current_state.current_step_type == StepType.iddle_mode
+
+    model.tick()
+    # the exiting tick counts one second: 15s saved minus this tick
+    assert model.current_state.current_step_type == StepType.work_notified_1
+    assert model.current_state.current_step_remaining_time == datetime.timedelta(seconds=14)
+
+
+def test_idle_restores_work_mode_with_remaining_time(tmp_path, monkeypatch):
+    model, _, _, _ = make_model(
+        tmp_path,
+        monkeypatch,
+        settings={'work_duration': 2, 'reset_work_time_in_idle': 'off'},
+        inactive_reads=2,
+    )
+    # work step for work_duration=2 is exactly 60 seconds
+    model.current_state.increase_elapsed_time(time_delta=datetime.timedelta(seconds=10))
+
+    model.tick()
+    assert model.current_state.current_step_type == StepType.iddle_mode
+
+    model.tick()
+    # the exiting tick counts one second: 50s saved minus this tick
+    assert model.current_state.current_step_type == StepType.work_mode
+    assert model.current_state.current_step_remaining_time == datetime.timedelta(seconds=49)
+
+
+def test_idle_restores_work_notified_2_with_remaining_time(tmp_path, monkeypatch):
+    model, _, _, _ = make_model(
+        tmp_path,
+        monkeypatch,
+        settings={'work_duration': 2, 'reset_work_time_in_idle': 'off'},
+        inactive_reads=2,
+    )
+    model.set_step(new_step_type=StepType.work_notified_2)
+    model.current_state.increase_elapsed_time(time_delta=datetime.timedelta(seconds=2))
+
+    model.tick()
+    assert model.current_state.current_step_type == StepType.iddle_mode
+
+    model.tick()
+    # the exiting tick counts one second: 3s saved minus this tick
+    assert model.current_state.current_step_type == StepType.work_notified_2
+    assert model.current_state.current_step_remaining_time == datetime.timedelta(seconds=2)
+
+
+def test_idle_with_reset_starts_fresh_work_step(tmp_path, monkeypatch):
+    model, _, _, _ = make_model(
+        tmp_path,
+        monkeypatch,
+        settings={'work_duration': 2, 'reset_work_time_in_idle': 'on'},
+        inactive_reads=2,
+    )
+    model.current_state.increase_elapsed_time(time_delta=datetime.timedelta(seconds=10))
+
+    model.tick()
+    assert model.current_state.current_step_type == StepType.iddle_mode
+
+    model.tick()
+    assert model.current_state.current_step_type == StepType.work_mode
+    assert model.current_state.current_step_elapsed_time == datetime.timedelta(seconds=0)
+    assert model.current_state.current_step_remaining_time == datetime.timedelta(seconds=60)

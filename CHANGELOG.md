@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GUI windows and tray actions are now handled only in the main UI thread via a snapshot queue, preventing rare freezes and redraw glitches
 - Application now shuts down gracefully (stopped controller thread, tray icon) instead of force-killing the process
 - Applying settings no longer resets the current step timer or interrupts an active break; only an actual protection on/off change switches the step
+- Idle mode now restores the interrupted work phase (including pre-break notifications) with its remaining time instead of restarting the full work interval
 
 ## [2.3.0] - 2026-11-19
 

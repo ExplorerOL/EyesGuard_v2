@@ -37,6 +37,8 @@ class Model:
 
         self.__remaining_time_to_display = datetime.timedelta(seconds=0)
         self.__time_for_work_full = datetime.timedelta(seconds=0)
+        # work step saved on entering idle to restore it on exit (known issue 21)
+        self.__idle_saved_step: tuple[StepType, datetime.timedelta] | None = None
         self.__user_activity_monitor = UserActivityMonitor(
             activity_timeout=datetime.timedelta(seconds=self.settings.user_settings.activity_timeout)
         )
@@ -167,9 +169,8 @@ class Model:
         logger.debug(f'Model: new step {step_type}')
         # drop the debounce memory: the new step must start with an honest video poll
         self.__video_activity_monitor.reset_debounce()
-        if step_type != StepType.iddle_mode and self.__current_state.current_step_type != StepType.iddle_mode:
-            self.__current_state.reset_elapsed_time()
         if step_type == StepType.iddle_mode:
+            self.__save_work_step_for_idle_restore()
             if self.__settings.user_settings.reset_work_time_in_idle == OnOffValue.on.value:
                 logger.info('Model: reset work time on entering iddle mode')
                 self.__current_state.reset_elapsed_time()
@@ -177,12 +178,36 @@ class Model:
                 step_type=step_type, step_duration=self.steps_data_list[StepType.work_mode].step_duration_td
             )
         else:
+            self.__idle_saved_step = None
+            self.__current_state.reset_elapsed_time()
             self.__current_state.set_current_step_data(
                 step_type=step_type, step_duration=self.steps_data_list[step_type].step_duration_td
             )
         logger.debug(f'Step_type: {self.__current_state.current_step_type}')
         logger.debug(f'Step_duration: {self.__current_state.current_step_duration}')
         logger.debug(f'Steps data list: {self.steps_data_list[step_type]}')
+
+    def __save_work_step_for_idle_restore(self) -> None:
+        """Remember the work step interrupted by idle to restore it later."""
+        previous_step = self.__current_state.current_step_type
+        if (
+            self.__settings.user_settings.reset_work_time_in_idle != OnOffValue.on.value
+            and previous_step in (StepType.work_mode, StepType.work_notified_1, StepType.work_notified_2)
+            and self.__idle_saved_step is None
+        ):
+            self.__idle_saved_step = (previous_step, self.__current_state.current_step_remaining_time)
+            logger.debug(f'Model: saved work step for idle restore: {self.__idle_saved_step}')
+
+    def __exit_idle_mode(self) -> None:
+        """Leave idle: restore the saved work step with its remaining time."""
+        saved_step = self.__idle_saved_step or (StepType.work_mode, None)
+        saved_step_type, saved_remaining_time = saved_step
+        logger.info(f'Model: restoring {saved_step_type!r} from idle mode')
+        self.set_step(new_step_type=saved_step_type)
+        if saved_remaining_time is not None:
+            step_duration = self.steps_data_list[saved_step_type].step_duration_td
+            elapsed_time = max(step_duration - saved_remaining_time, datetime.timedelta(seconds=0))
+            self.__current_state.set_elapsed_time(time_delta=elapsed_time)
 
     @property
     def model(self) -> Model:
@@ -345,7 +370,7 @@ class Model:
             and self.__current_state.current_step_type == StepType.iddle_mode
         ):
             logger.info('Switch to work mode from iddle mode')
-            self.set_step(new_step_type=StepType.work_mode)
+            self.__exit_idle_mode()
 
         # publish fresh state for the GUI during the step
         self.__publish_snapshot()
