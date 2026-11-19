@@ -56,6 +56,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.img_clock = customtkinter.CTkImage(ResImages.img_clock, size=(25, 25))
         self.img_gear = customtkinter.CTkImage(ResImages.img_gear, size=(25, 25))
         self.img_info = customtkinter.CTkImage(ResImages.img_info, size=(25, 25))
+        self.img_sounds = customtkinter.CTkImage(ResImages.img_sounds, size=(25, 25))
 
         # set grid layout 2x2
         self.grid_rowconfigure(0, weight=1)
@@ -122,6 +123,24 @@ class WndSettings(customtkinter.CTkToplevel):
         )
         self.btn_general_settings.grid(row=3, column=0, sticky='ew')
 
+        self.btn_sounds_settings = customtkinter.CTkButton(
+            self.navigation_frame,
+            corner_radius=0,
+            height=40,
+            border_spacing=5,
+            border_width=1,
+            text='Sounds',
+            font=('', 14, 'bold'),
+            fg_color='transparent',
+            text_color=('gray10', 'gray90'),
+            hover_color=('LightSkyBlue', 'gray30'),
+            border_color='LightSteelBlue',
+            anchor='w',
+            command=self.event_btn_sounds_settings_click,
+            image=self.img_sounds,
+        )
+        self.btn_sounds_settings.grid(row=4, column=0, sticky='ew')
+
         self.btn_about = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
@@ -138,7 +157,7 @@ class WndSettings(customtkinter.CTkToplevel):
             command=self.event_btn_about_click,
             image=self.img_info,
         )
-        self.btn_about.grid(row=4, column=0, sticky='ew')
+        self.btn_about.grid(row=5, column=0, sticky='ew')
 
         # --- create time settings frame ---
         self.frame_time_settings = customtkinter.CTkFrame(self, corner_radius=0, fg_color='transparent')
@@ -216,18 +235,6 @@ class WndSettings(customtkinter.CTkToplevel):
         )
         self.chbox_protection_status.grid(row=0, column=0, padx=20, pady=10, sticky='ew')
 
-        # sounds setting
-        self.chbox_sounds_value = customtkinter.StringVar(value=self.settings.get_settings_copy().sounds)
-        self.chbox_sounds = customtkinter.CTkCheckBox(
-            self.frame_general_settings,
-            text='Sounds enabled',
-            variable=self.chbox_sounds_value,
-            onvalue='on',
-            offvalue='off',
-            font=('', 13),
-        )
-        self.chbox_sounds.grid(row=1, column=0, padx=20, pady=10, sticky='ew')
-
         # notifications setting
         self.chbox_notifications_value = customtkinter.StringVar(value=self.settings.get_settings_copy().notifications)
         self.chbox_notifications = customtkinter.CTkCheckBox(
@@ -240,6 +247,40 @@ class WndSettings(customtkinter.CTkToplevel):
         )
         # Temporaly not used
         # self.chbox_notifications.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+
+        # --- create sounds settings frame ---
+        self.frame_sounds_settings = customtkinter.CTkFrame(self, corner_radius=0, fg_color='transparent')
+        self.frame_sounds_settings.grid_columnconfigure(1, weight=1)
+
+        # sounds on/off setting (moved from the General tab)
+        self.chbox_sounds_value = customtkinter.StringVar(value=self.settings.get_settings_copy().sounds)
+        self.chbox_sounds = customtkinter.CTkCheckBox(
+            self.frame_sounds_settings,
+            text='Sounds enabled',
+            variable=self.chbox_sounds_value,
+            onvalue='on',
+            offvalue='off',
+            font=('', 13),
+        )
+        self.chbox_sounds.grid(row=0, column=0, padx=20, pady=10, sticky='ew')
+
+        # sounds volume setting
+        self.lbl_volume = customtkinter.CTkLabel(
+            self.frame_sounds_settings,
+            text=f'Volume: {self.settings.get_settings_copy().volume} %',
+            font=('', 13),
+        )
+        self.lbl_volume.grid(row=1, column=0, padx=20, pady=10)
+
+        self.slider_volume = customtkinter.CTkSlider(
+            self.frame_sounds_settings,
+            from_=10,
+            to=100,
+            number_of_steps=90,
+            command=self.event_volume_slider_move,
+        )
+        self.slider_volume.set(self.settings.get_settings_copy().volume)
+        self.slider_volume.grid(row=1, column=1, padx=20, pady=20, sticky='ew')
 
         # --- create frame about---
         self.frame_about = customtkinter.CTkFrame(self, corner_radius=0, fg_color='transparent')
@@ -334,6 +375,8 @@ class WndSettings(customtkinter.CTkToplevel):
         self.work_duration_value.set(str(model.user_settings.work_duration))
         self.break_duration_value.set(str(model.user_settings.break_duration))
         self.activity_timeout_value.set(str(model.user_settings.activity_timeout))
+        self.slider_volume.set(model.user_settings.volume)
+        self.lbl_volume.configure(text=f'Volume: {model.user_settings.volume} %')
         self.chbox_sounds_value.set(value=model.user_settings.sounds)
         self.chbox_notifications_value.set(value=model.user_settings.notifications)
         self.chbox_protection_status_value.set(value=model.user_settings.protection_status)
@@ -344,6 +387,9 @@ class WndSettings(customtkinter.CTkToplevel):
         self.btn_time_settings.configure(fg_color='LightSteelBlue' if name == 'frame_time_settings' else 'transparent')
         self.btn_general_settings.configure(
             fg_color='LightSteelBlue' if name == 'frame_general_settings' else 'transparent'
+        )
+        self.btn_sounds_settings.configure(
+            fg_color='LightSteelBlue' if name == 'frame_sounds_settings' else 'transparent'
         )
         self.btn_about.configure(fg_color='LightSteelBlue' if name == 'frame_about' else 'transparent')
 
@@ -356,6 +402,10 @@ class WndSettings(customtkinter.CTkToplevel):
             self.frame_general_settings.grid(row=0, column=1, sticky='nsew')
         else:
             self.frame_general_settings.grid_forget()
+        if name == 'frame_sounds_settings':
+            self.frame_sounds_settings.grid(row=0, column=1, sticky='nsew')
+        else:
+            self.frame_sounds_settings.grid_forget()
         if name == 'frame_about':
             self.frame_about.grid(row=0, column=1, sticky='nsew')
         else:
@@ -366,6 +416,13 @@ class WndSettings(customtkinter.CTkToplevel):
 
     def event_btn_general_settings_click(self) -> None:
         self.select_frame_by_name('frame_general_settings')
+
+    def event_btn_sounds_settings_click(self) -> None:
+        self.select_frame_by_name('frame_sounds_settings')
+
+    def event_volume_slider_move(self, value: float) -> None:
+        """Update the volume label while the slider is moving."""
+        self.lbl_volume.configure(text=f'Volume: {int(value)} %')
 
     def event_btn_about_click(self) -> None:
         self.select_frame_by_name('frame_about')

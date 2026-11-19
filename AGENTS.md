@@ -2,7 +2,7 @@
 
 EyesGuard_v2 — десктоп-приложение для Windows, напоминающее о перерывах при работе за ПК.
 Python 3.11, GUI на CustomTkinter, трей на pystray, настройки на pydantic, логи на loguru,
-звуковые уведомления на playsound, монитор неактивности через Windows API, лицензия GPL v3.
+звуковые уведомления через собственный MCI-плеер (winmm), монитор неактивности через Windows API, лицензия GPL v3.
 
 - Краткие сведения о проекте — @README.md
 - Домен приложения (машина состояний, настройки) — @.agents/memory/app/index.md
@@ -82,7 +82,7 @@ Python 3.11, GUI на CustomTkinter, трей на pystray, настройки �
 
 **Платформы:**
 - Код целился под Windows 10: GUI, трей, уведомления, звук и монитор активности проверяются
-  вручную только на Windows (`ctypes.windll` и `playsound` на Linux не работают).
+  вручную только на Windows (`ctypes.windll` и MCI-плеер звука на Linux не работают).
 - Агент в Linux запускает pytest для не-GUI частей; GUI-фичи помечай как «требует ручной проверки на Windows».
 
 ## Работа с кодом: codegraph, serena, ast-grep

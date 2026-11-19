@@ -10,12 +10,18 @@ class SoundNotificator:
 
     def play_notification_work(self):
         if self._settings.user_settings.sounds == OnOffValue.on.value:
-            self._sound_player.play(file_path=ResSoundsPaths.notification_work)
+            self._sound_player.play(
+                file_path=ResSoundsPaths.notification_work, volume=self._settings.user_settings.volume
+            )
 
     def play_notification_break(self):
         if self._settings.user_settings.sounds == OnOffValue.on.value:
-            self._sound_player.play(file_path=ResSoundsPaths.notification_break)
+            self._sound_player.play(
+                file_path=ResSoundsPaths.notification_break, volume=self._settings.user_settings.volume
+            )
 
     def play_notification_idle(self):
         if self._settings.user_settings.sounds == OnOffValue.on.value:
-            self._sound_player.play(file_path=ResSoundsPaths.notification_idle)
+            self._sound_player.play(
+                file_path=ResSoundsPaths.notification_idle, volume=self._settings.user_settings.volume
+            )

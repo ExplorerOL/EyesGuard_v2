@@ -28,4 +28,4 @@
 | [pyinstaller-packaging](pyinstaller-packaging/) | Сборка exe через PyInstaller: spec, резолв путей (frozen/dev), README | Реализована (рабочий exe — ручная проверка на Windows) |
 | [activity-timeout-setting](activity-timeout-setting/) | Пользовательская настройка activity_timeout (30–600 сек): UI, сохранение, применение без перезапуска | Реализована (ручная проверка UI на Windows) |
 | [release-automation](release-automation/) | Авто-релиз при пуше в master при смене версии: PyInstaller exe+zip, тег EyesGuard-vX.Y.Z, notes из CHANGELOG, единый APP_VERSION | Реализована (требует проверки workflow в GitHub Actions) |
-| [sounds-volume-setting](sounds-volume-setting/) | Настройка громкости, вкладка Sounds и переход со playsound на Windows MCI | Подготовлена AI-ready задача |
+| [sounds-volume-setting](sounds-volume-setting/) | Настройка громкости, вкладка Sounds и переход со playsound на Windows MCI | Реализована (тесты/линт зелёные; требуется ручная проверка на Windows + speaker.png) |
