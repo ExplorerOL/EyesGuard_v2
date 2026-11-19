@@ -1,6 +1,7 @@
 from controller import Controller
 from model import Model
 from support.logger import logger
+from support.sound.sound_player import sound_player
 from view import View
 
 
@@ -25,6 +26,7 @@ def main():
     # graceful shutdown after the mainloop has quit (no os._exit)
     controller.stop()
     view.destroy()
+    sound_player.close()
     logger.info('Program EyesGuard finished!')
 
 
