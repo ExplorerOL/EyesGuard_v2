@@ -135,10 +135,14 @@ class View(customtkinter.CTk):
 
     def apply_view_user_settings(self):
         logger.trace('View: applying new settings')
-        self.controller.submit_apply_settings(self.__get_user_settings_from_wnd_settings())
+        settings = self.__get_user_settings_from_wnd_settings()
+        if settings is None:
+            logger.error('View: reading settings from ui failed, apply skipped')
+            return
+        self.controller.submit_apply_settings(settings)
 
-    def __get_user_settings_from_wnd_settings(self) -> UserSettingsData:
-        """Get data from all widgets with settings."""
+    def __get_user_settings_from_wnd_settings(self) -> UserSettingsData | None:
+        """Get data from all widgets with settings; None when the form is invalid."""
         ui_settings_data = UserSettingsData()
         try:
             ui_settings_data.work_duration = int(self.__wnd_settings.work_duration_value.get())
@@ -154,8 +158,10 @@ class View(customtkinter.CTk):
             ui_settings_data.reset_work_time_in_idle = str(
                 self.__wnd_settings.chbox_reset_work_time_in_idle_value.get()
             )
-        except TypeError as error:
+        # empty entries raise ValueError, missing widgets raise TypeError (known issue 18)
+        except (TypeError, ValueError) as error:
             logger.error(f'Error occuired while reading settings from ui: {error}')
+            return None
 
         logger.info(f'Settings read from ui: {ui_settings_data!s}')
 
