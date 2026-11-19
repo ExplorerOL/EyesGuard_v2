@@ -152,7 +152,6 @@ class View(customtkinter.CTk):
             ui_settings_data.protection_status = str(self.__wnd_settings.chbox_protection_status_value.get())
             ui_settings_data.sounds = str(self.__wnd_settings.chbox_sounds_value.get())
             ui_settings_data.notifications = str(self.__wnd_settings.chbox_notifications_value.get())
-            ui_settings_data.protection_status = str(self.__wnd_settings.chbox_protection_status_value.get())
             ui_settings_data.screensaver_block = str(self.__wnd_settings.chbox_screensaver_block_value.get())
             ui_settings_data.suspend_on_video = str(self.__wnd_settings.chbox_suspend_on_video_value.get())
             ui_settings_data.reset_work_time_in_idle = str(
