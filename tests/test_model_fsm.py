@@ -186,3 +186,74 @@ def test_apply_settings_does_not_grow_steps_data_list(tmp_path, monkeypatch):
 
     assert len(model.steps_data_list) == len(StepType)
     assert [step.step_type for step in model.steps_data_list] == list(StepType)
+
+
+def volume_only_settings(volume: int) -> UserSettingsData:
+    settings = UserSettingsData()
+    settings.volume = volume
+    return settings
+
+
+def test_apply_volume_only_preserves_work_step_and_progress(tmp_path, monkeypatch):
+    """Regression for known issue 13: Apply must not reset the step timer."""
+    model, _, _ = make_model(tmp_path, monkeypatch)
+    model.current_state.increase_elapsed_time(time_delta=datetime.timedelta(seconds=30))
+
+    model.apply_new_user_settings(user_settings=volume_only_settings(volume=33))
+
+    assert model.current_state.current_step_type == StepType.work_mode
+    assert model.current_state.current_step_elapsed_time == datetime.timedelta(seconds=30)
+
+
+def test_apply_volume_only_during_break_keeps_break_step(tmp_path, monkeypatch):
+    model, _, _ = make_model(tmp_path, monkeypatch)
+    model.set_step(new_step_type=StepType.break_mode)
+    model.current_state.increase_elapsed_time(time_delta=datetime.timedelta(seconds=20))
+
+    model.apply_new_user_settings(user_settings=volume_only_settings(volume=10))
+
+    assert model.current_state.current_step_type == StepType.break_mode
+    assert model.current_state.current_step_elapsed_time == datetime.timedelta(seconds=20)
+
+
+def test_apply_volume_only_during_suspended_keeps_suspended_step(tmp_path, monkeypatch):
+    model, _, _ = make_model(tmp_path, monkeypatch)
+    model.set_step(new_step_type=StepType.suspended_mode)
+
+    model.apply_new_user_settings(user_settings=volume_only_settings(volume=10))
+
+    assert model.current_state.current_step_type == StepType.suspended_mode
+
+
+def test_apply_enabling_protection_starts_work_step(tmp_path, monkeypatch):
+    model, _, _ = make_model(tmp_path, monkeypatch, settings={'protection_status': 'off'})
+    assert model.current_state.current_step_type == StepType.off_mode
+
+    enabled = UserSettingsData()
+    enabled.protection_status = 'on'
+    model.apply_new_user_settings(user_settings=enabled)
+
+    assert model.current_state.current_step_type == StepType.work_mode
+
+
+def test_apply_disabling_protection_switches_to_off_step(tmp_path, monkeypatch):
+    model, _, _ = make_model(tmp_path, monkeypatch)
+
+    disabled = UserSettingsData()
+    disabled.protection_status = 'off'
+    model.apply_new_user_settings(user_settings=disabled)
+
+    assert model.current_state.current_step_type == StepType.off_mode
+
+
+def test_apply_shorter_work_duration_clamps_elapsed(tmp_path, monkeypatch):
+    """Progress above the new duration must clamp: the step ends on the next tick."""
+    model, _, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 5})
+    model.current_state.increase_elapsed_time(time_delta=datetime.timedelta(seconds=240))
+
+    shorter = UserSettingsData()
+    shorter.work_duration = 1
+    model.apply_new_user_settings(user_settings=shorter)
+
+    assert model.current_state.current_step_duration == datetime.timedelta(seconds=0)
+    assert model.current_state.current_step_remaining_time == datetime.timedelta(seconds=0)

@@ -97,6 +97,11 @@ class CurrentState:
         self.__elapsed_time_dt += time_delta
         logger.debug(f'__elapsed_time_dt: {self.__elapsed_time_dt}')
 
+    def set_elapsed_time(self, time_delta: datetime.timedelta):
+        """Set the elapsed time explicitly (e.g. clamp after Apply)."""
+        logger.trace('CurrentState: set_elapsed_time')
+        self.__elapsed_time_dt = time_delta
+
     def reset_elapsed_time(self):
         self.__elapsed_time_dt = datetime.timedelta(seconds=0)
 

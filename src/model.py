@@ -47,6 +47,20 @@ class Model:
         logger.trace('Model: object was created')
 
     def __init_steps(self):
+        self.__build_steps()
+
+        # set initial step
+        logger.debug(f'Off mode: {self.__settings.user_settings.protection_status}')
+        logger.debug(f'Off value: {OnOffValue.off}')
+        if self.__settings.user_settings.protection_status == OnOffValue.off.value:
+            logger.debug('Model: init with off_mode')
+            self.set_step(new_step_type=StepType.off_mode)
+        else:
+            logger.debug('Model: init with work_mode')
+            self.set_step(new_step_type=StepType.work_mode)
+
+    def __build_steps(self):
+        """(Re)build steps_data_list and their durations; no step switch happens."""
         # rebuild the list from scratch: repeated Apply must not grow it (known issue 12)
         self.steps_data_list = []
         for step_type in StepType:
@@ -83,16 +97,6 @@ class Model:
         for step in self.steps_data_list:
             logger.info(f'{step.step_type=}')
             logger.info(step.step_duration_td)
-
-        # set initial step
-        logger.debug(f'Off mode: {self.__settings.user_settings.protection_status}')
-        logger.debug(f'Off value: {OnOffValue.off}')
-        if self.__settings.user_settings.protection_status == OnOffValue.off.value:
-            logger.debug('Model: init with off_mode')
-            self.set_step(new_step_type=StepType.off_mode)
-        else:
-            logger.debug('Model: init with work_mode')
-            self.set_step(new_step_type=StepType.work_mode)
 
     def __update_view(self):
         """View initialization with model data."""
@@ -371,12 +375,41 @@ class Model:
         self.__set_current_step(new_step_type)
 
     def apply_new_user_settings(self, user_settings: UserSettingsData) -> None:
+        """Apply new settings: recompute durations, keep the current step (known issue 13).
+
+        The current step and its progress survive an Apply unless the
+        protection status actually changes; progress above a shortened
+        duration is clamped so the step ends on the next tick.
+        """
         logger.trace('Model: apply_new_settings')
+        old_protection_status = self.__settings.user_settings.protection_status
         self.user_settings = user_settings
         self.__user_activity_monitor = UserActivityMonitor(
             activity_timeout=datetime.timedelta(seconds=self.settings.user_settings.activity_timeout)
         )
-        self.__init_steps()
+        self.__build_steps()
+
+        new_protection_status = self.__settings.user_settings.protection_status
+        if old_protection_status != new_protection_status:
+            if new_protection_status == OnOffValue.off.value:
+                self.set_step(new_step_type=StepType.off_mode)
+            else:
+                self.set_step(new_step_type=StepType.work_mode)
+        else:
+            self.__clamp_current_step_progress()
+        self.__publish_snapshot()
+
+    def __clamp_current_step_progress(self) -> None:
+        """Refresh the current step duration and clamp elapsed time to it."""
+        current_step_type = self.__current_state.current_step_type
+        if current_step_type in (StepType.off_mode, StepType.iddle_mode):
+            return
+        step_duration = self.steps_data_list[current_step_type].step_duration_td
+        if self.__current_state.current_step_duration != step_duration:
+            # Apply may change durations: keep the step, refresh its duration
+            self.__current_state.set_current_step_data(step_type=current_step_type, step_duration=step_duration)
+        if self.__current_state.current_step_elapsed_time > step_duration:
+            self.__current_state.set_elapsed_time(time_delta=step_duration)
 
     def switch_suspended_state(self):
         logger.trace('Model: change_suspended_state')
