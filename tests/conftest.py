@@ -82,12 +82,30 @@ class FakeSoundNotificator:
         self.idle_plays += 1
 
 
-def make_model(tmp_path: Path, monkeypatch, settings: dict | None = None, inactive_reads: int = 0):
+class FakeClock:
+    """Deterministic monotonic clock for Model tests (known issue 24)."""
+
+    def __init__(self, start: float = 1000.0):
+        self.now = start
+
+    def __call__(self) -> float:
+        return self.now
+
+    def advance(self, seconds: float) -> None:
+        self.now += seconds
+
+
+def make_model(
+    tmp_path: Path,
+    monkeypatch,
+    settings: dict | None = None,
+    inactive_reads: int = 0,
+):
     """Create a Model with stubbed activity monitor, sound notificator and a FakeView.
 
     `inactive_reads` scripts the monitor: the first N reads report the user
     inactive, afterwards the user is active. Returns
-    (model, view, activity_monitor, sound_notificator).
+    (model, view, activity_monitor, sound_notificator, clock).
     """
     import model as model_module
 
@@ -95,21 +113,23 @@ def make_model(tmp_path: Path, monkeypatch, settings: dict | None = None, inacti
     monkeypatch.setattr(model_module, 'UserActivityMonitor', lambda activity_timeout: activity_monitor)
     sound_notificator = FakeSoundNotificator()
     monkeypatch.setattr(model_module, 'SoundNotificator', lambda sound_player, settings: sound_notificator)
+    clock = FakeClock()
 
     settings_file = tmp_path / 'settings.json'
     settings_file.write_text(json.dumps(settings or {}), encoding='utf-8')
 
-    model = model_module.Model(settings_file=settings_file)
+    model = model_module.Model(settings_file=settings_file, clock=clock)
     view = FakeView()
     model.set_view(view=view)
-    return model, view, activity_monitor, sound_notificator
+    return model, view, activity_monitor, sound_notificator, clock
 
 
-def run_ticks_until_step_ends(model, max_ticks: int = 100_000) -> int:
-    """Drive model.tick() until the current step ends (no real waiting)."""
+def run_ticks_until_step_ends(model, clock, tick_seconds: float = 1.0, max_ticks: int = 100_000) -> int:
+    """Drive model.tick() until the current step ends, advancing the fake clock."""
     ticks = 0
     while not model.tick():
         ticks += 1
+        clock.advance(tick_seconds)
         if ticks > max_ticks:
             raise AssertionError('model.tick() did not end the step within the tick limit')
     return ticks

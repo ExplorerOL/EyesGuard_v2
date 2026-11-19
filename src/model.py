@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from view import View
 
 import datetime
+import time
 
 from config.settings import OnOffValue, Settings, UserSettingsData
 from config.states import CurrentState, ModelSnapshot, StepData, StepType
@@ -25,10 +26,17 @@ SETTINGS_FILE = app_dir() / 'settings' / 'settings.json'
 
 
 class Model:
-    def __init__(self, settings_file: Path = SETTINGS_FILE):
+    def __init__(self, settings_file: Path = SETTINGS_FILE, clock=time.monotonic):
+        """Create the model.
+
+        `clock` is an injectable monotonic clock (known issue 24): step
+        timings are computed from the clock, sleep only paces the polling.
+        """
         self.__view: View
         self.__settings = Settings(settings_file)
         self.__current_state = CurrentState()
+        self.__clock = clock
+        self.__step_started_at = self.__clock()
 
         logger.info(f'User settings: = {self.__settings.user_settings}')
 
@@ -186,6 +194,8 @@ class Model:
         logger.debug(f'Step_type: {self.__current_state.current_step_type}')
         logger.debug(f'Step_duration: {self.__current_state.current_step_duration}')
         logger.debug(f'Steps data list: {self.steps_data_list[step_type]}')
+        # the step timer is deadline-based: elapsed comes from the clock (known issue 24)
+        self.__step_started_at = self.__clock() - self.__current_state.current_step_elapsed_time.total_seconds()
 
     def __save_work_step_for_idle_restore(self) -> None:
         """Remember the work step interrupted by idle to restore it later."""
@@ -208,6 +218,8 @@ class Model:
             step_duration = self.steps_data_list[saved_step_type].step_duration_td
             elapsed_time = max(step_duration - saved_remaining_time, datetime.timedelta(seconds=0))
             self.__current_state.set_elapsed_time(time_delta=elapsed_time)
+            # keep the deadline consistent with the restored progress
+            self.__step_started_at = self.__clock() - elapsed_time.total_seconds()
 
     @property
     def model(self) -> Model:
@@ -335,9 +347,11 @@ class Model:
         self.__process_screensaver_block()
 
         if self.__current_state.current_step_type not in (StepType.off_mode, StepType.iddle_mode):
-            if self.model.__current_state.current_step_elapsed_time < self.model.__current_state.current_step_duration:
-                self.model.__current_state.increase_elapsed_time()
-            else:
+            # deadline-based timing: elapsed comes from the monotonic clock,
+            # so expensive iterations do not slow the step down (known issue 24)
+            elapsed_time = datetime.timedelta(seconds=self.__clock() - self.__step_started_at)
+            self.__current_state.set_elapsed_time(time_delta=elapsed_time)
+            if elapsed_time >= self.__current_state.current_step_duration:
                 return True
         # video detection is skipped for break_mode: the break window is fullscreen
         # itself and our own screensaver block raises ES_DISPLAY_REQUIRED
@@ -439,6 +453,8 @@ class Model:
             self.__current_state.set_current_step_data(step_type=current_step_type, step_duration=step_duration)
         if self.__current_state.current_step_elapsed_time > step_duration:
             self.__current_state.set_elapsed_time(time_delta=step_duration)
+        # keep the deadline consistent with the (possibly clamped) progress
+        self.__step_started_at = self.__clock() - self.__current_state.current_step_elapsed_time.total_seconds()
 
     def switch_suspended_state(self):
         """Toggle suspended state; effects run once via set_step actions (known issue 14)."""
