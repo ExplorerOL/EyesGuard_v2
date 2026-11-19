@@ -8,7 +8,12 @@ permissions:
   contents: write
 
 jobs:
+  checks:
+    # lint, format check and tests are mandatory release gates (known issue 34)
+    uses: ./.github/workflows/tests.yml
+
   build-and-release:
+    needs: [checks]
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -42,17 +47,17 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
 
-      - name: Sync dependencies
+      - name: Sync dependencies (locked)
         if: steps.tag.outputs.skip == 'false'
-        run: uv sync --frozen
+        run: uv sync --locked
 
       - name: Tests (pytest)
         if: steps.tag.outputs.skip == 'false'
-        run: uv run pytest
+        run: uv run --no-sync pytest
 
       - name: Build onefile exe
         if: steps.tag.outputs.skip == 'false'
-        run: uv run pyinstaller EyesGuard-onefile.spec
+        run: uv run --no-sync pyinstaller EyesGuard-onefile.spec
 
       - name: Rename onefile exe
         if: steps.tag.outputs.skip == 'false'
@@ -63,7 +68,7 @@ jobs:
 
       - name: Build onedir bundle
         if: steps.tag.outputs.skip == 'false'
-        run: uv run pyinstaller EyesGuard-onedir.spec
+        run: uv run --no-sync pyinstaller EyesGuard-onedir.spec
 
       - name: Pack onedir zip
         if: steps.tag.outputs.skip == 'false'
