@@ -385,3 +385,20 @@ def test_elapsed_time_comes_from_clock_not_tick_count(tmp_path, monkeypatch):
     model.tick()
 
     assert model.current_state.current_step_elapsed_time == datetime.timedelta(seconds=30)
+
+
+def test_tick_does_not_produce_info_level_spam(tmp_path, monkeypatch):
+    """Regression for known issue 10: per-tick diagnostics must stay below INFO."""
+    from support.logger import logger
+
+    model, _, _, _, _ = make_model(tmp_path, monkeypatch)
+    records: list[tuple[str, str]] = []
+    sink_id = logger.add(lambda message: records.append((message.record['level'].name, str(message))))
+
+    try:
+        model.tick()
+    finally:
+        logger.remove(sink_id)
+
+    info_records = [level for level, _ in records if level == 'INFO']
+    assert not info_records
