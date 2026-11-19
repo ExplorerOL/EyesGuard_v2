@@ -105,6 +105,11 @@ class UserActivityMonitor:
             True if the user is active (idle time is less than timeout), False otherwise.
         """
         idle_time = self.__get_user_idle_time_from_os()
+        if idle_time < self._idle_time_offset:
+            # new real input arrived: the raw idle dropped below the offset
+            # (known issue 22: a stale offset must not extend the next timeout)
+            self._idle_time_offset = datetime.timedelta(seconds=0)
+            logger.debug('Activity offset reset: new user input detected')
         adjusted_idle_time = idle_time - self._idle_time_offset
         is_active = adjusted_idle_time <= self._activity_timeout
 
