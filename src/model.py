@@ -19,7 +19,7 @@ import datetime
 import time
 
 from config.settings import OnOffValue, Settings, UserSettingsData
-from config.states import CurrentState, StepData, StepType
+from config.states import CurrentState, ModelSnapshot, StepData, StepType
 from support.logger import logger
 
 SETTINGS_FILE = app_dir() / 'settings' / 'settings.json'
@@ -93,38 +93,32 @@ class Model:
             logger.debug('Model: init with work_mode')
             self.set_step(new_step_type=StepType.work_mode)
 
-        self.__view.update_all_wnd_values(self.model)
-
     def __update_view(self):
         """View initialization with model data."""
-        logger.trace('Model: __init_view function')
+        logger.trace('Model: __update_view function')
         self.__init_steps()
+        self.__publish_snapshot()
 
-        if self.__view is not None:
-            self.__view.update_all_wnd_values(self.model)
+    def __publish_snapshot(self):
+        """Publish an immutable state snapshot for the GUI thread.
 
-    def __update_tray_icon_values(self):
-        """Updating tray icon values."""
-        logger.trace('Controller: __update_tray_icon_values')
-
-        self.__calculate_remaining_time_for_work()
-        self.__view.update_tray_icon_values(self.model)
-
-    def __update_wnd_status(self):
-        """Updating status window values."""
-        logger.trace('Controller: __update_wnd_status_values')
-
+        The Tk thread polls the snapshot queue itself: the Model never calls
+        Tk widgets from the controller thread (known issue 3).
+        """
+        logger.trace('Model: __publish_snapshot')
         self.__remaining_time_to_display = self.__calculate_remaining_time_for_work()
         self.__time_for_work_full = self.__calculate_time_for_work()
-        self.__view.update_wnd_status(self.model)
-
-    def __update_wnd_settings(self):
-        self.__view.update_wnd_settings(self.model)
-
-    def __update_wnd_break(self):
-        """Updating break window values."""
-        logger.trace('Controller: __update_wnd_break_values')
-        self.__view.update_wnd_break(self.model)
+        snapshot = ModelSnapshot(
+            step_type=self.__current_state.current_step_type,
+            step_duration=self.__current_state.current_step_duration,
+            step_elapsed_time=self.__current_state.current_step_elapsed_time,
+            step_remaining_time=self.__current_state.current_step_remaining_time,
+            remaining_working_time_to_display=self.__remaining_time_to_display,
+            time_for_work_full=self.__time_for_work_full,
+            break_step_duration=self.steps_data_list[StepType.break_mode].step_duration_td,
+            user_settings=self.__settings.get_settings_copy(),
+        )
+        self.__view.submit_snapshot(snapshot)
 
     def __calculate_remaining_time_for_work(self) -> datetime.timedelta:
         remaining_time_actual: datetime.timedelta = self.model.__current_state.current_step_remaining_time
@@ -265,7 +259,7 @@ class Model:
 
             case StepType.break_mode:
                 logger.trace('Model: break_mode actions')
-                self.__update_wnd_break()
+                self.__publish_snapshot()
                 self.__sound_notificator.play_notification_break()
                 self.__user_activity_monitor.set_activity_offset()
 
@@ -283,7 +277,7 @@ class Model:
 
             case StepType.work_mode:
                 logger.trace('Model: work_mode actions')
-                self.__view.update_wnd_break(model=self.model)
+                self.__publish_snapshot()
                 self.__sound_notificator.play_notification_work()
                 self.__user_activity_monitor.set_activity_offset()
 
@@ -345,14 +339,8 @@ class Model:
                 logger.info('Switch to work mode from iddle mode')
                 self.set_step(new_step_type=StepType.work_mode)
 
-            # actions during step is in progress
-            match self.model.__current_state.current_step_type:
-                case StepType.break_mode:
-                    self.__update_wnd_break()
-
-                case _:
-                    self.__update_wnd_status()
-                    self.__update_tray_icon_values()
+            # publish fresh state for the GUI during the step
+            self.__publish_snapshot()
 
             time.sleep(self.settings.system_settings.TIME_TICK_S)
 
@@ -399,6 +387,4 @@ class Model:
         logger.trace('Model: set_step')
         self.__set_current_step(new_step_type)
         self.do_current_step_actions()
-        self.__update_wnd_break()
-        self.__update_wnd_status()
-        self.__update_wnd_settings()
+        self.__publish_snapshot()

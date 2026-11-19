@@ -1,20 +1,23 @@
 """Module with main widnow of application."""
 
 import os
+import queue
 
 import customtkinter
 import pystray
 
 from config.app_constants import APP_VERSION
 from config.settings import Settings, UserSettingsData
-from config.states import CurrentState, StepType
+from config.states import CurrentState, ModelSnapshot, StepType
 from controller import Controller
-from model import Model
 from support.logger import logger
 from support.resourses import ResImages
 from windows.wnd_break import WndBreak
 from windows.wnd_settings import WndSettings
 from windows.wnd_status import WndStatus
+
+# how often the Tk thread drains the snapshot and UI action queues
+QUEUES_POLL_INTERVAL_MS = 200
 
 
 class View(customtkinter.CTk):
@@ -29,10 +32,15 @@ class View(customtkinter.CTk):
         self.image_protection_suspended = ResImages.img_protection_suspended
         self.image_protection_off = ResImages.img_protection_off
 
+        # snapshots from the Model and UI actions from the tray are applied
+        # in the Tk thread only (known issue 3)
+        self.__snapshot_queue: queue.Queue[ModelSnapshot] = queue.Queue()
+        self.__ui_action_queue: queue.Queue = queue.Queue()
+
         self.__settings = Settings()
         self.__current_state = CurrentState()
         self.__wnd_settings = WndSettings(self, self.__settings)
-        self.__wnd_break = WndBreak(self, self.__current_state)
+        self.__wnd_break = WndBreak(self)
         self.__wnd_status = WndStatus(self)
         self.title(f'EyesGuard v{APP_VERSION}')
 
@@ -45,21 +53,63 @@ class View(customtkinter.CTk):
         self.__tray_icon = pystray.Icon('name', self.image_protection_active, 'Eyes Guard', menu)
         self.__tray_icon.run_detached()
 
+        # drain queues in the Tk thread: background threads must not touch widgets
+        self.after(QUEUES_POLL_INTERVAL_MS, self.__poll_queues)
+
         # hide main app wnd
         self.withdraw()
         logger.trace('View: object was created')
 
+    def __poll_queues(self):
+        """Drain queues in the Tk thread and reschedule the next poll."""
+        logger.trace('View: __poll_queues')
+        self.__drain_ui_actions()
+        self.__drain_snapshots()
+        self.after(QUEUES_POLL_INTERVAL_MS, self.__poll_queues)
+
+    def __drain_ui_actions(self):
+        """Execute queued UI actions (window show/hide, exit) in the Tk thread."""
+        while True:
+            try:
+                action = self.__ui_action_queue.get_nowait()
+            except queue.Empty:
+                break
+            action()
+
+    def __drain_snapshots(self):
+        """Apply the freshest Model snapshot to all windows in the Tk thread."""
+        latest_snapshot = None
+        while True:
+            try:
+                latest_snapshot = self.__snapshot_queue.get_nowait()
+            except queue.Empty:
+                break
+        if latest_snapshot is not None:
+            self.__apply_snapshot(latest_snapshot)
+
+    def __apply_snapshot(self, snapshot: ModelSnapshot):
+        """Update windows and tray icon values from a Model snapshot."""
+        self.__wnd_status.update(snapshot)
+        self.__wnd_settings.update(snapshot)
+        self.__wnd_break.update(snapshot)
+        self.__update_tray_icon_values(snapshot)
+
+    def submit_snapshot(self, snapshot: ModelSnapshot):
+        """Enqueue a Model snapshot; thread-safe (called from the controller thread)."""
+        self.__snapshot_queue.put(snapshot)
+
     def __show_status_wnd(self):
-        """Show status wnd."""
+        """Show status wnd (called from the tray thread: enqueue the action)."""
         logger.trace('View: show status wnd')
-        self.__wnd_status.show()
+        self.__ui_action_queue.put(self.__wnd_status.show)
 
     def __show_settings_wnd(self):
-        """Show settings wnd."""
+        """Show settings wnd (called from the tray thread: enqueue the action)."""
         logger.trace('View: show settings wnd')
-        self.__wnd_settings.show()
+        self.__ui_action_queue.put(self.__wnd_settings.show)
 
     def show_notification(self, title: str, text: str):
+        """Show a tray notification (pystray calls are thread-safe)."""
         logger.trace('View: show_notification')
         self.__tray_icon.notify(title, text)
 
@@ -69,17 +119,16 @@ class View(customtkinter.CTk):
         logger.trace('View: controller was set')
 
     def exit_app(self):
-        """Exit from app."""
+        """Exit from app (called from the tray thread: enqueue the action)."""
+        self.__ui_action_queue.put(self.__shutdown)
+
+    def __shutdown(self):
+        """Actual shutdown, always executed in the Tk thread."""
+        logger.trace('View: __shutdown')
         self.__tray_icon.visible = False
         self.__tray_icon.stop()
         self.quit()
         os._exit(0)
-
-    def update_all_wnd_values(self, model: Model):
-        """Init all data at windows."""
-        logger.trace('View: init_all_views function started')
-        self.__wnd_status.update(model)
-        self.__wnd_settings.update(model)
 
     def apply_view_user_settings(self):
         logger.trace('View: applying new settings')
@@ -110,30 +159,21 @@ class View(customtkinter.CTk):
         return ui_settings_data
 
     def show_wnd_break(self):
-        self.__wnd_break.show()
+        self.__ui_action_queue.put(self.__wnd_break.show)
 
     def hide_wnd_break(self):
-        self.__wnd_break.hide()
+        self.__ui_action_queue.put(self.__wnd_break.hide)
 
-    def update_wnd_status(self, model: Model) -> None:
-        self.__wnd_status.update(model)
-
-    def update_wnd_settings(self, model: Model) -> None:
-        self.__wnd_settings.update(model)
-
-    def update_wnd_break(self, model: Model) -> None:
-        self.__wnd_break.update(model)
-
-    def update_tray_icon_values(self, model: Model) -> None:
+    def __update_tray_icon_values(self, snapshot: ModelSnapshot) -> None:
         logger.trace('View: update_tray_icon_values')
-        self.__tray_icon.title = f'Time until break: {model.remaining_working_time_to_display}'
-        if model.current_state.current_step_type == StepType.off_mode:
+        self.__tray_icon.title = f'Time until break: {snapshot.remaining_working_time_to_display}'
+        if snapshot.step_type == StepType.off_mode:
             logger.debug('View: off cond')
             self.__tray_icon.title = 'Protection off'
             self.__tray_icon.icon = self.image_protection_off
-        elif model.current_state.current_step_type == StepType.suspended_mode:
+        elif snapshot.step_type == StepType.suspended_mode:
             self.__tray_icon.icon = self.image_protection_suspended
-            self.__tray_icon.title = f'Time until normal mode: {model.current_state.current_step_remaining_time}'
+            self.__tray_icon.title = f'Time until normal mode: {snapshot.step_remaining_time}'
         else:
             self.__tray_icon.icon = self.image_protection_active
 

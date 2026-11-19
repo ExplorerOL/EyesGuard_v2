@@ -13,8 +13,7 @@ import time
 import customtkinter
 
 from config.app_constants import APP_VERSION
-from config.states import StepType
-from model import Model
+from config.states import ModelSnapshot, StepType
 from support.logger import logger
 from support.resourses import ResImages
 
@@ -122,16 +121,16 @@ class WndStatus(customtkinter.CTkToplevel):
         logger.trace('Wnd_status: __btn_take_break_action')
         self.view.set_step(StepType.break_mode)
 
-    def update(self, model: Model):
+    def update(self, snapshot: ModelSnapshot):
         """Updating status window elements states."""
         logger.trace('Wnd status: update')
-        if model.time_for_work_full > datetime.timedelta(seconds=0):
-            pbar_value = 1 - model.remaining_working_time_to_display / model.time_for_work_full
+        if snapshot.time_for_work_full > datetime.timedelta(seconds=0):
+            pbar_value = 1 - snapshot.remaining_working_time_to_display / snapshot.time_for_work_full
         else:
             pbar_value = 0
         self.pbar_time_until_break.set(value=pbar_value)
 
-        match model.current_state.current_step_type:
+        match snapshot.step_type:
             case StepType.off_mode:
                 if self.btn_change_suspended_state.cget('state') != 'disabled':
                     self.btn_take_break.configure(state='disabled')
@@ -154,14 +153,11 @@ class WndStatus(customtkinter.CTkToplevel):
                         image=customtkinter.CTkImage(light_image=self.view.image_protection_suspended, size=(30, 30)),
                         require_redraw=True,
                     )
-                self.lbl_time_until_break.configure(
-                    text=(
-                        f'Time until normal mode: '
-                        f'{model.current_state.current_step_duration - model.current_state.current_step_elapsed_time}'
-                    )
-                )
+                self.lbl_time_until_break.configure(text=f'Time until normal mode: {snapshot.step_remaining_time}')
             case _:
-                self.lbl_time_until_break.configure(text=f'Time until break: {model.remaining_working_time_to_display}')
+                self.lbl_time_until_break.configure(
+                    text=f'Time until break: {snapshot.remaining_working_time_to_display}'
+                )
                 self.btn_change_suspended_state.configure(
                     text='Protection active',
                     text_color='GreenYellow',

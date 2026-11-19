@@ -16,8 +16,7 @@ from PIL import ImageTk
 
 from config.app_constants import APP_VERSION, APP_YEAR
 from config.settings import Settings
-from config.states import StepType
-from model import Model
+from config.states import ModelSnapshot, StepType
 from support.logger import logger
 from support.resourses import ResImages
 
@@ -418,9 +417,9 @@ class WndSettings(customtkinter.CTkToplevel):
         result = re.match('^[1-9][0-9]{0,2}$|^$', value) is not None
         return result
 
-    def update_protection_status_image(self, model: Model):
+    def update_protection_status_image(self, snapshot: ModelSnapshot):
         """Updating protection status at settings window."""
-        match model.current_state.current_step_type:
+        match snapshot.step_type:
             case StepType.off_mode:
                 self.navigation_frame_lbl_title.configure(image=self.img_eyes_protection_off)
                 self.navigation_frame_lbl_description.configure(text='Protection off!', text_color='Black')
@@ -433,24 +432,25 @@ class WndSettings(customtkinter.CTkToplevel):
                     text='Cares about your vision', text_color='GreenYellow'
                 )
 
-    def update(self, model: Model):
-        """Updating status window elements states."""
+    def update(self, snapshot: ModelSnapshot):
+        """Updating settings window elements from a model snapshot."""
         logger.trace('Settings wnd: update function started')
-        logger.debug(f'Model settings: {model}')
+        logger.debug(f'Model settings: {snapshot.user_settings}')
 
-        self.work_duration_value.set(str(model.user_settings.work_duration))
-        self.break_duration_value.set(str(model.user_settings.break_duration))
-        self.activity_timeout_value.set(str(model.user_settings.activity_timeout))
-        self.slider_volume.set(model.user_settings.volume)
-        self.lbl_volume.configure(text=f'Volume: {model.user_settings.volume} %')
-        self.chbox_sounds_value.set(value=model.user_settings.sounds)
-        self.chbox_notifications_value.set(value=model.user_settings.notifications)
-        self.chbox_protection_status_value.set(value=model.user_settings.protection_status)
-        self.chbox_screensaver_block_value.set(value=model.user_settings.screensaver_block)
-        self.chbox_suspend_on_video_value.set(value=model.user_settings.suspend_on_video)
-        self.chbox_reset_work_time_in_idle_value.set(value=model.user_settings.reset_work_time_in_idle)
+        user_settings = snapshot.user_settings
+        self.work_duration_value.set(str(user_settings.work_duration))
+        self.break_duration_value.set(str(user_settings.break_duration))
+        self.activity_timeout_value.set(str(user_settings.activity_timeout))
+        self.slider_volume.set(user_settings.volume)
+        self.lbl_volume.configure(text=f'Volume: {user_settings.volume} %')
+        self.chbox_sounds_value.set(value=user_settings.sounds)
+        self.chbox_notifications_value.set(value=user_settings.notifications)
+        self.chbox_protection_status_value.set(value=user_settings.protection_status)
+        self.chbox_screensaver_block_value.set(value=user_settings.screensaver_block)
+        self.chbox_suspend_on_video_value.set(value=user_settings.suspend_on_video)
+        self.chbox_reset_work_time_in_idle_value.set(value=user_settings.reset_work_time_in_idle)
 
-        self.update_protection_status_image(model)
+        self.update_protection_status_image(snapshot)
 
     def select_frame_by_name(self, name: str) -> None:
         self.btn_time_settings.configure(fg_color='LightSteelBlue' if name == 'frame_time_settings' else 'transparent')

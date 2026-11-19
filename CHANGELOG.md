@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- GUI windows and tray actions are now handled only in the main UI thread via a snapshot queue, preventing rare freezes and redraw glitches
+
 ## [2.3.0] - 2026-11-19
 
 ### Added

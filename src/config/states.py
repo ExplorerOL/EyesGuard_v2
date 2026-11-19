@@ -1,8 +1,14 @@
+from __future__ import annotations
+
 import datetime
 from dataclasses import dataclass
 from enum import IntEnum
+from typing import TYPE_CHECKING
 
 from support.logger import logger
+
+if TYPE_CHECKING:
+    from config.settings import UserSettingsData
 
 
 class StepType(IntEnum):
@@ -93,3 +99,21 @@ class CurrentState:
 
     def reset_elapsed_time(self):
         self.__elapsed_time_dt = datetime.timedelta(seconds=0)
+
+
+@dataclass(frozen=True)
+class ModelSnapshot:
+    """Immutable state snapshot published by the Model for the GUI thread.
+
+    The GUI polls snapshots in the Tk thread only: background threads never
+    touch widgets directly (known issue 3).
+    """
+
+    step_type: StepType
+    step_duration: datetime.timedelta
+    step_elapsed_time: datetime.timedelta
+    step_remaining_time: datetime.timedelta
+    remaining_working_time_to_display: datetime.timedelta
+    time_for_work_full: datetime.timedelta
+    break_step_duration: datetime.timedelta
+    user_settings: UserSettingsData

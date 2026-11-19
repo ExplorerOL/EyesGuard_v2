@@ -51,30 +51,14 @@ class FakeActivityMonitor:
 
 
 class FakeView:
-    """Records View calls instead of touching Tk."""
+    """Records snapshots and notifications instead of touching Tk."""
 
     def __init__(self):
         self.notifications: list[tuple[str, str]] = []
-        self.wnd_break_updates = 0
-        self.wnd_status_updates = 0
-        self.wnd_settings_updates = 0
-        self.tray_updates = 0
-        self.all_updates = 0
+        self.snapshots: list = []
 
-    def update_all_wnd_values(self, model) -> None:
-        self.all_updates += 1
-
-    def update_wnd_break(self, model) -> None:
-        self.wnd_break_updates += 1
-
-    def update_wnd_status(self, model) -> None:
-        self.wnd_status_updates += 1
-
-    def update_wnd_settings(self, model) -> None:
-        self.wnd_settings_updates += 1
-
-    def update_tray_icon_values(self, model) -> None:
-        self.tray_updates += 1
+    def submit_snapshot(self, snapshot) -> None:
+        self.snapshots.append(snapshot)
 
     def show_notification(self, title: str, text: str) -> None:
         self.notifications.append((title, text))

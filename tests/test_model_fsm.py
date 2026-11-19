@@ -8,6 +8,7 @@ import datetime
 
 from conftest import make_model
 
+from config.settings import UserSettingsData
 from config.states import StepType
 
 NOTIFICATION_1_DURATION = datetime.timedelta(seconds=55)
@@ -19,9 +20,37 @@ def test_initial_step_is_work_mode_when_protection_on(tmp_path, monkeypatch):
     model, view, _ = make_model(tmp_path, monkeypatch, settings={'protection_status': 'on'})
 
     assert model.current_state.current_step_type == StepType.work_mode
-    # update_all_wnd_values is called twice on init (from __init_steps and
-    # __update_view) — a known duplicate, see known issue 14
-    assert view.all_updates == 2
+    # initial setup publishes several snapshots (init + first step actions)
+    assert view.snapshots
+    assert view.snapshots[-1].step_type == StepType.work_mode
+
+
+def test_snapshot_contains_state_and_settings_copy(tmp_path, monkeypatch):
+    model, view, _ = make_model(tmp_path, monkeypatch, settings={'work_duration': 25})
+
+    snapshot = view.snapshots[-1]
+
+    assert snapshot.step_type == StepType.work_mode
+    assert snapshot.step_duration == datetime.timedelta(minutes=25) - (
+        NOTIFICATION_1_DURATION + NOTIFICATION_2_DURATION
+    )
+    assert snapshot.time_for_work_full == (datetime.timedelta(minutes=25))
+    assert snapshot.break_step_duration == datetime.timedelta(minutes=15)
+    assert snapshot.user_settings.work_duration == 25
+    # snapshot settings are a copy: later Model changes must not mutate it
+    new_settings = UserSettingsData()
+    new_settings.work_duration = 50
+    model.apply_new_user_settings(user_settings=new_settings)
+    assert snapshot.user_settings.work_duration == 25
+
+
+def test_set_step_publishes_break_snapshot(tmp_path, monkeypatch):
+    model, view, _ = make_model(tmp_path, monkeypatch)
+
+    model.set_step(new_step_type=StepType.break_mode)
+
+    assert view.snapshots[-1].step_type == StepType.break_mode
+    assert view.snapshots[-1].break_step_duration == datetime.timedelta(minutes=15)
 
 
 def test_initial_step_is_off_mode_when_protection_off(tmp_path, monkeypatch):

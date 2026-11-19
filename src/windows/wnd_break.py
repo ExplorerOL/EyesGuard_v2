@@ -14,8 +14,7 @@ from tkinter import StringVar
 import customtkinter
 
 from config.app_constants import APP_VERSION
-from config.states import CurrentState, StepType
-from model import Model
+from config.states import ModelSnapshot, StepType
 from support.logger import logger
 from support.resourses import ResImages
 
@@ -23,9 +22,8 @@ from support.resourses import ResImages
 class WndBreak(customtkinter.CTkToplevel):
     """Break window."""
 
-    def __init__(self, view: View, current_state: CurrentState, *args, **kwargs):
+    def __init__(self, view: View, *args, **kwargs):
         super().__init__(*args, fg_color='#000000', **kwargs)
-        self.current_state = current_state
         self.view = view
 
         ws = self.winfo_screenwidth()  # width of the screen
@@ -88,17 +86,17 @@ class WndBreak(customtkinter.CTkToplevel):
             self.attributes('-alpha', i / 100)
             time.sleep(0.006)
 
-    def update(self, model: Model):
+    def update(self, snapshot: ModelSnapshot):
         logger.trace('WndBreak: update')
 
-        if model.current_state.current_step_type == StepType.break_mode:
-            if model.current_state.current_step_elapsed_time > datetime.timedelta(seconds=0):
-                pbar_value = model.current_state.current_step_elapsed_time / model.current_state.current_step_duration
+        if snapshot.step_type == StepType.break_mode:
+            if snapshot.step_elapsed_time > datetime.timedelta(seconds=0):
+                pbar_value = snapshot.step_elapsed_time / snapshot.step_duration
             else:
                 pbar_value = 0
             self.pbar_break_progress.set(pbar_value)
-            step_duration = model.steps_data_list[StepType.break_mode].step_duration_td
-            elapsed_time = model.current_state.current_step_elapsed_time
+            step_duration = snapshot.break_step_duration
+            elapsed_time = snapshot.step_elapsed_time
             self.remaining_break_time.set(f'Remaining break time: {step_duration - elapsed_time}')
             if self.state() != 'normal':
                 self.show()
@@ -107,6 +105,4 @@ class WndBreak(customtkinter.CTkToplevel):
                 self.hide()
 
             self.pbar_break_progress.set(0)
-            self.remaining_break_time.set(
-                f'Remaining break time: {model.steps_data_list[StepType.break_mode].step_duration_td}'
-            )
+            self.remaining_break_time.set(f'Remaining break time: {snapshot.break_step_duration}')
