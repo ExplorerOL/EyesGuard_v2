@@ -2,6 +2,7 @@
 
 Фактическое состояние ветки `feature/v2.1.0` (зафиксировано при онбординге 2026-11-18). Исправлять —
 только по явному поручению пользователя, пункт за пунктом.
+Пункты 11-20 добавлены по итогам ревью проекта 2026-11-19 (ветка после v2.3.0, коммит d7af539).
 
 ## Техдолг (не трогать в рамках других задач)
 
@@ -17,6 +18,16 @@
 | 8 | `set_new_step_in_sequence` не имеет case для `iddle_mode`: если туда попасть из iddle — UnboundLocalError на `new_step_type`. Сейчас не воспроизводится (wait-цикл уходит из iddle раньше), но уязвимость к будущим правкам | src/model.py |
 | 9 | Опечатки в сообщениях: "occuired", "settind", "widnow" — в legacy-строках сохраняются | src/view.py, src/model.py |
 | 10 | Лог `Switch to iddle mode...` на info-уровне каждый тик при idle — шум в логе при WARNING-синке не виден, но захламляет при смене уровня | src/model.py |
+| 11 | **Data race на состояние**: `CurrentState`/`steps_data_list` мутируются из Tk-потока (`view.set_step` → `model.set_step`; `apply_new_user_settings` → `__init_steps`) одновременно с чтением/записью в controller-потоке (`wait_for_current_step_is_ended`) — без блокировок. Шире п.3 (там только потоконебезопасность Tk): гонка на самих данных | src/model.py:296-357, 398 |
+| 12 | **`steps_data_list` растёт при каждом Apply настроек**: `apply_new_user_settings` вызывает `__init_steps()`, а тот делает `insert()` в непустой список без очистки → +7 «мусорных» элементов, лог-шум, ловушка для будущих правок | src/model.py:36, 50-53, 386 |
+| 13 | **Смена любых настроек сбрасывает таймер шага и играет звук/уведомление**: `apply_new_user_settings` → `__init_steps` → `set_step(...)` → `do_current_step_actions` (включая `play_notification_work`). Изменил только громкость — потерял прогресс до перерыва | src/model.py:380-386, 89-94 |
+| 14 | **Двойной звук/действия при старте приложения**: `set_view` → `__init_steps` → `set_step` → `do_current_step_actions`, затем первая итерация `main_loop` вызывает `do_current_step_actions` снова для того же шага | src/controller.py:33-36, src/model.py:96 |
+| 15 | **У View собственные источники состояния**: `View.__init__` создаёт `Settings()` (дефолт, без файла) и отдельный `CurrentState()`, передаёт их в `WndSettings`/`WndBreak` — не связаны с Model. Работает случайно, т.к. `update(model)` читает из model | src/view.py:32-35 |
+| 16 | **`ResImages`: `Image.open` на атрибутах класса при импорте** — отсутствующий файл = крах на импорте; fallback-try есть только у `monitor.png` (несогласованно) | src/support/resourses.py:11-30 |
+| 17 | **`time.sleep(0.006)×100` в `show()/hide()`** — 0.6 с блокировки Tk mainloop; для `WndBreak` анимация запускается и из controller-потока. Правильно — `after()`-анимация | src/windows/wnd_break.py:67-89, src/windows/wnd_status.py:101-114, src/windows/wnd_settings.py:398-411 |
+| 18 | `__get_user_settings_from_wnd_settings` ловит только `TypeError`, а `int()` на пустой строке кидает `ValueError` → падение колбэка, настройки не применятся | src/view.py:91-106 |
+| 19 | `__repr__` возвращает `dict` в `UserSettingsData`/`Settings`/`CurrentState` — нарушение контракта Python; сериализация через `dir()` хрупка (поймает любой публичный метод). Правильно — `dataclasses.fields`/`asdict` | src/config/settings.py:45-61, src/config/states.py:41-56 |
+| 20 | Документация vs реальность: AGENTS.md заявляет покрытие тестами `config/states.py` и «таймингов Model» — таких тестов нет (только settings/sound_player/app_version). Не покрыта главная логика: переходы `set_new_step_in_sequence`, idle/video-debounce | tests/, AGENTS.md |
 
 ## Ловушки для агента
 
