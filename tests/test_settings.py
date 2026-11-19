@@ -3,68 +3,109 @@ from conftest import fixture_path
 
 from config.settings import Settings, UserSettingsData
 
-settings_default_str = (
-    "{'activity_timeout': 180, 'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', "
-    "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'on', 'suspend_on_video': 'on', "
-    "'volume': 100, 'work_duration': 45}"
-)
+settings_default = {
+    'work_duration': 45,
+    'break_duration': 15,
+    'activity_timeout': 180,
+    'volume': 100,
+    'sounds': 'on',
+    'notifications': 'on',
+    'protection_status': 'on',
+    'screensaver_block': 'on',
+    'suspend_on_video': 'on',
+    'reset_work_time_in_idle': 'off',
+}
 
 
 @pytest.mark.parametrize(
-    'settings_file_name, expected_settings_str',
+    'settings_file_name, expected_settings',
     [
         (
-            fixture_path('settings_valid_min_values.json'),
-            '{'
-            "'activity_timeout': 30, 'break_duration': 1, 'notifications': 'off', 'protection_status': 'on', "
-            "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'off', "
-            "'suspend_on_video': 'on', 'volume': 1, 'work_duration': 1"
-            '}',
+            'settings_valid_min_values.json',
+            {
+                'work_duration': 1,
+                'break_duration': 1,
+                'activity_timeout': 30,
+                'volume': 1,
+                'sounds': 'off',
+                'notifications': 'off',
+                'protection_status': 'on',
+                'screensaver_block': 'on',
+                'suspend_on_video': 'on',
+                'reset_work_time_in_idle': 'off',
+            },
         ),
         (
-            fixture_path('settings_valid_mean_values.json'),
-            '{'
-            "'activity_timeout': 315, 'break_duration': 50, 'notifications': 'on', 'protection_status': 'on', "
-            "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'off', "
-            "'suspend_on_video': 'on', 'volume': 50, 'work_duration': 50"
-            '}',
+            'settings_valid_mean_values.json',
+            {
+                'work_duration': 50,
+                'break_duration': 50,
+                'activity_timeout': 315,
+                'volume': 50,
+                'sounds': 'off',
+                'notifications': 'on',
+                'protection_status': 'on',
+                'screensaver_block': 'on',
+                'suspend_on_video': 'on',
+                'reset_work_time_in_idle': 'off',
+            },
         ),
         (
-            fixture_path('settings_valid_max_values.json'),
-            '{'
-            "'activity_timeout': 600, 'break_duration': 100, 'notifications': 'on', 'protection_status': 'on', "
-            "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'on', "
-            "'suspend_on_video': 'on', 'volume': 100, 'work_duration': 100"
-            '}',
+            'settings_valid_max_values.json',
+            {
+                'work_duration': 100,
+                'break_duration': 100,
+                'activity_timeout': 600,
+                'volume': 100,
+                'sounds': 'on',
+                'notifications': 'on',
+                'protection_status': 'on',
+                'screensaver_block': 'on',
+                'suspend_on_video': 'on',
+                'reset_work_time_in_idle': 'off',
+            },
         ),
         (
-            fixture_path('settings_valid_empty.json'),
-            '{'
-            "'activity_timeout': 180, 'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', "
-            "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'on', "
-            "'suspend_on_video': 'on', 'volume': 100, 'work_duration': 45"
-            '}',
+            'settings_valid_empty.json',
+            {
+                'work_duration': 45,
+                'break_duration': 15,
+                'activity_timeout': 180,
+                'volume': 100,
+                'sounds': 'on',
+                'notifications': 'on',
+                'protection_status': 'on',
+                'screensaver_block': 'on',
+                'suspend_on_video': 'on',
+                'reset_work_time_in_idle': 'off',
+            },
         ),
         (
-            fixture_path('settings_valid_no_param.json'),
-            '{'
-            "'activity_timeout': 180, 'break_duration': 15, 'notifications': 'off', 'protection_status': 'on', "
-            "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'off', "
-            "'suspend_on_video': 'on', 'volume': 100, 'work_duration': 1"
-            '}',
+            'settings_valid_no_param.json',
+            {
+                'work_duration': 1,
+                'break_duration': 15,
+                'activity_timeout': 180,
+                'volume': 100,
+                'sounds': 'off',
+                'notifications': 'off',
+                'protection_status': 'on',
+                'screensaver_block': 'on',
+                'suspend_on_video': 'on',
+                'reset_work_time_in_idle': 'off',
+            },
         ),
     ],
 )
-def test_read_settings_from_valid_file(settings_file_name, expected_settings_str):
-    settings = Settings(settings_file_name)
-    settings_str = str(settings)
-    assert settings_str == expected_settings_str
+def test_read_settings_from_valid_file(settings_file_name, expected_settings):
+    settings = Settings(fixture_path(settings_file_name))
+    assert settings.to_dict() == expected_settings
 
 
 def test_read_settings_from_missing_file_returns_defaults():
     """A missing settings file must fall back to defaults (FileNotFoundError branch)."""
     settings = Settings(fixture_path('settings_not_existing.json'))
-    assert str(settings) == settings_default_str
+    assert settings.to_dict() == settings_default
 
 
 def test_read_settings_from_malformed_json_returns_defaults(tmp_path):
@@ -76,7 +117,7 @@ def test_read_settings_from_malformed_json_returns_defaults(tmp_path):
     malformed_file = tmp_path / 'settings_malformed.json'
     malformed_file.write_text('{"work_duration": asd", "sounds": "on"}', encoding='utf-8')
     settings = Settings(malformed_file)
-    assert str(settings) == settings_default_str
+    assert settings.to_dict() == settings_default
 
 
 @pytest.mark.parametrize(
@@ -95,7 +136,7 @@ def test_read_settings_from_invalid_file_returns_defaults(settings_file_name):
     apply its valid fields.
     """
     settings = Settings(fixture_path(settings_file_name))
-    assert str(settings) == settings_default_str
+    assert settings.to_dict() == settings_default
 
 
 @pytest.mark.parametrize(
@@ -205,3 +246,48 @@ def test_read_settings_with_invalid_new_field_value():
     assert settings.user_settings.screensaver_block == 'on'
     assert settings.user_settings.suspend_on_video == 'on'
     assert settings.user_settings.reset_work_time_in_idle == 'off'
+
+
+def test_user_settings_constructor_accepts_all_fields():
+    settings = UserSettingsData(
+        work_duration=30,
+        break_duration=10,
+        activity_timeout=60,
+        volume=42,
+        sounds='off',
+        notifications='off',
+        protection_status='off',
+        screensaver_block='off',
+        suspend_on_video='off',
+        reset_work_time_in_idle='on',
+    )
+    assert settings.work_duration == 30
+    assert settings.volume == 42
+    assert settings.sounds == 'off'
+    assert settings.protection_status == 'off'
+    assert settings.reset_work_time_in_idle == 'on'
+
+
+def test_user_settings_equality_covers_all_fields():
+    """Regression for known issue 27: non-annotated fields used to be ignored by ==."""
+    base = UserSettingsData()
+    same = UserSettingsData()
+    changed_sounds = UserSettingsData()
+    changed_sounds.sounds = 'off'
+
+    assert base == same
+    assert base != changed_sounds
+
+
+def test_user_settings_to_dict_roundtrip():
+    settings = UserSettingsData()
+    settings.work_duration = 33
+    settings.suspend_on_video = 'off'
+
+    as_dict = settings.to_dict()
+
+    assert as_dict['work_duration'] == 33
+    assert as_dict['suspend_on_video'] == 'off'
+    assert len(as_dict) == 10
+    restored = UserSettingsData(**as_dict)
+    assert restored == settings

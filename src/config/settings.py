@@ -1,6 +1,7 @@
 """Module for settings management in application."""
 
 import copy
+import dataclasses
 import datetime
 from dataclasses import dataclass
 from enum import Enum
@@ -29,36 +30,37 @@ class SystemSettingsData:
 
 @dataclass
 class UserSettingsData:
-    """class for storing user settings."""
+    """class for storing user settings.
+
+    All fields are annotated dataclass fields (known issue 27): the generated
+    constructor and equality cover every setting.
+    """
 
     work_duration: int = 45
     break_duration: int = 15
     activity_timeout: int = 180
     volume: int = 100
-    sounds = OnOffValue.on.value
-    notifications = OnOffValue.on.value
-    protection_status = OnOffValue.on.value
-    screensaver_block = OnOffValue.on.value
-    suspend_on_video = OnOffValue.on.value
-    reset_work_time_in_idle = OnOffValue.off.value
+    sounds: str = OnOffValue.on.value
+    notifications: str = OnOffValue.on.value
+    protection_status: str = OnOffValue.on.value
+    screensaver_block: str = OnOffValue.on.value
+    suspend_on_video: str = OnOffValue.on.value
+    reset_work_time_in_idle: str = OnOffValue.off.value
 
-    def _settings_to_dict(self) -> dict:
-        # convertation object to dict
-        logger.trace('UserSettingsData: __settings_to_dict')
-        settings_dict = {}
-        for attr in dir(self):
-            if not attr.startswith('_'):
-                settings_dict[attr] = getattr(self, attr)
+    def to_dict(self) -> dict:
+        """Convert the object to a plain dict covering all dataclass fields."""
+        logger.trace('UserSettingsData: to_dict')
+        settings_dict = dataclasses.asdict(self)
         logger.debug(f'UserSettingsData: {settings_dict}')
         return settings_dict
 
-    def __repr__(self) -> dict:
-        """Object representation as dict."""
-        return self._settings_to_dict()
+    def __repr__(self) -> str:
+        """Object representation as string."""
+        return str(self.to_dict())
 
     def __str__(self) -> str:
         """Object as string."""
-        return str(self._settings_to_dict())
+        return str(self.to_dict())
 
 
 class SettingsDataValidator(BaseModel):
@@ -86,21 +88,17 @@ class Settings:
             self.__settings_file = Path(file_name)
             self.apply_settings_from_file()
 
-    def _settings_to_dict(self) -> dict:
+    def to_dict(self) -> dict:
         """Convertation settings object to dict."""
-        settings_dict = {}
-        for attr in dir(self.__user_settings):
-            if not attr.startswith('_'):
-                settings_dict[attr] = getattr(self.__user_settings, attr)
-        return settings_dict
+        return self.__user_settings.to_dict()
 
     def __repr__(self) -> dict:
         """Convertation settings object to view in terminal."""
-        return self._settings_to_dict()
+        return self.to_dict()
 
     def __str__(self) -> str:
         """Convertation object to string."""
-        return str(self._settings_to_dict())
+        return str(self.to_dict())
 
     def __read_settings_from_file(self) -> str | None:
         """Reading settings from file on disk."""
@@ -134,11 +132,9 @@ class Settings:
     def __apply_settings(self, validated_settings: SettingsDataValidator) -> None:
         """Apply given settings to the app."""
         if validated_settings is not None:
-            for attr in dir(self.__user_settings):
-                if not attr.startswith('_'):
-                    logger.debug(f'Settings: get attr: {attr}')
-                    setattr(self.__user_settings, attr, getattr(validated_settings, attr))
-                    logger.debug(getattr(self.__user_settings, attr))
+            # iterate validated fields explicitly: dir() would catch methods too (known issue 19)
+            for field_name, field_value in validated_settings.model_dump().items():
+                setattr(self.__user_settings, field_name, field_value)
 
     def apply_settings_from_file(self):
         """Read, validate and apply settings from file."""
@@ -153,7 +149,7 @@ class Settings:
         logger.debug(f'New settings from ui to apply: {new_settings_data}')
         logger.debug(type(new_settings_data))
         try:
-            settings_validated = SettingsDataValidator.model_validate(new_settings_data.__repr__())
+            settings_validated = SettingsDataValidator.model_validate(new_settings_data.to_dict())
         except ValidationError as error:
             logger.error(error)
             logger.error(type(error))
@@ -164,7 +160,7 @@ class Settings:
     def save_settings_to_file(self):
         """Save settings to file."""
         logger.trace('Settings: save_settings_to_file')
-        settings_dict = self._settings_to_dict()
+        settings_dict = self.to_dict()
         logger.debug(settings_dict)
         logger.debug(type(settings_dict))
         try:
