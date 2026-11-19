@@ -13,6 +13,7 @@ from tkinter import StringVar
 
 import customtkinter
 
+from config.app_version import APP_VERSION
 from config.states import CurrentState, StepType
 from model import Model
 from support.logger import logger
@@ -31,7 +32,7 @@ class WndBreak(customtkinter.CTkToplevel):
         hs = self.winfo_screenheight()  # height of the screen
         self.attributes('-alpha', 0)
         self.geometry(f'{ws}x{hs}')
-        self.title('EyesGuard v2.0.0')
+        self.title(f'EyesGuard v{APP_VERSION}')
 
         self.attributes('-topmost', True)
         self.attributes('-fullscreen', True)
