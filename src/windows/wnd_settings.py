@@ -15,7 +15,7 @@ import customtkinter
 from PIL import ImageTk
 
 from config.app_constants import APP_VERSION, APP_YEAR
-from config.settings import Settings
+from config.settings import UserSettingsData
 from config.states import ModelSnapshot, StepType
 from support.logger import logger
 from support.resourses import ResImages
@@ -24,7 +24,7 @@ from support.resourses import ResImages
 class WndSettings(customtkinter.CTkToplevel):
     """Settings window."""
 
-    def __init__(self, view: View, settings: Settings, *args, **kwargs):
+    def __init__(self, view: View, settings: UserSettingsData, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.view = view
@@ -187,7 +187,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.lbl_work_duration.grid(row=0, column=0, padx=(20, 5), pady=10, sticky='w')
 
         self.work_duration_value = StringVar()
-        self.work_duration_value.set(self.settings.get_settings_copy().work_duration)
+        self.work_duration_value.set(self.settings.work_duration)
         verify_cmd_work_duration = (self.register(self.is_valid_duration_entry), '%P')
         self.entry_work_duration = customtkinter.CTkEntry(
             self.frame_time_settings,
@@ -206,7 +206,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.lbl_break_duration.grid(row=1, column=0, padx=(20, 5), pady=10, sticky='w')
 
         self.break_duration_value = StringVar()
-        self.break_duration_value.set(self.settings.get_settings_copy().break_duration)
+        self.break_duration_value.set(self.settings.break_duration)
         verify_cmd_break_duration = (self.register(self.is_valid_duration_entry), '%P')
         self.entry_break_duration = customtkinter.CTkEntry(
             self.frame_time_settings,
@@ -225,7 +225,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.lbl_activity_timeout.grid(row=2, column=0, padx=(20, 5), pady=10, sticky='w')
 
         self.activity_timeout_value = StringVar()
-        self.activity_timeout_value.set(self.settings.get_settings_copy().activity_timeout)
+        self.activity_timeout_value.set(self.settings.activity_timeout)
         verify_cmd_activity_timeout = (self.register(self.is_valid_activity_timeout_entry), '%P')
         self.entry_activity_timeout = customtkinter.CTkEntry(
             self.frame_time_settings,
@@ -238,9 +238,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.entry_activity_timeout.grid(row=2, column=1, padx=(5, 15), pady=10, sticky='w')
 
         # reset work time in idle mode setting
-        self.chbox_reset_work_time_in_idle_value = customtkinter.StringVar(
-            value=self.settings.get_settings_copy().reset_work_time_in_idle
-        )
+        self.chbox_reset_work_time_in_idle_value = customtkinter.StringVar(value=self.settings.reset_work_time_in_idle)
         self.chbox_reset_work_time_in_idle = customtkinter.CTkCheckBox(
             self.frame_time_settings,
             text='Reset working time in idle mode',
@@ -255,9 +253,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.frame_general_settings = customtkinter.CTkFrame(self, corner_radius=0, fg_color='transparent')
 
         # protextion status setting
-        self.chbox_protection_status_value = customtkinter.StringVar(
-            value=self.settings.get_settings_copy().protection_status
-        )
+        self.chbox_protection_status_value = customtkinter.StringVar(value=self.settings.protection_status)
         self.chbox_protection_status = customtkinter.CTkCheckBox(
             self.frame_general_settings,
             text='Protection status',
@@ -269,7 +265,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.chbox_protection_status.grid(row=0, column=0, padx=20, pady=10, sticky='ew')
 
         # notifications setting
-        self.chbox_notifications_value = customtkinter.StringVar(value=self.settings.get_settings_copy().notifications)
+        self.chbox_notifications_value = customtkinter.StringVar(value=self.settings.notifications)
         self.chbox_notifications = customtkinter.CTkCheckBox(
             self.frame_general_settings,
             text='Notifications enabled',
@@ -286,7 +282,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.frame_sounds_settings.grid_columnconfigure(1, weight=1)
 
         # sounds on/off setting (moved from the General tab)
-        self.chbox_sounds_value = customtkinter.StringVar(value=self.settings.get_settings_copy().sounds)
+        self.chbox_sounds_value = customtkinter.StringVar(value=self.settings.sounds)
         self.chbox_sounds = customtkinter.CTkCheckBox(
             self.frame_sounds_settings,
             text='Sounds enabled',
@@ -300,7 +296,7 @@ class WndSettings(customtkinter.CTkToplevel):
         # sounds volume setting
         self.lbl_volume = customtkinter.CTkLabel(
             self.frame_sounds_settings,
-            text=f'Volume: {self.settings.get_settings_copy().volume} %',
+            text=f'Volume: {self.settings.volume} %',
             font=('', 13),
         )
         self.lbl_volume.grid(row=1, column=0, padx=20, pady=10)
@@ -312,7 +308,7 @@ class WndSettings(customtkinter.CTkToplevel):
             number_of_steps=99,
             command=self.event_volume_slider_move,
         )
-        self.slider_volume.set(self.settings.get_settings_copy().volume)
+        self.slider_volume.set(self.settings.volume)
         self.slider_volume.grid(row=1, column=1, padx=20, pady=20, sticky='ew')
 
         # --- create display settings frame ---
@@ -320,9 +316,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.frame_display_settings.grid_columnconfigure(1, weight=1)
 
         # screensaver block setting
-        self.chbox_screensaver_block_value = customtkinter.StringVar(
-            value=self.settings.get_settings_copy().screensaver_block
-        )
+        self.chbox_screensaver_block_value = customtkinter.StringVar(value=self.settings.screensaver_block)
         self.chbox_screensaver_block = customtkinter.CTkCheckBox(
             self.frame_display_settings,
             text='Block screensaver during breaks',
@@ -334,9 +328,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.chbox_screensaver_block.grid(row=0, column=0, padx=20, pady=10, sticky='ew')
 
         # suspend on video playback setting
-        self.chbox_suspend_on_video_value = customtkinter.StringVar(
-            value=self.settings.get_settings_copy().suspend_on_video
-        )
+        self.chbox_suspend_on_video_value = customtkinter.StringVar(value=self.settings.suspend_on_video)
         self.chbox_suspend_on_video = customtkinter.CTkCheckBox(
             self.frame_display_settings,
             text='Switch to idle mode on video playback',

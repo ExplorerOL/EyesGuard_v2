@@ -10,7 +10,7 @@ def main():
 
     controller = Controller()
     model = Model()
-    view = View()
+    view = View(initial_settings=model.settings.get_settings_copy())
 
     controller.set_model(model=model)
     model.set_view(view=view)

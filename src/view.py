@@ -7,8 +7,8 @@ import customtkinter
 import pystray
 
 from config.app_constants import APP_VERSION
-from config.settings import Settings, UserSettingsData
-from config.states import CurrentState, ModelSnapshot, StepType
+from config.settings import UserSettingsData
+from config.states import ModelSnapshot, StepType
 from controller import Controller
 from support.logger import logger
 from support.resourses import ResImages
@@ -23,7 +23,8 @@ QUEUES_POLL_INTERVAL_MS = 200
 class View(customtkinter.CTk):
     """Main window of application."""
 
-    def __init__(self):
+    def __init__(self, initial_settings: UserSettingsData):
+        """Create the view from the Model's initial settings (no own state)."""
         super().__init__()
         customtkinter.set_appearance_mode('light')
         customtkinter.set_default_color_theme('blue')
@@ -37,9 +38,7 @@ class View(customtkinter.CTk):
         self.__snapshot_queue: queue.Queue[ModelSnapshot] = queue.Queue()
         self.__ui_action_queue: queue.Queue = queue.Queue()
 
-        self.__settings = Settings()
-        self.__current_state = CurrentState()
-        self.__wnd_settings = WndSettings(self, self.__settings)
+        self.__wnd_settings = WndSettings(self, initial_settings)
         self.__wnd_break = WndBreak(self)
         self.__wnd_status = WndStatus(self)
         self.title(f'EyesGuard v{APP_VERSION}')
