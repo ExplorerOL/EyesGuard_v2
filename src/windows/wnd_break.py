@@ -13,7 +13,7 @@ from tkinter import StringVar
 
 import customtkinter
 
-from config.app_version import APP_VERSION
+from config.app_constants import APP_VERSION
 from config.states import CurrentState, StepType
 from model import Model
 from support.logger import logger

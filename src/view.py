@@ -5,7 +5,7 @@ import os
 import customtkinter
 import pystray
 
-from config.app_version import APP_VERSION
+from config.app_constants import APP_VERSION
 from config.settings import Settings, UserSettingsData
 from config.states import CurrentState, StepType
 from controller import Controller
@@ -92,6 +92,7 @@ class View(customtkinter.CTk):
             ui_settings_data.work_duration = int(self.__wnd_settings.work_duration_value.get())
             ui_settings_data.break_duration = int(self.__wnd_settings.break_duration_value.get())
             ui_settings_data.activity_timeout = int(self.__wnd_settings.activity_timeout_value.get())
+            ui_settings_data.volume = int(self.__wnd_settings.slider_volume.get())
             ui_settings_data.protection_status = str(self.__wnd_settings.chbox_protection_status_value.get())
             ui_settings_data.sounds = str(self.__wnd_settings.chbox_sounds_value.get())
             ui_settings_data.notifications = str(self.__wnd_settings.chbox_notifications_value.get())

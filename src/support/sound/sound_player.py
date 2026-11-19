@@ -1,31 +1,36 @@
-import threading
+"""Cross-platform sound player factory with a safe no-op default."""
+
+import sys
 from pathlib import Path
 from typing import Protocol
-
-import playsound
 
 from support.logger import logger
 
 
 class PSoundPlayer(Protocol):
-    def play(self, file_path: Path) -> None:
-        """Playing given file by Path."""
+    def play(self, file_path: Path, volume: int) -> None:
+        """Playing given file by Path with volume in percents (1-100)."""
         ...
 
 
-class SoundPlayer(PSoundPlayer):
-    def play(self, file_path: Path) -> None:
-        if not file_path.exists():
-            logger.error(f'File {file_path} does not exist. Skipping playing sound!')
-            return
-        threading.Thread(target=self.__play_sound_safely, name=self.__class__.__name__, args=(file_path,)).start()
+class NoopSoundPlayer:
+    """No-operation sound player: safe default for non-Windows platforms."""
 
-    def __play_sound_safely(self, file_path: Path) -> None:
-        try:
-            playsound.playsound(sound=file_path)
-        # Any third-party playback error must not crash the app (safe default: skip sound)
-        except Exception as e:  # noqa: BLE001
-            logger.error(f'Error while playing sound!\n {e!r}')
+    def play(self, file_path: Path, volume: int) -> None:
+        """Skip playing: sounds are supported on Windows only."""
+        logger.trace('NoopSoundPlayer: play')
+        logger.debug(f'NoopSoundPlayer: skipping sound {file_path} with volume {volume}')
 
 
-sound_player = SoundPlayer()
+def create_sound_player() -> PSoundPlayer:
+    """Create a platform-specific sound player."""
+    logger.trace('create_sound_player')
+    if sys.platform == 'win32':
+        # Factory import guarantees the Windows-only module is never imported on other platforms
+        from support.sound.windows.sound_player import MciSoundPlayer
+
+        return MciSoundPlayer()
+    return NoopSoundPlayer()
+
+
+sound_player = create_sound_player()

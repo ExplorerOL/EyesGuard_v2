@@ -19,6 +19,7 @@ class ResImages:
     img_clock = Image.open(resource_dir() / 'res/img/clock.png')
     img_gear = Image.open(resource_dir() / 'res/img/gear.png')
     img_info = Image.open(resource_dir() / 'res/img/info.png')
+    img_sounds = Image.open(resource_dir() / 'res/img/speaker.png')
 
 
 class ResSoundsPaths:

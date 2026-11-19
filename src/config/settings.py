@@ -34,6 +34,7 @@ class UserSettingsData:
     work_duration: int = 45
     break_duration: int = 15
     activity_timeout: int = 180
+    volume: int = 100
     sounds = OnOffValue.on.value
     notifications = OnOffValue.on.value
     protection_status = OnOffValue.on.value
@@ -63,6 +64,7 @@ class SettingsDataValidator(BaseModel):
     work_duration: int = Field(default=45, gt=0, lt=101)
     break_duration: int = Field(default=15, gt=0, lt=101)
     activity_timeout: int = Field(default=180, ge=30, le=600)
+    volume: int = Field(default=100, ge=1, le=100)
     sounds: Literal['on', 'off'] = 'on'
     notifications: Literal['on', 'off'] = 'on'
     protection_status: Literal['on', 'off'] = 'on'

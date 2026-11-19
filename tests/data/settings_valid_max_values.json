@@ -2,6 +2,7 @@
     "work_duration": 100,
     "break_duration": 100,
     "activity_timeout": 600,
+    "volume": 100,
     "sounds": "on",
     "notifications": "on"
 }

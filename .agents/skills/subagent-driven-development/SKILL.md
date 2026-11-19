@@ -11,26 +11,26 @@ Execute plan by dispatching a fresh implementer subagent per task, a task review
 
 **Core principle:** Fresh subagent per task + task review (spec + quality) + broad final review = high quality, fast iteration
 
-**Язык коммитов (правило проекта):** каждый коммит в процессе выполнения — в формате conventional commits: фиксированный английский префикс типа (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`), тема и тело — на русском. Пример: `feat: добавлен клиент запретов`. Переносите это правило в каждую отправку исполнителю (сабагенты не наследуют контекст сессии) и в блок глобальных ограничений рецензента.
+**Язык коммитов (правило проекта):** каждый коммит в процессе выполнения — в формате Conventional Commits: фиксированный английский префикс типа (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`), тема и тело — на английском. Пример: `feat: add prohibition client`. Переносите это правило в каждую отправку исполнителю (субагенты не наследуют контекст сессии) и в блок глобальных ограничений рецензента. Коммиты в рамках задачи разрешены; `git push` запрещён без отдельного явного запроса пользователя.
 
 **Narration:** between tool calls, narrate at most one short line — the
 ledger and the tool results carry the record.
 
-**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are the four named below, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
+**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are the five named below, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
 
-**Rulings, not stalls.** A running plan does not wait on a human. Conflicts,
-ambiguities, plan defects, a cap you would have asked to exceed — decide
-them. The spec is the binding authority, the plan is its argument, and your
-judgment settles what neither answers. Record every decision in the ledger as
-`Ruling: <what you decided> — <why> — <what it costs if wrong>`, and keep
-going. A wrong ruling costs rework your human partner can see and undo; a
-session parked on a question costs their whole day and buys nothing.
+**Rulings, not stalls — for technical decisions only.** A running plan does not
+wait on a human for routine technical conflicts, plan defects or implementation
+choices already bounded by the specification. The spec is the binding authority,
+the plan is its argument, and your judgment settles what neither answers. Record
+every such decision in the ledger as `Ruling: <what you decided> — <why> — <what
+it costs if wrong>`, and keep going.
 
-Four things stop you, and only these: an irreversible or destructive
-operation; a security-sensitive action; a side effect outside this worktree
-that norms say you ask about first (a merge, a push to a shared branch, a
-publish); and a plan so broken that every path forward is a guess. For those,
-stop and ask.
+Never decide product behavior, scope, new dependencies or explicit user
+preferences on the user's behalf. Five things stop you: an irreversible or
+destructive operation; a security-sensitive action; a side effect outside this
+worktree that norms say you ask about first (a merge, a push to a shared branch,
+a publish); a plan so broken that every path forward is a guess; and an
+unresolved product, scope or requirements decision. For those, stop and ask.
 
 ## When to Use
 
@@ -79,20 +79,20 @@ digraph process {
         "All findings addressed?" [shape=diamond];
         "R = 5?" [shape=diamond];
         "Adjudicate each open finding" [shape=box];
-        "Any load-bearing finding?" [shape=diamond];
-        "Rule and continue; stop only if every path forward is a guess" [shape=box];
-        "Park findings in ledger with rulings" [shape=box];
+        "Any real Critical/Important finding?" [shape=diamond];
+        "Stop and ask user before continuing" [shape=box];
+        "Park only Minor or demonstrably false findings with rulings" [shape=box];
         "Append completion to ledger, mark todo complete" [shape=box];
     }
 
-    "Setup: worktree, ledger check, read plan, pre-flight review" [shape=box];
+    "Setup: checkout check, ledger check, read plan, pre-flight review" [shape=box];
     "More tasks remain?" [shape=diamond];
-    "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [shape=box];
+    "Dispatch final code reviewer (./final-reviewer-prompt.md)" [shape=box];
     "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" [shape=box];
-    "Final review clean: delete this plan's workspace" [shape=box];
-    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+    "Final review clean: record results in task status" [shape=box];
+    "Record final results and report to user" [shape=box style=filled fillcolor=lightgreen];
 
-    "Setup: worktree, ledger check, read plan, pre-flight review" -> "Dispatch implementer subagent (./implementer-prompt.md)";
+    "Setup: checkout check, ledger check, read plan, pre-flight review" -> "Dispatch implementer subagent (./implementer-prompt.md)";
     "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer asks questions?";
     "Implementer asks questions?" -> "Answer questions, provide context" [label="yes"];
     "Answer questions, provide context" -> "Implementer implements, tests, commits, self-reviews";
@@ -110,25 +110,26 @@ digraph process {
     "All findings addressed?" -> "R = 5?" [label="no"];
     "R = 5?" -> "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" [label="no - next round"];
     "R = 5?" -> "Adjudicate each open finding" [label="yes - breaker trips"];
-    "Adjudicate each open finding" -> "Any load-bearing finding?";
-    "Any load-bearing finding?" -> "Rule and continue; stop only if every path forward is a guess" [label="yes"];
-    "Any load-bearing finding?" -> "Park findings in ledger with rulings" [label="no"];
-    "Park findings in ledger with rulings" -> "Append completion to ledger, mark todo complete";
+    "Adjudicate each open finding" -> "Any real Critical/Important finding?";
+    "Any real Critical/Important finding?" -> "Stop and ask user before continuing" [label="yes"];
+    "Any real Critical/Important finding?" -> "Park only Minor or demonstrably false findings with rulings" [label="no"];
+    "Park only Minor or demonstrably false findings with rulings" -> "Append completion to ledger, mark todo complete";
     "Append completion to ledger, mark todo complete" -> "More tasks remain?";
     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
-    "More tasks remain?" -> "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [label="no"];
-    "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" -> "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals";
-    "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" -> "Final review clean: delete this plan's workspace";
-    "Final review clean: delete this plan's workspace" -> "Use superpowers:finishing-a-development-branch";
+    "More tasks remain?" -> "Dispatch final code reviewer (./final-reviewer-prompt.md)" [label="no"];
+    "Dispatch final code reviewer (./final-reviewer-prompt.md)" -> "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals";
+    "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" -> "Final review clean: record results in task status";
+    "Final review clean: record results in task status" -> "Record final results and report to user";
 }
 ```
 
 ## Setup
 
-Ensure the work happens in an isolated workspace: use
-superpowers:using-git-worktrees to create one or verify the existing one.
-Never start implementation on a main/master branch without your human
-partner's explicit consent.
+Before implementation, inspect `git status` and preserve all unrelated user
+changes. Work in the current checkout unless the user explicitly requests a
+branch or worktree; do not create, switch, reset, rebase, or clean branches
+automatically. Never start implementation on a main/master branch without the
+user's explicit consent. Never push without a separate explicit request.
 
 Conversation memory does not survive compaction. In real sessions,
 controllers that lost their place have re-dispatched entire completed task
@@ -186,6 +187,10 @@ implementation.
 ## Model Selection
 
 Use the least powerful model that can handle each role to conserve cost and increase speed.
+If the harness does not support model selection or implementation subagents, use
+the available agent or execute the plan in the controller session; keep the same
+review gates and record the fallback in the ledger. Never claim a dispatch that
+did not happen.
 
 **Mechanical implementation tasks** (isolated functions, clear specs, 1-2 files): use a fast, cheap model. Most implementation tasks are mechanical when the plan is well-specified.
 
@@ -283,9 +288,9 @@ and fix-round diffs need it.
   fix-loop rounds 1-3 resume this agent.
 - Never dispatch multiple implementation subagents in parallel (conflicts).
 - **Язык коммитов:** включайте правило оформления коммитов в каждую отправку —
-  фиксированный английский префикс типа conventional commits (`feat:`, `fix:`,
-  `test:`, `docs:`, `refactor:`, `chore:`), тема и тело — на русском (см.
-  «Язык коммитов (правило проекта)» выше). Сабагенты не наследуют ваш контекст,
+  Conventional Commits с фиксированным английским префиксом типа (`feat:`, `fix:`,
+  `test:`, `docs:`, `refactor:`, `chore:`), тема и тело — на английском (см.
+  «Язык коммитов (правило проекта)» выше). Субагенты не наследуют ваш контекст,
   поэтому правило должно ехать вместе с отправкой — включая resume-раунды
   фиксов, в которые уходит только список находок.
 
@@ -341,10 +346,10 @@ needed.
   test hygiene, review method) — the constraints block is for what THIS
   project's spec demands.
 - Включайте в блок ограничений рецензента конвенцию языка коммитов проекта:
-  фиксированный английский префикс типа conventional commits, тема и тело —
-  на русском. Review-пакет содержит список тем коммитов, и рецензент без этой
-  конвенции может счесть русские темы дефектом. Указание требования — это не
-  предвзятость, а само требование.
+  Conventional Commits с фиксированным английским префиксом типа, тема и тело —
+  на английском. Review-пакет содержит список тем коммитов, и рецензент должен
+  проверять их по этой конвенции. Указание требования — это не предвзятость,
+  а само требование.
 - Do not add open-ended directives like "check all uses" or "run race tests
   if useful" without a concrete, task-specific reason
 - Do not ask a reviewer to re-run tests the implementer already ran on the
@@ -425,17 +430,16 @@ clean for coordination, and controller fixes skip review.
 dispatching. Adjudicate each open finding yourself — you hold the plan and
 the cross-task context the reviewer lacks:
 
-- **The reviewer is wrong, or the point is contestable:** park it —
-  `Task <N>: parked — <finding> — Ruling: <why the code stands>`. The final
-  review sees both sides.
-- **Real, but nothing downstream builds on it:** park it the same way, with
-  a ruling that says it's real and deferred.
-- **Real and load-bearing** — a later task builds on it, or it reveals a
-  plan defect: rule on the smallest change that unblocks the dependent work,
-  ledger it as `Task <N>: Ruling: <finding> — <what you decided and why>`,
-  and carry it into the next task's dispatch. Parking a structural failure
-  silently lets every dependent task build on it. Stop only when the defect
-  leaves every path forward a guess.
+- **The reviewer is demonstrably wrong:** park it —
+  `Task <N>: parked — <finding> — Ruling: <evidence why the code stands>`. The
+  final review sees both sides. A merely contestable Critical/Important finding
+  is not demonstrably false: stop and ask the user.
+- **Real Minor:** park it with a ruling that says it is real and deferred. The
+  final review must triage it explicitly.
+- **Real Critical/Important:** do not park it or mark the task complete on the
+  controller's authority. Stop and ask the user; deferral requires an explicit
+  user decision recorded in the ledger. If later tasks depend on the finding,
+  do not dispatch them while it remains open.
 
 Adjudicate only at the cap. Adjudicating earlier to end a loop is
 pre-judging with a different name. Every adjudication is a ledger entry —
@@ -443,30 +447,29 @@ a silent discard is forbidden.
 
 ### 5. Complete the task
 
-When the review comes back clean — or every open finding is parked with a
-ruling at the cap — append the completion line to the ledger in the same
-message as your other bookkeeping:
+When the review comes back clean — or every remaining finding is Minor or
+demonstrably false and parked with a ruling at the cap — append the completion line to
+the ledger in the same message as your other bookkeeping:
 
 - `Task <N>: complete (commits <base7>..<head7>, review clean)`
 - `Task <N>: complete (commits <base7>..<head7>, <K> parked)` after a
   tripped breaker
 
 Then mark the todo complete and move on. Never move to the next task while
-the review has open Critical/Important issues that are neither fixed nor
-parked-with-ruling at the cap.
+the review has open real Critical/Important issues: the controller cannot park
+them without an explicit user decision.
 
 ## Final Review
 
-The final whole-branch review gets a package too: run
+The final whole-change review gets a package too: run
 `scripts/review-package PLAN_FILE MERGE_BASE HEAD` (MERGE_BASE = the commit the
-branch started from, e.g. `git merge-base main HEAD`) and include the
-printed path in the final review dispatch, so the final reviewer reads
-one file instead of re-deriving the branch diff with git commands. Dispatch
-on the most capable available model (see Model Selection), using
-superpowers:requesting-code-review's
-[code-reviewer.md](../requesting-code-review/code-reviewer.md). Point it at
-the ledger's deferred-minor and parked lines so it can triage which must be
-fixed before merge.
+work started from, e.g. `git merge-base main HEAD` for a feature branch) and
+include the printed path in the final review dispatch, so the final reviewer
+reads one file instead of re-deriving the complete diff with git commands.
+Dispatch on the most capable available model (see Model Selection), using
+[final-reviewer-prompt.md](final-reviewer-prompt.md). Point it at the ledger's
+deferred-minor and parked lines so it can triage which must be fixed before
+completion.
 
 If the final whole-branch review returns findings, dispatch ONE fix subagent
 with the complete findings list — not one fixer per finding.
@@ -475,29 +478,26 @@ session's final-review fix wave cost more than all its tasks combined.
 Then run exactly one scoped re-review of the fix wave
 (`scripts/review-package PLAN_FILE FIX_BASE HEAD` over the fix range,
 [re-review-prompt.md](re-review-prompt.md)).
-Adjudicate any residual findings as in the task loop's breaker: park with
-rulings, or rule on the load-bearing ones and ledger what you decided. Only
-the four classes above stop you here. There is no second fix wave —
-residual load-bearing findings surface to your human partner when
-finishing-a-development-branch presents the options.
+Adjudicate any residual findings as in the task loop's breaker: park only Minor
+or demonstrably false findings with rulings. Real Critical/Important findings
+require a fix or an explicit user decision; never complete the plan with an open
+blocker. There is no second fix wave — residual blockers surface in the final
+report.
 
 ## Finish
 
-Before you delete anything, collect every ledger line containing `Ruling:` —
+Before the final report, collect every ledger line containing `Ruling:` —
 preflight rulings, parked findings, breaker adjudications, all of them — into
 your final message under "Rulings I made", in the order you made them, each
 with what it costs if wrong. The list is exhaustive: if the ledger holds a
 ruling, the list holds it. That list is the only place the decisions you
 took on your human partner's behalf reach them — they read it and rework
-whatever you got wrong. A ruling that dies with the workspace was a decision
-made in secret.
+whatever you got wrong. A ruling hidden in a workspace was a decision made in
+secret.
 
-When the final whole-branch review is clean and its fixes are merged,
-delete this plan's workspace (`rm -rf <workspace>`) — the git history is
-the record now. Sibling directories belong to other plans; leave them
-alone.
-
-Use superpowers:finishing-a-development-branch.
+Preserve the ledger and review reports for audit. Record the final status,
+checks, deferred findings and manual verification needs in the task's
+`status.md`. Report the result to the user; never push automatically.
 
 ## Common Rationalizations
 
@@ -573,9 +573,9 @@ Re-reviewer: Missing progress reporting — ADDRESSED (src/recovery.js:41).
 
 [After all tasks]
 [Run review-package PLAN_FILE MERGE_BASE HEAD; dispatch final code-reviewer, most capable model]
-Final reviewer: All requirements met. Deferred minors triaged: none block merge.
+Final reviewer: All requirements met. Deferred minors triaged: none block completion.
 
-[Delete this plan's workspace — the record now lives in git]
+[Record final status and checks in status.md; preserve the ledger]
 
-Done! Using superpowers:finishing-a-development-branch.
+Done! Report results and remaining manual checks to the user.
 ```
