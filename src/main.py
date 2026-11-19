@@ -15,11 +15,17 @@ def main():
     controller.set_model(model=model)
     model.set_view(view=view)
     view.set_controller(controller=controller)
+    controller.set_on_crash_callback(view.notify_engine_crashed)
 
     controller.start()
     logger.info('Program EyesGuard started!')
 
     view.mainloop()
+
+    # graceful shutdown after the mainloop has quit (no os._exit)
+    controller.stop()
+    view.destroy()
+    logger.info('Program EyesGuard finished!')
 
 
 # application entry point

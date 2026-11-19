@@ -42,6 +42,8 @@ UICommand = SetStepCommand | ApplySettingsCommand | SuspendCommand
 class Controller:
     """Class for time and break control."""
 
+    STOP_JOIN_TIMEOUT_S = 5.0
+
     def __init__(self):
         logger.trace('Controller: object was created')
         self.model: Model
@@ -49,12 +51,17 @@ class Controller:
         self.__commands: queue.Queue[UICommand] = queue.Queue()
         self.__wake = threading.Event()
         self.stop_request = threading.Event()
+        self.__on_crash_callback = None
 
     def set_model(self, model: Model):
         """Assigning model to controller."""
         logger.trace('Controller: set_model')
         self.model = model
         self.thread_alg = None
+
+    def set_on_crash_callback(self, callback) -> None:
+        """Set a callback invoked when the main loop crashes (e.g. GUI notice)."""
+        self.__on_crash_callback = callback
 
     def start(self):
         """Start controller in separated thread."""
@@ -63,7 +70,16 @@ class Controller:
             self.thread_alg.start()
 
     def stop(self):
-        pass
+        """Stop the controller thread: set the flag, wake the pacing wait, join.
+
+        A stopped controller can be started again with a fresh thread.
+        """
+        logger.trace('Controller: stop')
+        self.stop_request.set()
+        self.__wake.set()
+        if self.thread_alg is not None and self.thread_alg.is_alive():
+            self.thread_alg.join(timeout=self.STOP_JOIN_TIMEOUT_S)
+        self.thread_alg = None
 
     def submit_set_step(self, step_type: StepType) -> None:
         """Queue a step switch (safe to call from UI threads)."""
@@ -101,14 +117,20 @@ class Controller:
     def main_loop(self):
         """Controller main loop in separated thread."""
         logger.trace('Controller: main_loop')
-        while not self.stop_request.is_set():
-            self.__process_commands()
-            self.model.do_current_step_actions()
-            while not self.model.tick():
-                if self.stop_request.is_set():
-                    return
-                # pacing sleep is interruptible: a submitted command wakes the loop at once
-                self.__wake.wait(timeout=self.model.settings.system_settings.TIME_TICK_S)
-                self.__wake.clear()
+        try:
+            while not self.stop_request.is_set():
                 self.__process_commands()
-            self.model.set_new_step_in_sequence()
+                self.model.do_current_step_actions()
+                while not self.model.tick():
+                    if self.stop_request.is_set():
+                        return
+                    # pacing sleep is interruptible: a submitted command wakes the loop at once
+                    self.__wake.wait(timeout=self.model.settings.system_settings.TIME_TICK_S)
+                    self.__wake.clear()
+                    self.__process_commands()
+                self.model.set_new_step_in_sequence()
+        except Exception as error:  # noqa: BLE001 — the engine must not die silently
+            logger.exception(f'Controller: main loop crashed: {error}')
+            self.stop_request.set()
+            if self.__on_crash_callback is not None:
+                self.__on_crash_callback()

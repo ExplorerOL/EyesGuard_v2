@@ -1,6 +1,5 @@
 """Module with main widnow of application."""
 
-import os
 import queue
 
 import customtkinter
@@ -124,10 +123,15 @@ class View(customtkinter.CTk):
     def __shutdown(self):
         """Actual shutdown, always executed in the Tk thread."""
         logger.trace('View: __shutdown')
+        self.controller.stop()
         self.__tray_icon.visible = False
         self.__tray_icon.stop()
         self.quit()
-        os._exit(0)
+
+    def notify_engine_crashed(self):
+        """Show a tray notification when the timer engine has crashed."""
+        logger.error('View: timer engine crashed')
+        self.__tray_icon.notify('Timer engine stopped unexpectedly! See logs for details.', 'Attention!')
 
     def apply_view_user_settings(self):
         logger.trace('View: applying new settings')

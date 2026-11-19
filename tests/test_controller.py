@@ -6,6 +6,7 @@ thread (known issue 11).
 """
 
 import threading
+import time
 
 from config.states import StepType
 from controller import Controller
@@ -30,6 +31,8 @@ class FakeModel:
         self.calls: list[tuple[str, object]] = []
         self.step_applied = threading.Event()
         self.set_step_thread: int | None = None
+        self.tick_started = threading.Event()
+        self.tick_error: Exception | None = None
 
     def record(self, name: str, value=None):
         with self.lock:
@@ -42,6 +45,9 @@ class FakeModel:
 
     def tick(self) -> bool:
         self.record('tick')
+        self.tick_started.set()
+        if self.tick_error is not None:
+            raise self.tick_error
         with self.lock:
             self.ticks_until_end -= 1
             return self.ticks_until_end < 0
@@ -70,8 +76,9 @@ def test_set_step_command_applied_in_controller_thread():
     controller.submit_set_step(StepType.break_mode)
     assert model.step_applied.wait(timeout=5)
 
-    controller.stop_request.set()
-    controller.thread_alg.join(timeout=5)
+    thread = controller.thread_alg
+    controller.stop()
+    thread.join(timeout=5)
 
     assert model.set_step_thread != threading.get_ident()
     assert ('set_step', StepType.break_mode) in model.calls
@@ -96,8 +103,9 @@ def test_commands_processed_in_fifo_order():
     model.switch_suspended_state = switch_recorder
     assert applied_two.wait(timeout=5)
 
-    controller.stop_request.set()
-    controller.thread_alg.join(timeout=5)
+    thread = controller.thread_alg
+    controller.stop()
+    thread.join(timeout=5)
 
     names = [name for name, _ in model.calls if name in ('set_step', 'switch_suspended_state')]
     assert names == ['set_step', 'switch_suspended_state']
@@ -131,11 +139,76 @@ def test_manual_break_survives_background_step_end():
     controller.submit_set_step(StepType.break_mode)
     assert model.step_applied.wait(timeout=5)
 
-    controller.stop_request.set()
-    controller.thread_alg.join(timeout=5)
+    thread = controller.thread_alg
+    controller.stop()
+    thread.join(timeout=5)
 
     # the racing background transition happened first, then the queued manual
     # break was applied after it — the command is not lost
     first_sequence_idx = model.calls.index(('set_new_step_in_sequence', None))
     break_idx = model.calls.index(('set_step', StepType.break_mode))
     assert break_idx > first_sequence_idx
+
+
+class NeverEndingModel(FakeModel):
+    """Model stub whose steps never end: the loop stays in the pacing wait."""
+
+    settings = FakeSettings()
+
+    def tick(self) -> bool:
+        self.record('tick')
+        self.tick_started.set()
+        return False
+
+
+def test_stop_joins_thread_and_allows_restart():
+    model = NeverEndingModel()
+    controller = Controller()
+    controller.set_model(model)
+    controller.start()
+    assert model.tick_started.wait(timeout=5)
+    thread = controller.thread_alg
+
+    controller.stop()
+
+    assert not thread.is_alive()
+    assert controller.thread_alg is None
+    assert controller.stop_request.is_set()
+
+    # restart must use a fresh thread, not the dead one
+    controller.stop_request.clear()
+    controller.start()
+    restarted = model.tick_started.wait(timeout=5)
+    controller.stop()
+    assert restarted
+
+
+def test_stop_interrupts_pacing_wait_quickly():
+    """stop() must wake the pacing wait instead of waiting a full tick."""
+    model = NeverEndingModel()
+    controller = Controller()
+    controller.set_model(model)
+    controller.start()
+    assert model.tick_started.wait(timeout=5)
+
+    started = time.monotonic()
+    controller.stop()
+    elapsed = time.monotonic() - started
+
+    assert elapsed < FakeSettings().system_settings.TIME_TICK_S + 1.0
+
+
+def test_main_loop_crash_invokes_callback_and_stops():
+    model = FakeModel()
+    model.tick_error = RuntimeError('boom')
+    controller = Controller()
+    controller.set_model(model)
+    crashed = threading.Event()
+    controller.set_on_crash_callback(crashed.set)
+    controller.start()
+
+    assert model.tick_started.wait(timeout=5)
+    assert crashed.wait(timeout=5)
+    controller.thread_alg.join(timeout=5)
+    assert not controller.thread_alg.is_alive()
+    assert controller.stop_request.is_set()
