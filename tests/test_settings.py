@@ -1,10 +1,7 @@
-import sys
-
-sys.path.insert(0, './src')
-
 from pathlib import Path
 
 import pytest
+from conftest import fixture_path
 
 from config.settings import Settings, UserSettingsData
 
@@ -19,7 +16,7 @@ settings_default_str = (
     'settings_file_name, expected_settings_str',
     [
         (
-            'tests/data/settings_valid_min_values.json',
+            fixture_path('settings_valid_min_values.json'),
             '{'
             "'activity_timeout': 30, 'break_duration': 1, 'notifications': 'off', 'protection_status': 'on', "
             "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'off', "
@@ -27,7 +24,7 @@ settings_default_str = (
             '}',
         ),
         (
-            'tests/data/settings_valid_mean_values.json',
+            fixture_path('settings_valid_mean_values.json'),
             '{'
             "'activity_timeout': 315, 'break_duration': 50, 'notifications': 'on', 'protection_status': 'on', "
             "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'off', "
@@ -35,7 +32,7 @@ settings_default_str = (
             '}',
         ),
         (
-            'tests/data/settings_valid_max_values.json',
+            fixture_path('settings_valid_max_values.json'),
             '{'
             "'activity_timeout': 600, 'break_duration': 100, 'notifications': 'on', 'protection_status': 'on', "
             "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'on', "
@@ -43,7 +40,7 @@ settings_default_str = (
             '}',
         ),
         (
-            'tests/data/settings_valid_empty.json',
+            fixture_path('settings_valid_empty.json'),
             '{'
             "'activity_timeout': 180, 'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', "
             "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'on', "
@@ -51,7 +48,7 @@ settings_default_str = (
             '}',
         ),
         (
-            'tests/data/settings_valid_no_param.json',
+            fixture_path('settings_valid_no_param.json'),
             '{'
             "'activity_timeout': 180, 'break_duration': 15, 'notifications': 'off', 'protection_status': 'on', "
             "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'off', "
@@ -84,8 +81,8 @@ def test_read_settings_from_invalid_file(settings_file_name):
 @pytest.mark.parametrize(
     'settings_file_name, expected_activity_timeout',
     [
-        ('tests/data/settings_valid_activity_timeout_min.json', 30),
-        ('tests/data/settings_valid_activity_timeout_max.json', 600),
+        (fixture_path('settings_valid_activity_timeout_min.json'), 30),
+        (fixture_path('settings_valid_activity_timeout_max.json'), 600),
     ],
 )
 def test_read_activity_timeout_boundaries(settings_file_name, expected_activity_timeout):
@@ -96,8 +93,8 @@ def test_read_activity_timeout_boundaries(settings_file_name, expected_activity_
 @pytest.mark.parametrize(
     'settings_file_name',
     [
-        ('tests/data/settings_invalid_activity_timeout_low.json'),
-        ('tests/data/settings_invalid_activity_timeout_high.json'),
+        (fixture_path('settings_invalid_activity_timeout_low.json')),
+        (fixture_path('settings_invalid_activity_timeout_high.json')),
     ],
 )
 def test_read_settings_with_invalid_activity_timeout(settings_file_name):
@@ -108,8 +105,8 @@ def test_read_settings_with_invalid_activity_timeout(settings_file_name):
 @pytest.mark.parametrize(
     'settings_file_name, expected_volume',
     [
-        ('tests/data/settings_valid_volume_min.json', 1),
-        ('tests/data/settings_valid_volume_max.json', 100),
+        (fixture_path('settings_valid_volume_min.json'), 1),
+        (fixture_path('settings_valid_volume_max.json'), 100),
     ],
 )
 def test_read_volume_boundaries(settings_file_name, expected_volume):
@@ -120,8 +117,8 @@ def test_read_volume_boundaries(settings_file_name, expected_volume):
 @pytest.mark.parametrize(
     'settings_file_name',
     [
-        ('tests/data/settings_invalid_volume_low.json'),
-        ('tests/data/settings_invalid_volume_high.json'),
+        (fixture_path('settings_invalid_volume_low.json')),
+        (fixture_path('settings_invalid_volume_high.json')),
     ],
 )
 def test_read_settings_with_invalid_volume(settings_file_name):
@@ -130,7 +127,7 @@ def test_read_settings_with_invalid_volume(settings_file_name):
 
 
 def test_write_default_user_settings_to_file():
-    file_to_write = 'tests/data/settings_written_file.json'
+    file_to_write = fixture_path('settings_written_file.json')
     Path(file_to_write).unlink(missing_ok=True)
 
     user_settings = UserSettingsData()
@@ -150,7 +147,7 @@ def test_write_default_user_settings_to_file():
 
 
 def test_write_invalid_settings_to_file():
-    file_to_write = 'tests/data/settings_written_file.json'
+    file_to_write = fixture_path('settings_written_file.json')
     Path(file_to_write).unlink(missing_ok=True)
 
     user_settings = UserSettingsData()
@@ -173,14 +170,14 @@ def test_write_invalid_settings_to_file():
 
 
 def test_read_display_settings_from_valid_file():
-    settings = Settings('tests/data/settings_valid_display_fields.json')
+    settings = Settings(fixture_path('settings_valid_display_fields.json'))
     assert settings.user_settings.screensaver_block == 'off'
     assert settings.user_settings.suspend_on_video == 'off'
     assert settings.user_settings.reset_work_time_in_idle == 'on'
 
 
 def test_read_settings_with_invalid_new_field_value():
-    settings = Settings('tests/data/settings_invalid_new_field_value.json')
+    settings = Settings(fixture_path('settings_invalid_new_field_value.json'))
     assert settings.user_settings.screensaver_block == 'on'
     assert settings.user_settings.suspend_on_video == 'on'
     assert settings.user_settings.reset_work_time_in_idle == 'off'

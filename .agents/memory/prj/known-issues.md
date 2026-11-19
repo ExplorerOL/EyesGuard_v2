@@ -15,7 +15,7 @@
 | 4 | logger.py пересоздаёт `logs/log.log` при каждом импорте модуля (`unlink`); sink с уровнем `WARNING`, при этом в коде множество `logger.trace/debug/info` — в файл они не попадают | src/support/logger.py |
 | 5 | Дублирование строки `ui_settings_data.protection_status = ...` в `__get_user_settings_from_wnd_settings` | src/view.py |
 | 6 | `Model.settings` setter пустой (только лог); имя вводит в заблуждение | src/model.py |
-| 7 | В тестах одновременно `sys.path.insert(0, "./src")` и импорт `from config.settings import ...` — работает только при запуске из корня | tests/test_settings.py |
+| 7 | ~~В тестах одновременно `sys.path.insert(0, "./src")` и импорт `from config.settings import ...` — работает только при запуске из корня~~ — решено 2026-11-19: добавлен `tests/conftest.py` (путь `src` и fixture-пути от `__file__`), `sys.path.insert` удалён из тестов | tests/conftest.py, tests/ |
 | 8 | `set_new_step_in_sequence` не имеет case для `iddle_mode`: если туда попасть из iddle — UnboundLocalError на `new_step_type`. Сейчас не воспроизводится (wait-цикл уходит из iddle раньше), но уязвимость к будущим правкам | src/model.py |
 | 9 | Опечатки в сообщениях: "occuired", "settind", "widnow" — в legacy-строках сохраняются | src/view.py, src/model.py |
 | 10 | Лог `Switch to iddle mode...` на info-уровне каждый тик при idle — шум в логе при WARNING-синке не виден, но захламляет при смене уровня | src/model.py |
