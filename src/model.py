@@ -362,6 +362,8 @@ class Model:
                 new_step_type = StepType.break_mode
             case StepType.break_mode:
                 new_step_type = StepType.work_mode
+            case StepType.iddle_mode:
+                new_step_type = StepType.work_mode
 
         logger.debug(f'Model: new step = {new_step_type}')
         self.__set_current_step(new_step_type)

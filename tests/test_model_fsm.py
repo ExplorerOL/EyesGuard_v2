@@ -160,3 +160,17 @@ def test_wait_loop_ends_work_step_by_duration(tmp_path, monkeypatch):
 
     assert ended_on_first_tick is True
     assert model.current_state.current_step_type == StepType.work_mode
+
+
+def test_sequence_transition_from_idle_mode_returns_to_work(tmp_path, monkeypatch):
+    """Regression for known issue 8: the transitions match must be exhaustive.
+
+    Entering set_new_step_in_sequence from iddle_mode must not raise
+    UnboundLocalError and must fall back to work_mode.
+    """
+    model, _, _ = make_model(tmp_path, monkeypatch)
+
+    model.set_step(new_step_type=StepType.iddle_mode)
+    model.set_new_step_in_sequence()
+
+    assert model.current_state.current_step_type == StepType.work_mode
