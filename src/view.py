@@ -1,4 +1,4 @@
-"""Module with main widnow of application."""
+"""Module with main window of application."""
 
 import queue
 
@@ -159,7 +159,7 @@ class View(customtkinter.CTk):
             )
         # empty entries raise ValueError, missing widgets raise TypeError (known issue 18)
         except (TypeError, ValueError) as error:
-            logger.error(f'Error occuired while reading settings from ui: {error}')
+            logger.error(f'Error occurred while reading settings from ui: {error}')
             return None
 
         logger.info(f'Settings read from ui: {ui_settings_data!s}')

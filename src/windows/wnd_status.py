@@ -102,7 +102,7 @@ class WndStatus(customtkinter.CTkToplevel):
         self.withdraw()
 
     def on_focus_out(self, event):
-        """Action in calse of loosing focus."""
+        """Action in case of losing focus."""
         self.hide()
 
     def hide(self):

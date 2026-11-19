@@ -172,7 +172,7 @@ class Model:
         return time_for_work
 
     def __set_current_step(self, step_type: StepType) -> None:
-        """Settind step data in current state by step type."""
+        """Setting step data in current state by step type."""
         logger.trace('Model: __set_current_step')
         logger.debug(f'Model: new step {step_type}')
         # drop the debounce memory: the new step must start with an honest video poll

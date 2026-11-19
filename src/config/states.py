@@ -45,7 +45,7 @@ class CurrentState:
         logger.debug(f'Init current state: {self}')
 
     def __self_to_dict(self) -> dict:
-        # convertation object to dict
+        # converting object to dict
         self_dict = {
             'step_type': self.__step_type,
             'step_duration': self.__step_duration_dt,

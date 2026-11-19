@@ -534,6 +534,6 @@ class WndSettings(customtkinter.CTkToplevel):
         self.select_frame_by_name('frame_about')
 
     def apply_ui_settings(self):
-        """Coll method of view for applying new settings."""
+        """Call method of view for applying new settings."""
         self.__is_dirty = False
         self.view.apply_view_user_settings()
