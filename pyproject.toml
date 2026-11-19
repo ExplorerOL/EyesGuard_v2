@@ -1,0 +1,37 @@
+[project]
+name = "eyeguard"
+version = "2.1.0"
+description = "EyesGuard: desktop reminders to take breaks during PC work (Windows 10)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "GPL-3.0-only" }
+dependencies = [
+    "customtkinter==5.2.0",
+    "loguru==0.7.2",
+    "pillow>=10.0.0",
+    # звук работает только на Windows; на Linux playsound исключается маркером
+    "playsound==1.3.0; sys_platform == 'win32'",
+    "pydantic==2.1.1",
+    "pystray==0.19.4",
+]
+
+[tool.uv.sources]
+# playsound 1.3.0 не собирается из sdist под PEP 517 (uv/setuptools): setup.py определяет свой
+# путь через inspect.getsource и падает, когда файл исполняется без имени ("could not get source code").
+# Wheel собран legacy-командой `python setup.py bdist_wheel` из официального sdist с PyPI
+# (pure-python, py3-none-any) с наложенным upstream-фиксом PR #76 (в PyPI так и не вышел):
+# argtypes + create_unicode_buffer вместо encode('utf-16') — лечит MCI Error 305 при проигрывании.
+playsound = { path = "wheels/playsound-1.3.0-py3-none-any.whl" }
+
+[dependency-groups]
+dev = [
+    "pyinstaller==6.22.3",
+    "pytest==7.4.0",
+    # версия синхронизирована с rev в .pre-commit-config.yaml (ruff-pre-commit)
+    "ruff==0.16.4",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"
+

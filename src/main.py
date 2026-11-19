@@ -1,13 +1,12 @@
 from controller import Controller
-from logger import logger
 from model import Model
+from support.logger import logger
 from view import View
 
 
 def main():
-    """Main function"""
-
-    logger.trace(f"Function started")
+    """Main function."""
+    logger.trace('Function started')
 
     controller = Controller()
     model = Model()
@@ -18,11 +17,11 @@ def main():
     view.set_controller(controller=controller)
 
     controller.start()
-    logger.info("Program EyesGuard started!")
+    logger.info('Program EyesGuard started!')
 
     view.mainloop()
 
 
 # application entry point
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

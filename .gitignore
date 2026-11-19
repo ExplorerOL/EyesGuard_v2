@@ -1,7 +1,30 @@
-__pycache__
-venv
-tmp
-settings.json
-.*
-output
-logs
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv*
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+
+# Приложение: артефакты работы
+settings/
+logs/
+output/
+tmp/
+build/
+dist/
+
+# LLM-инфраструктура (локальная, не коммитится)
+.codegraph/
+.serena/
+.opencode/
+.claude/
+opencode.json
+
+# IDE / ОС
+.DS_Store
+.vscode*
+.idea/
+.pylintrc

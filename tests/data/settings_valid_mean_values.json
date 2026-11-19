@@ -1,6 +1,7 @@
 {
     "work_duration": 50,
     "break_duration": 50,
+    "activity_timeout": 315,
     "sounds": "off",
     "notifications": "on"
 }
