@@ -136,38 +136,38 @@ class Model:
         self.__view.submit_snapshot(snapshot)
 
     def __calculate_remaining_time_for_work(self) -> datetime.timedelta:
-        remaining_time_actual: datetime.timedelta = self.model.__current_state.current_step_remaining_time
+        remaining_time_actual: datetime.timedelta = self.__current_state.current_step_remaining_time
         logger.debug(remaining_time_actual)
-        match self.model.__current_state.current_step_type:
+        match self.__current_state.current_step_type:
             case StepType.off_mode:
                 remaining_time_actual += (
-                    self.model.steps_data_list[StepType.work_mode].step_duration_td
-                    + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
-                    + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
+                    self.steps_data_list[StepType.work_mode].step_duration_td
+                    + self.steps_data_list[StepType.work_notified_1].step_duration_td
+                    + self.steps_data_list[StepType.work_notified_2].step_duration_td
                 )
 
             case StepType.work_mode | StepType.iddle_mode:
                 remaining_time_actual += (
-                    self.model.steps_data_list[StepType.work_notified_1].step_duration_td
-                    + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
+                    self.steps_data_list[StepType.work_notified_1].step_duration_td
+                    + self.steps_data_list[StepType.work_notified_2].step_duration_td
                 )
             case StepType.work_notified_1:
-                remaining_time_actual += self.model.steps_data_list[StepType.work_notified_2].step_duration_td
+                remaining_time_actual += self.steps_data_list[StepType.work_notified_2].step_duration_td
         return remaining_time_actual
 
     def __calculate_time_for_work(self) -> datetime.timedelta:
         time_for_work = (
-            self.model.steps_data_list[StepType.work_mode].step_duration_td
-            + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
-            + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
+            self.steps_data_list[StepType.work_mode].step_duration_td
+            + self.steps_data_list[StepType.work_notified_1].step_duration_td
+            + self.steps_data_list[StepType.work_notified_2].step_duration_td
         )
-        match self.model.__current_state.current_step_type:
+        match self.__current_state.current_step_type:
             case StepType.off_mode:
                 time_for_work = (
-                    self.model.steps_data_list[StepType.off_mode].step_duration_td
-                    + self.model.steps_data_list[StepType.work_mode].step_duration_td
-                    + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
-                    + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
+                    self.steps_data_list[StepType.off_mode].step_duration_td
+                    + self.steps_data_list[StepType.work_mode].step_duration_td
+                    + self.steps_data_list[StepType.work_notified_1].step_duration_td
+                    + self.steps_data_list[StepType.work_notified_2].step_duration_td
                 )
         return time_for_work
 
@@ -222,11 +222,6 @@ class Model:
             self.__step_started_at = self.__clock() - elapsed_time.total_seconds()
 
     @property
-    def model(self) -> Model:
-        logger.trace('Model: getting model data')
-        return self
-
-    @property
     def remaining_working_time_to_display(self) -> datetime.timedelta:
         logger.trace('Model: remaining_working_time_to_display property')
         return self.__remaining_time_to_display
@@ -245,10 +240,6 @@ class Model:
     def settings(self) -> Settings:
         logger.trace('Model: model_settings getter')
         return self.__settings
-
-    @settings.setter
-    def settings(self, settings: Settings) -> None:
-        logger.trace('Model: model_settings setter')
 
     @property
     def user_settings(self) -> UserSettingsData:
@@ -275,7 +266,7 @@ class Model:
         """
         logger.trace('Model: __process_screensaver_block')
         should_block = (
-            self.model.__current_state.current_step_type == StepType.break_mode
+            self.__current_state.current_step_type == StepType.break_mode
             and self.__settings.user_settings.screensaver_block == OnOffValue.on.value
         )
         if should_block:
@@ -290,7 +281,7 @@ class Model:
         logger.debug(f'Model: New step duration {self.__current_state.current_step_duration}')
         logger.debug(f'Model: New step remaining_time {self.__current_state.current_step_remaining_time}')
 
-        match self.model.__current_state.current_step_type:
+        match self.__current_state.current_step_type:
             case StepType.off_mode:
                 logger.trace('Model: off_mode actions')
                 self.__view.show_notification('Eyes Guard protection is off!', 'Attention!')
@@ -338,9 +329,9 @@ class Model:
         when the current step has ended.
         """
         logger.trace('Model: tick')
-        logger.debug(f'Current step type: {self.model.__current_state.current_step_type!r}')
-        logger.debug(f'Step duration: {self.model.__current_state.current_step_duration}')
-        logger.debug(f'Step elapsed time: {self.model.__current_state.current_step_elapsed_time}')
+        logger.debug(f'Current step type: {self.__current_state.current_step_type!r}')
+        logger.debug(f'Step duration: {self.__current_state.current_step_duration}')
+        logger.debug(f'Step elapsed time: {self.__current_state.current_step_elapsed_time}')
         logger.debug(f'User activity: {self.__user_activity_monitor.is_user_active!r}')
 
         # this code runs in the controller thread only: safe for the thread-bound blocker
