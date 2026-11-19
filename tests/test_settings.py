@@ -364,3 +364,25 @@ def test_settings_requires_file_path():
     """Regression for known issue 26: no pathless Settings objects with broken save."""
     with pytest.raises(TypeError):
         Settings()
+
+
+def test_user_settings_property_returns_copy(tmp_path):
+    """Regression for known issue 28: external mutation must not bypass validation."""
+    settings = Settings(tmp_path / 'settings.json')
+
+    exposed = settings.user_settings
+    exposed.work_duration = 999
+
+    assert settings.user_settings.work_duration == 45
+
+
+def test_apply_settings_from_ui_returns_result(tmp_path):
+    settings = Settings(tmp_path / 'settings.json')
+
+    valid = UserSettingsData()
+    invalid = UserSettingsData()
+    invalid.work_duration = 999
+
+    assert settings.apply_settings_from_ui(new_settings_data=valid) is True
+    assert settings.apply_settings_from_ui(new_settings_data=invalid) is False
+    assert settings.user_settings.work_duration == 45

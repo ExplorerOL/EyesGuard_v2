@@ -152,8 +152,8 @@ class Settings:
         logger.debug(f'Settings from file {settings_validated}')
         self.__apply_settings(settings_validated)
 
-    def apply_settings_from_ui(self, new_settings_data: UserSettingsData):
-        """Validate settings and write them to file."""
+    def apply_settings_from_ui(self, new_settings_data: UserSettingsData) -> bool:
+        """Validate settings and write them to file. Returns True on success."""
         logger.debug(f'New settings from ui to apply: {new_settings_data}')
         logger.debug(type(new_settings_data))
         try:
@@ -161,9 +161,9 @@ class Settings:
         except ValidationError as error:
             logger.error(error)
             logger.error(type(error))
-            return
+            return False
         self.__apply_settings(settings_validated)
-        self.save_settings_to_file()
+        return self.save_settings_to_file()
 
     def save_settings_to_file(self) -> bool:
         """Save settings to file atomically.
@@ -200,8 +200,8 @@ class Settings:
 
     @property
     def user_settings(self) -> UserSettingsData:
-        """User settings object."""
-        return self.__user_settings
+        """User settings object (a copy: external changes cannot bypass validation)."""
+        return copy.copy(self.__user_settings)
 
     @property
     def system_settings(self) -> SystemSettingsData:
