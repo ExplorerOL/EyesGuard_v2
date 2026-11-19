@@ -5,7 +5,7 @@ import os
 import customtkinter
 import pystray
 
-from config.app_version import APP_VERSION
+from config.app_constants import APP_VERSION
 from config.settings import Settings, UserSettingsData
 from config.states import CurrentState, StepType
 from controller import Controller

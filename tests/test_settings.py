@@ -21,7 +21,7 @@ settings_default_str = (
             'tests/data/settings_valid_min_values.json',
             '{'
             "'activity_timeout': 30, 'break_duration': 1, 'notifications': 'off', 'protection_status': 'on', "
-            "'sounds': 'off', 'volume': 10, 'work_duration': 1"
+            "'sounds': 'off', 'volume': 1, 'work_duration': 1"
             '}',
         ),
         (
@@ -102,7 +102,7 @@ def test_read_settings_with_invalid_activity_timeout(settings_file_name):
 @pytest.mark.parametrize(
     'settings_file_name, expected_volume',
     [
-        ('tests/data/settings_valid_volume_min.json', 10),
+        ('tests/data/settings_valid_volume_min.json', 1),
         ('tests/data/settings_valid_volume_max.json', 100),
     ],
 )

@@ -14,7 +14,7 @@ from tkinter import StringVar
 import customtkinter
 from PIL import ImageTk
 
-from config.app_version import APP_VERSION
+from config.app_constants import APP_VERSION, APP_YEAR
 from config.settings import Settings
 from config.states import StepType
 from model import Model
@@ -274,9 +274,9 @@ class WndSettings(customtkinter.CTkToplevel):
 
         self.slider_volume = customtkinter.CTkSlider(
             self.frame_sounds_settings,
-            from_=10,
+            from_=1,
             to=100,
-            number_of_steps=90,
+            number_of_steps=99,
             command=self.event_volume_slider_move,
         )
         self.slider_volume.set(self.settings.get_settings_copy().volume)
@@ -288,7 +288,7 @@ class WndSettings(customtkinter.CTkToplevel):
 
         self.lbl_about_text = (
             f'\nEyesGuard v{APP_VERSION}\n\nAuthor: Dmitry Vorobjev\nSite: www.eyesguard.ru\n'
-            'E-mail: eyesguard@yandex.ru\nLicense: © GPL v3\nYear: 2024'
+            f'E-mail: eyesguard@yandex.ru\nLicense: © GPL v3\nYear: {APP_YEAR}'
         )
         self.lbl_about = customtkinter.CTkLabel(self.frame_about, text=self.lbl_about_text, justify='left')
         self.lbl_about.grid(row=1, column=0, padx=20, pady=10, sticky='e')

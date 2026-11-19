@@ -50,6 +50,18 @@
 - LSP-диагностика `ctypes.windll` в `src/support/sound/windows/sound_player.py` — ожидаемая:
   модуль Windows-only, на Linux не импортируется (фабрика).
 
+## Follow-up (2026-11-19, после коммита 8b7e84e)
+
+Минимальная громкость снижена с 10 % до **5 %**, затем до **1 %** (два решения пользователя):
+валидатор (`ge=1`), слайдер (`from_=1`, steps=99), docstrings плееров, MCI-шкала (10..1000),
+фикстуры (min=1, invalid low=0), verify.py (regex ge=1), CHANGELOG [2.2.0],
+память проекта и граф знаний. Проверки: ruff чисто, pytest 23 passed, verify.py OK.
+
+Релизный бамп: версия pyproject + APP_VERSION → **2.2.0** (uv lock обновлён), год About →
+**2026** через новую константу `APP_YEAR` в `src/config/app_constants.py` (предложение
+пользователя; модуль переименован из app_version.py в app_constants.py). Проверки:
+ruff чисто, pytest 23 passed, verify.py OK.
+
 ## Ручные проверки (Windows, не проведены)
 
 1. Вкладка Sounds: иконка speaker.png, переключение кадров, чекбокс sounds работает.

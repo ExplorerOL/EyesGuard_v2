@@ -9,7 +9,7 @@ from support.logger import logger
 
 class PSoundPlayer(Protocol):
     def play(self, file_path: Path, volume: int) -> None:
-        """Playing given file by Path with volume in percents (10-100)."""
+        """Playing given file by Path with volume in percents (1-100)."""
         ...
 
 

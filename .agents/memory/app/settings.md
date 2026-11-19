@@ -20,7 +20,7 @@ frozen-сборка PyInstaller — рядом с exe). Каталог `settings
 | `work_duration` | int | 45 | 0 < x < 101 (мин) |
 | `break_duration` | int | 15 | 0 < x < 101 (мин) |
 | `activity_timeout` | int | 180 | 30 <= x <= 600 (сек; порог `is_user_active` в `UserActivityMonitor`) |
-| `volume` | int | 100 | 10 <= x <= 100 (%; громкость MCI-плеера, 0 не предусмотрен — mute чекбоксом `sounds`) |
+| `volume` | int | 100 | 1 <= x <= 100 (%; громкость MCI-плеера, 0 не предусмотрен — mute чекбоксом `sounds`) |
 | `sounds` | Literal["on","off"] | "on" | — (управляет `SoundNotificator`) |
 | `notifications` | Literal["on","off"] | "on" | — (управляет уведомлениями трея) |
 | `protection_status` | Literal["on","off"] | "on" | — (начальный шаг при старте) |
@@ -40,7 +40,7 @@ frozen-сборка PyInstaller — рядом с exe). Каталог `settings
 > `Model.apply_new_user_settings` пересоздаёт `UserActivityMonitor` — смена порога
 > применяется без перезапуска приложения.
 
-> Звук (v2.2.0): чекбокс `sounds` и слайдер `volume` (CTkSlider 10–100 %) живут на
+> Звук (v2.2.0): чекбокс `sounds` и слайдер `volume` (CTkSlider 1–100 %) живут на
 > вкладке Sounds окна настроек. Воспроизведение — Windows MCI-плеер
 > `MciSoundPlayer` (`src/support/sound/windows/sound_player.py`); фабрика
 > `create_sound_player()` по `sys.platform` (win32 → MCI, иначе `NoopSoundPlayer`).

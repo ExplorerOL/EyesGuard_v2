@@ -8,10 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.2.0] - 2026-11-19
 
 ### Added
-- Sounds settings tab: sounds on/off checkbox moved from General and new 10-100% volume slider (user setting `volume`)
+- Sounds settings tab: sounds on/off checkbox moved from General and new 1-100% volume slider (user setting `volume`)
 
 ### Changed
 - Sound playback migrated from playsound to the built-in Windows MCI player (winmm, `src/support/sound/windows/`) with volume support
+- About tab: copyright year moved to the `APP_YEAR` constant and updated to 2026
 
 ### Removed
 - playsound dependency and vendored wheel `wheels/playsound-1.3.0-py3-none-any.whl`

@@ -28,11 +28,11 @@ def check_no_playsound_in_project() -> bool:
 def check_volume_validator_bounds() -> bool:
     """SettingsDataValidator must declare volume with ge=10, le=100."""
     source = SETTINGS_PY.read_text(encoding='utf-8')
-    pattern = re.compile(r'volume:\s*int\s*=\s*Field\([^)]*ge=10[^)]*le=100[^)]*\)')
+    pattern = re.compile(r'volume:\s*int\s*=\s*Field\([^)]*ge=1[^)]*le=100[^)]*\)')
     if not pattern.search(source):
-        print('FAIL: volume field with ge=10, le=100 not found in SettingsDataValidator')
+        print('FAIL: volume field with ge=1, le=100 not found in SettingsDataValidator')
         return False
-    print('PASS: SettingsDataValidator has volume with ge=10, le=100')
+    print('PASS: SettingsDataValidator has volume with ge=1, le=100')
     return True
 
 

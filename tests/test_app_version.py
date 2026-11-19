@@ -6,7 +6,7 @@ from pathlib import Path
 
 import tomllib
 
-from config.app_version import APP_VERSION
+from config.app_constants import APP_VERSION
 
 
 def test_app_version_matches_pyproject():

@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from support.logger import logger
 
-# MCI volume scale: 100..1000 corresponds to 10..100 percents
+# MCI volume scale: 10..1000 corresponds to 1..100 percents
 _MCI_VOLUME_PER_PERCENT = 10
 
 
@@ -29,7 +29,7 @@ class MciSoundPlayer:
         ctypes.windll.winmm.mciGetErrorStringW.argtypes = [wintypes.DWORD, wintypes.LPWSTR, wintypes.UINT]
 
     def play(self, file_path: Path, volume: int) -> None:
-        """Playing given file by Path with volume in percents (10-100)."""
+        """Playing given file by Path with volume in percents (1-100)."""
         logger.trace('MciSoundPlayer: play')
         if not file_path.exists():
             logger.error(f'File {file_path} does not exist. Skipping playing sound!')
