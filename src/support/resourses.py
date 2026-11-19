@@ -4,6 +4,7 @@ from pathlib import Path
 
 from PIL import Image
 
+from support.logger import logger
 from support.paths import resource_dir
 
 
@@ -20,6 +21,13 @@ class ResImages:
     img_gear = Image.open(resource_dir() / 'res/img/gear.png')
     img_info = Image.open(resource_dir() / 'res/img/info.png')
     img_sounds = Image.open(resource_dir() / 'res/img/speaker.png')
+
+    try:
+        img_monitor = Image.open(resource_dir() / 'res/img/monitor.png')
+    except OSError as error:
+        # The monitor icon is added manually: fall back to the gear icon until the file exists
+        logger.warning(f'ResImages: res/img/monitor.png is not available, falling back to gear.png: {error}')
+        img_monitor = img_gear
 
 
 class ResSoundsPaths:

@@ -1,6 +1,6 @@
 [project]
 name = "eyeguard"
-version = "2.2.0"
+version = "2.3.0"
 description = "EyesGuard: desktop reminders to take breaks during PC work (Windows 10)"
 readme = "README.md"
 requires-python = ">=3.11"

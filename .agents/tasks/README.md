@@ -29,3 +29,4 @@
 | [activity-timeout-setting](activity-timeout-setting/) | Пользовательская настройка activity_timeout (30–600 сек): UI, сохранение, применение без перезапуска | Реализована (ручная проверка UI на Windows) |
 | [release-automation](release-automation/) | Авто-релиз при пуше в master при смене версии: PyInstaller exe+zip, тег EyesGuard-vX.Y.Z, notes из CHANGELOG, единый APP_VERSION | Реализована (требует проверки workflow в GitHub Actions) |
 | [sounds-volume-setting](sounds-volume-setting/) | Настройка громкости, вкладка Sounds и переход со playsound на Windows MCI | Реализована (тесты/линт зелёные; требуется ручная проверка на Windows + speaker.png) |
+| [screen-saver-interactions](screen-saver-interactions/) | Блокировка скринсейвера на перерыв, видео-idle (ES_DISPLAY_REQUIRED), сброс рабочего времени в idle; 3 настройки (вкладка Display + Time settings) | Реализована (тесты/линт зелёные; ручная проверка на Windows + monitor.png) |

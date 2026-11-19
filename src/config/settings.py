@@ -38,6 +38,9 @@ class UserSettingsData:
     sounds = OnOffValue.on.value
     notifications = OnOffValue.on.value
     protection_status = OnOffValue.on.value
+    screensaver_block = OnOffValue.on.value
+    suspend_on_video = OnOffValue.on.value
+    reset_work_time_in_idle = OnOffValue.off.value
 
     def _settings_to_dict(self) -> dict:
         # convertation object to dict
@@ -68,6 +71,9 @@ class SettingsDataValidator(BaseModel):
     sounds: Literal['on', 'off'] = 'on'
     notifications: Literal['on', 'off'] = 'on'
     protection_status: Literal['on', 'off'] = 'on'
+    screensaver_block: Literal['on', 'off'] = 'on'
+    suspend_on_video: Literal['on', 'off'] = 'on'
+    reset_work_time_in_idle: Literal['on', 'off'] = 'off'
 
 
 class Settings:

@@ -3,7 +3,12 @@ a = Analysis(
     pathex=['src'],
     binaries=[],
     datas=[('res', 'res')],
-    hiddenimports=['pystray._win32', 'support.sound.windows.sound_player'],
+    hiddenimports=[
+        'pystray._win32',
+        'support.sound.windows.sound_player',
+        'support.display.windows.screensaver_blocker',
+        'support.display.windows.video_activity_monitor',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
