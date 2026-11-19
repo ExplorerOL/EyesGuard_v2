@@ -47,15 +47,15 @@ class CurrentState:
     def __self_to_dict(self) -> dict:
         # convertation object to dict
         self_dict = {
-            '__step_type:': self.__step_type,
-            '__step_duration_dt': self.__step_duration_dt,
-            '__elapsed_time_dt': self.__elapsed_time_dt,
+            'step_type': self.__step_type,
+            'step_duration': self.__step_duration_dt,
+            'elapsed_time': self.__elapsed_time_dt,
         }
         return self_dict
 
-    def __repr__(self) -> dict:
-        """Object representation as dict."""
-        return self.__self_to_dict()
+    def __repr__(self) -> str:
+        """Object representation as string."""
+        return str(self.__self_to_dict())
 
     def __str__(self) -> str:
         """Object as string."""

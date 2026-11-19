@@ -63,3 +63,19 @@ def test_step_data_defaults():
 def test_step_type_is_int_enum_with_sequential_values():
     assert [step.value for step in StepType] == [0, 1, 2, 3, 4, 5, 6]
     assert StepType.break_mode == 5
+
+
+def test_current_state_repr_is_string():
+    """Regression for known issue 19: __repr__ must return a string."""
+    current_state = CurrentState()
+    current_state.set_current_step_data(step_type=StepType.break_mode, step_duration=datetime.timedelta(minutes=15))
+
+    representation = repr(current_state)
+
+    assert isinstance(representation, str)
+    assert 'break_mode' in representation
+    assert 'seconds=900' in representation
+
+
+def test_current_state_str_is_string():
+    assert isinstance(str(CurrentState()), str)

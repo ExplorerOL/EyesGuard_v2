@@ -291,3 +291,13 @@ def test_user_settings_to_dict_roundtrip():
     assert len(as_dict) == 10
     restored = UserSettingsData(**as_dict)
     assert restored == settings
+
+
+def test_settings_repr_is_string(tmp_path):
+    """Regression for known issue 19: __repr__ must return a string."""
+    settings = Settings(tmp_path / 'settings.json')
+
+    representation = repr(settings)
+
+    assert isinstance(representation, str)
+    assert "'work_duration': 45" in representation

@@ -92,9 +92,9 @@ class Settings:
         """Convertation settings object to dict."""
         return self.__user_settings.to_dict()
 
-    def __repr__(self) -> dict:
+    def __repr__(self) -> str:
         """Convertation settings object to view in terminal."""
-        return self.to_dict()
+        return str(self.to_dict())
 
     def __str__(self) -> str:
         """Convertation object to string."""
