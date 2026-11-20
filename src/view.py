@@ -11,6 +11,7 @@ from config.states import ModelSnapshot, StepType
 from controller import Controller
 from support.logger import logger
 from support.resourses import ResImages
+from support.time_format import format_timedelta
 from windows.wnd_break import WndBreak
 from windows.wnd_settings import WndSettings
 from windows.wnd_status import WndStatus
@@ -174,14 +175,14 @@ class View(customtkinter.CTk):
 
     def __update_tray_icon_values(self, snapshot: ModelSnapshot) -> None:
         logger.trace('View: update_tray_icon_values')
-        self.__tray_icon.title = f'Time until break: {snapshot.remaining_working_time_to_display}'
+        self.__tray_icon.title = f'Time until break: {format_timedelta(snapshot.remaining_working_time_to_display)}'
         if snapshot.step_type == StepType.off_mode:
             logger.debug('View: off cond')
             self.__tray_icon.title = 'Protection off'
             self.__tray_icon.icon = self.image_protection_off
         elif snapshot.step_type == StepType.suspended_mode:
             self.__tray_icon.icon = self.image_protection_suspended
-            self.__tray_icon.title = f'Time until normal mode: {snapshot.step_remaining_time}'
+            self.__tray_icon.title = f'Time until normal mode: {format_timedelta(snapshot.step_remaining_time)}'
         else:
             self.__tray_icon.icon = self.image_protection_active
 

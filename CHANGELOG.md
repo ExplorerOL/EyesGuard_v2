@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Applying settings no longer resets the current step timer or interrupts an active break; only an actual protection on/off change switches the step
 - Idle mode now restores the interrupted work phase (including pre-break notifications) with its remaining time instead of restarting the full work interval
 - Installed (frozen) builds now store settings and logs in `%LOCALAPPDATA%/EyesGuard` with one-time migration from the executable directory, so installs into Program Files no longer fail on write permissions
+- Time displays (status window, tray tooltip, break window) now show whole seconds without microseconds
 
 ## [2.3.0] - 2026-11-19
 

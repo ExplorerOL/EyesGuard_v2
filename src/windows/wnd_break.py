@@ -16,6 +16,7 @@ from config.app_constants import APP_VERSION
 from config.states import ModelSnapshot, StepType
 from support.logger import logger
 from support.resourses import ResImages
+from support.time_format import format_timedelta
 from windows.window_fade import fade_window
 
 
@@ -90,7 +91,7 @@ class WndBreak(customtkinter.CTkToplevel):
             self.pbar_break_progress.set(pbar_value)
             step_duration = snapshot.break_step_duration
             elapsed_time = snapshot.step_elapsed_time
-            self.remaining_break_time.set(f'Remaining break time: {step_duration - elapsed_time}')
+            self.remaining_break_time.set(f'Remaining break time: {format_timedelta(step_duration - elapsed_time)}')
             if self.state() != 'normal':
                 self.show()
         else:
@@ -98,4 +99,4 @@ class WndBreak(customtkinter.CTkToplevel):
                 self.hide()
 
             self.pbar_break_progress.set(0)
-            self.remaining_break_time.set(f'Remaining break time: {snapshot.break_step_duration}')
+            self.remaining_break_time.set(f'Remaining break time: {format_timedelta(snapshot.break_step_duration)}')

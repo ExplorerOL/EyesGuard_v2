@@ -15,6 +15,7 @@ from config.app_constants import APP_VERSION
 from config.states import ModelSnapshot, StepType
 from support.logger import logger
 from support.resourses import ResImages
+from support.time_format import format_timedelta
 from windows.window_fade import fade_window
 
 
@@ -143,12 +144,14 @@ class WndStatus(customtkinter.CTkToplevel):
                 self.__configure_button_state('off')
 
             case StepType.suspended_mode:
-                self.lbl_time_until_break.configure(text=f'Time until normal mode: {snapshot.step_remaining_time}')
+                self.lbl_time_until_break.configure(
+                    text=f'Time until normal mode: {format_timedelta(snapshot.step_remaining_time)}'
+                )
                 self.__configure_button_state('suspended')
 
             case _:
                 self.lbl_time_until_break.configure(
-                    text=f'Time until break: {snapshot.remaining_working_time_to_display}'
+                    text=f'Time until break: {format_timedelta(snapshot.remaining_working_time_to_display)}'
                 )
                 self.__configure_button_state('active')
 
