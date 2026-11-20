@@ -33,6 +33,9 @@ class WndSettings(customtkinter.CTkToplevel):
         # from the background engine (known issue 31)
         self.__is_dirty = False
         self.__updating_from_snapshot = False
+        # protection decoration cache: reconfigured only on an actual change
+        # (same pattern as the status window button cache, known issue 32)
+        self.__protection_decor: tuple | None = None
         wnd_width = 500
         wnd_height = 420
         border_x = 50
@@ -430,19 +433,25 @@ class WndSettings(customtkinter.CTkToplevel):
         return result
 
     def update_protection_status_image(self, snapshot: ModelSnapshot):
-        """Updating protection status at settings window."""
+        """Updating protection status at settings window.
+
+        The decoration is reconfigured only when the protection state actually
+        changes (same cache pattern as the status window button, known issue 32).
+        """
+        logger.trace('Settings wnd: update_protection_status_image')
         match snapshot.step_type:
             case StepType.off_mode:
-                self.navigation_frame_lbl_title.configure(image=self.img_eyes_protection_off)
-                self.navigation_frame_lbl_description.configure(text='Protection off!', text_color='Black')
+                decor = (self.img_eyes_protection_off, 'Protection off!', 'Black')
             case StepType.suspended_mode:
-                self.navigation_frame_lbl_title.configure(image=self.img_eyes_protection_suspended)
-                self.navigation_frame_lbl_description.configure(text='Protection suspended!', text_color='Tomato')
+                decor = (self.img_eyes_protection_suspended, 'Protection suspended!', 'Tomato')
             case _:
-                self.navigation_frame_lbl_title.configure(image=self.img_eyes_with_protection)
-                self.navigation_frame_lbl_description.configure(
-                    text='Cares about your vision', text_color='GreenYellow'
-                )
+                decor = (self.img_eyes_with_protection, 'Cares about your vision', 'GreenYellow')
+        if decor == self.__protection_decor:
+            return
+        self.__protection_decor = decor
+        image, description, text_color = decor
+        self.navigation_frame_lbl_title.configure(image=image)
+        self.navigation_frame_lbl_description.configure(text=description, text_color=text_color)
 
     def update(self, snapshot: ModelSnapshot):
         """Updating settings window elements from a model snapshot.

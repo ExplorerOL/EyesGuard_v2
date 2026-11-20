@@ -5,7 +5,7 @@ helper schedules alpha changes via after() and cancels a running animation
 when a new one starts.
 """
 
-FADE_STEPS = 100
+FADE_STEPS = 40
 FADE_STEP_MS = 6
 FADE_AFTER_ATTR = 'fade_after_id'
 

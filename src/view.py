@@ -37,6 +37,8 @@ class View(customtkinter.CTk):
         # in the Tk thread only (known issue 3)
         self.__snapshot_queue: queue.Queue[ModelSnapshot] = queue.Queue()
         self.__ui_action_queue: queue.Queue = queue.Queue()
+        # freshest Model snapshot: applied to a window right after its show()
+        self.__latest_snapshot: ModelSnapshot | None = None
 
         self.__wnd_settings = WndSettings(self, initial_settings)
         self.__wnd_break = WndBreak(self)
@@ -88,9 +90,15 @@ class View(customtkinter.CTk):
 
     def __apply_snapshot(self, snapshot: ModelSnapshot):
         """Update windows and tray icon values from a Model snapshot."""
-        self.__wnd_status.update(snapshot)
-        self.__wnd_settings.update(snapshot)
+        self.__latest_snapshot = snapshot
+        # the break window self-shows/hides in update(), so it is updated even
+        # when hidden; hidden status/settings windows are skipped to keep the
+        # UI thread free (they receive __latest_snapshot right after show)
         self.__wnd_break.update(snapshot)
+        if self.__wnd_status.state() == 'normal':
+            self.__wnd_status.update(snapshot)
+        if self.__wnd_settings.state() == 'normal':
+            self.__wnd_settings.update(snapshot)
         self.__update_tray_icon_values(snapshot)
 
     def submit_snapshot(self, snapshot: ModelSnapshot):
@@ -100,12 +108,30 @@ class View(customtkinter.CTk):
     def __show_status_wnd(self):
         """Show status wnd (called from the tray thread: enqueue the action)."""
         logger.trace('View: show status wnd')
-        self.__ui_action_queue.put(self.__wnd_status.show)
+        self.__ui_action_queue.put(self.__show_status_wnd_action)
+
+    def __show_status_wnd_action(self):
+        """Show the status window and refresh it with the latest snapshot."""
+        logger.trace('View: __show_status_wnd_action')
+        self.__wnd_status.show()
+        self.__apply_latest_snapshot()
 
     def __show_settings_wnd(self):
         """Show settings wnd (called from the tray thread: enqueue the action)."""
         logger.trace('View: show settings wnd')
-        self.__ui_action_queue.put(self.__wnd_settings.show)
+        self.__ui_action_queue.put(self.__show_settings_wnd_action)
+
+    def __show_settings_wnd_action(self):
+        """Show the settings window and refresh it with the latest snapshot."""
+        logger.trace('View: __show_settings_wnd_action')
+        self.__wnd_settings.show()
+        self.__apply_latest_snapshot()
+
+    def __apply_latest_snapshot(self):
+        """Apply the cached latest snapshot to just-shown windows (None-safe)."""
+        logger.trace('View: __apply_latest_snapshot')
+        if self.__latest_snapshot is not None:
+            self.__apply_snapshot(self.__latest_snapshot)
 
     def show_notification(self, title: str, text: str):
         """Show a tray notification (pystray calls are thread-safe)."""

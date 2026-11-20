@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - wemake-python-styleguide linting (WPS via flake8, `.flake8`) with pre-commit hooks and CI gate; existing violations suppressed and tracked in `.agents/memory/prj/known-wps-linter-problems.md`
 - ty type checking (Astral, `linter_ty.toml`, win32 platform) with pre-commit hooks and CI gate; existing diagnostics suppressed and tracked with required fixes in `.agents/memory/prj/known-ty-linter-problems.md`
 
+### Changed
+- Faster window fade-in: fewer animation steps, hidden windows skip per-tick snapshot updates, freshly shown windows receive the latest snapshot immediately, and the settings window redraws its protection decoration only on an actual state change
+
 ## [2.3.1] - 2026-11-20
 
 ### Fixed
