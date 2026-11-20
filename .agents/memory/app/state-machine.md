@@ -16,7 +16,7 @@ elapsed вычисляется от часов в `tick()`, pacing-sleep при�
 | 3 | `work_notified_1` | Предупреждение «до перерыва 1 минута» | 55 с (system) |
 | 4 | `work_notified_2` | Предупреждение «до перерыва 5 секунд» | 5 с (system) |
 | 5 | `break_mode` | Перерыв | break_duration (user, 15 м по умолчанию) |
-| 6 | `iddle_mode` | Пользователь неактивен (> activity_timeout) ИЛИ играет видео (suspend_on_video=on) | = длительность work-шага; время не тикает |
+| 6 | `idle_mode` | Пользователь неактивен (> activity_timeout) ИЛИ играет видео (suspend_on_video=on) | = длительность work-шага; время не тикает |
 
 ## Граф переходов
 
@@ -28,7 +28,7 @@ elapsed вычисляется от часов в `tick()`, pacing-sleep при�
    │   │ пользователь                                      │
    │   │ снова активен                                     │
    ▼   │                                                   │
-  iddle_mode                                                │
+  idle_mode                                                │
     ▲   └─────────── пользователь снова активен ────────────┘
     │ неактивен > activity_timeout ИЛИ видео (suspend_on_video=on)
     │ (в любом work-шаге цепочки)
@@ -39,15 +39,15 @@ elapsed вычисляется от часов в `tick()`, pacing-sleep при�
  off_mode: перехода нет — остаётся в off_mode
 ```
 
-Переходы в/из `iddle_mode` выполняются **внутри** `wait_for_current_step_is_ended`
+Переходы в/из `idle_mode` выполняются **внутри** `wait_for_current_step_is_ended`
 (проверка активности каждый тик в `Model.tick()`), а не в `set_new_step_in_sequence`:
 
 - неактивен ИЛИ играет видео (при `suspend_on_video = "on"`, см. ниже) и текущий шаг
-  ∈ {work_mode, work_notified_1, work_notified_2} → `set_step(StepType.iddle_mode)`;
-- активен И видео НЕ играет и текущий шаг = iddle_mode → `__exit_idle_mode()`:
+  ∈ {work_mode, work_notified_1, work_notified_2} → `set_step(StepType.idle_mode)`;
+- активен И видео НЕ играет и текущий шаг = idle_mode → `__exit_idle_mode()`:
   при `reset_work_time_in_idle=off` восстанавливается сохранённый перед idle рабочий шаг
   (`__idle_saved_step`: тип + remaining), при `on` — свежий `work_mode`;
-- `set_new_step_in_sequence` содержит exhaustive-переходы для всех шагов (для `iddle_mode` —
+- `set_new_step_in_sequence` содержит exhaustive-переходы для всех шагов (для `idle_mode` —
   возврат в `work_mode`); повторный переход в тот же шаг игнорируется (эффекты не дублируются).
 
 ### Видео-idle (suspend_on_video)
@@ -58,9 +58,9 @@ elapsed вычисляется от часов в `tick()`, pacing-sleep при�
 Debounce ~5 тиков подряд без флага перед снятием (флаг мигает у плееров с периодическим
 сбросом idle-таймера); при каждой смене шага debounce-память сбрасывается
 (`reset_debounce()` в `__set_current_step`) — иначе инерция «видео ещё играет» давала бы
-ложный вход в iddle сразу после перерыва. Опрос видео выполняется только при шагах
-{work_mode, work_notified_1, work_notified_2, iddle_mode}. Вход/выход — штатные действия
-iddle (уведомление + звук). В `break_mode` видео не детектируется (окно перерыва само
+ложный вход в idle сразу после перерыва. Опрос видео выполняется только при шагах
+{work_mode, work_notified_1, work_notified_2, idle_mode}. Вход/выход — штатные действия
+idle (уведомление + звук). В `break_mode` видео не детектируется (окно перерыва само
 fullscreen, плюс собственный скринсейвер-блок поднимает ES_DISPLAY_REQUIRED).
 
 ### Скринсейвер на перерыве (screensaver_block)
@@ -74,16 +74,16 @@ ES_DISPLAY_REQUIRED)`; любой другой шаг (или настройка
 
 ### Сброс рабочего времени в idle (reset_work_time_in_idle)
 
-При входе в iddle_mode и `reset_work_time_in_idle = "on"` → `reset_elapsed_time()`:
+При входе в idle_mode и `reset_work_time_in_idle = "on"` → `reset_elapsed_time()`:
 после возврата в work_mode отсчёт начинается с нуля. `"off"` (дефолт) — существующее
 поведение «заморозки» (счёт продолжается с того же места).
 
 ## Сохранение рабочего времени при idle
 
 `__set_current_step`: `reset_elapsed_time()` вызывается только если ни текущий, ни новый
-шаг не `iddle_mode`. Таким образом счёт рабочего времени «замораживается» на время
+шаг не `idle_mode`. Таким образом счёт рабочего времени «замораживается» на время
 неактивности и продолжается с того же места при возврате пользователя.
-Исключение: `reset_work_time_in_idle = "on"` — сброс elapsed при входе в iddle (см. выше).
+Исключение: `reset_work_time_in_idle = "on"` — сброс elapsed при входе в idle (см. выше).
 
 ## Действия по шагам (do_current_step_actions)
 
@@ -95,14 +95,14 @@ ES_DISPLAY_REQUIRED)`; любой другой шаг (или настройка
 | `work_notified_1` | `set_activity_offset()` + уведомление «1 minute» (если notifications=on) |
 | `work_notified_2` | `set_activity_offset()` + уведомление «5 seconds» (если notifications=on) |
 | `work_mode` | обновление окна перерыва + звук `notification_work` + `set_activity_offset()` |
-| `iddle_mode` | уведомление «iddle mode» + звук `notification_idle` + `reset_activity_offset()` |
+| `idle_mode` | уведомление «idle mode» + звук `notification_idle` + `reset_activity_offset()` |
 
 Звуки играются только при `sounds = "on"` (проверяет `SoundNotificator`).
 
 ## Тик времени
 
 `wait_for_current_step_is_ended`: цикл со `time.sleep(TIME_TICK_S)`; время увеличивается только
-если шаг ∉ {off_mode, iddle_mode}. Каждый тик проверяется активность пользователя и видео.
+если шаг ∉ {off_mode, idle_mode}. Каждый тик проверяется активность пользователя и видео.
 Во время тика обновляются: окно перерыва (break) или окно статуса + трей (остальные).
 
 ## Как добавить новый шаг

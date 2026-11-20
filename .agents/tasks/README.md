@@ -31,3 +31,4 @@
 | [sounds-volume-setting](sounds-volume-setting/) | Настройка громкости, вкладка Sounds и переход со playsound на Windows MCI | Реализована (тесты/линт зелёные; требуется ручная проверка на Windows + speaker.png) |
 | [screen-saver-interactions](screen-saver-interactions/) | Блокировка скринсейвера на перерыв, видео-idle (ES_DISPLAY_REQUIRED), сброс рабочего времени в idle; 3 настройки (вкладка Display + Time settings) | Реализована (тесты/линт зелёные; ручная проверка на Windows + monitor.png) |
 | [faster-window-fade](faster-window-fade/) | Ускорение появления окон: FADE_STEPS 40, guard скрытых окон в __apply_snapshot, свежий снапшот при показе, кэш декора настроек | Реализована (тесты/линт/ревью зелёные; ручная проверка на Windows) |
+| [fix-idle-typo](fix-idle-typo/) | Исправление опечатки iddle → idle: enum `StepType.idle_mode`, тексты логов/уведомления, тесты, документация `.agents/` | Реализована (тесты/линт зелёные) |

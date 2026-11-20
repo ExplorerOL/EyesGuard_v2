@@ -146,7 +146,7 @@ class Model:
                     + self.steps_data_list[StepType.work_notified_2].step_duration_td
                 )
 
-            case StepType.work_mode | StepType.iddle_mode:
+            case StepType.work_mode | StepType.idle_mode:
                 remaining_time_actual += (
                     self.steps_data_list[StepType.work_notified_1].step_duration_td
                     + self.steps_data_list[StepType.work_notified_2].step_duration_td
@@ -177,10 +177,10 @@ class Model:
         logger.debug(f'Model: new step {step_type}')
         # drop the debounce memory: the new step must start with an honest video poll
         self.__video_activity_monitor.reset_debounce()
-        if step_type == StepType.iddle_mode:
+        if step_type == StepType.idle_mode:
             self.__save_work_step_for_idle_restore()
             if self.__settings.user_settings.reset_work_time_in_idle == OnOffValue.on.value:
-                logger.info('Model: reset work time on entering iddle mode')
+                logger.info('Model: reset work time on entering idle mode')
                 self.__current_state.reset_elapsed_time()
             self.__current_state.set_current_step_data(
                 step_type=step_type, step_duration=self.steps_data_list[StepType.work_mode].step_duration_td
@@ -314,9 +314,9 @@ class Model:
                 self.__sound_notificator.play_notification_work()
                 self.__user_activity_monitor.set_activity_offset()
 
-            case StepType.iddle_mode:
-                logger.trace(f'Model: {StepType.iddle_mode!r} actions')
-                self.__view.show_notification('Eyes Guard switched to iddle mode!', 'Attention!')
+            case StepType.idle_mode:
+                logger.trace(f'Model: {StepType.idle_mode!r} actions')
+                self.__view.show_notification('Eyes Guard switched to idle mode!', 'Attention!')
                 self.__sound_notificator.play_notification_idle()
                 self.__user_activity_monitor.reset_activity_offset()
 
@@ -337,7 +337,7 @@ class Model:
         # this code runs in the controller thread only: safe for the thread-bound blocker
         self.__process_screensaver_block()
 
-        if self.__current_state.current_step_type not in (StepType.off_mode, StepType.iddle_mode):
+        if self.__current_state.current_step_type not in (StepType.off_mode, StepType.idle_mode):
             # deadline-based timing: elapsed comes from the monotonic clock,
             # so expensive iterations do not slow the step down (known issue 24)
             elapsed_time = datetime.timedelta(seconds=self.__clock() - self.__step_started_at)
@@ -351,7 +351,7 @@ class Model:
             StepType.work_mode,
             StepType.work_notified_1,
             StepType.work_notified_2,
-            StepType.iddle_mode,
+            StepType.idle_mode,
         ):
             video_active = (
                 self.__settings.user_settings.suspend_on_video == OnOffValue.on.value
@@ -365,16 +365,16 @@ class Model:
             StepType.work_notified_2,
         ):
             if video_active:
-                logger.info('Switch to iddle mode on video playback')
+                logger.info('Switch to idle mode on video playback')
             else:
-                logger.info('Switch to iddle mode from work mode')
-            self.set_step(new_step_type=StepType.iddle_mode)
+                logger.info('Switch to idle mode from work mode')
+            self.set_step(new_step_type=StepType.idle_mode)
         elif (
             self.__user_activity_monitor.is_user_active
             and not video_active
-            and self.__current_state.current_step_type == StepType.iddle_mode
+            and self.__current_state.current_step_type == StepType.idle_mode
         ):
-            logger.info('Switch to work mode from iddle mode')
+            logger.info('Switch to work mode from idle mode')
             self.__exit_idle_mode()
 
         # publish fresh state for the GUI during the step
@@ -398,7 +398,7 @@ class Model:
                 new_step_type = StepType.break_mode
             case StepType.break_mode:
                 new_step_type = StepType.work_mode
-            case StepType.iddle_mode:
+            case StepType.idle_mode:
                 new_step_type = StepType.work_mode
 
         logger.debug(f'Model: new step = {new_step_type}')
@@ -436,7 +436,7 @@ class Model:
     def __clamp_current_step_progress(self) -> None:
         """Refresh the current step duration and clamp elapsed time to it."""
         current_step_type = self.__current_state.current_step_type
-        if current_step_type in (StepType.off_mode, StepType.iddle_mode):
+        if current_step_type in (StepType.off_mode, StepType.idle_mode):
             return
         step_duration = self.steps_data_list[current_step_type].step_duration_td
         if self.__current_state.current_step_duration != step_duration:

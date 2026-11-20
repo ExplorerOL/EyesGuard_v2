@@ -20,7 +20,7 @@ class StepType(IntEnum):
     work_notified_1 = 3
     work_notified_2 = 4
     break_mode = 5
-    iddle_mode = 6
+    idle_mode = 6
     # break_notified = 4
 
 

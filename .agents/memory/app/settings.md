@@ -31,8 +31,8 @@ frozen-сборка PyInstaller — `%LOCALAPPDATA%/EyesGuard` с миграци
 | `notifications` | Literal["on","off"] | "on" | — (управляет уведомлениями трея) |
 | `protection_status` | Literal["on","off"] | "on" | — (начальный шаг при старте) |
 | `screensaver_block` | Literal["on","off"] | "on" | — (блокировка скринсейвера на время break; `src/support/display/`) |
-| `suspend_on_video` | Literal["on","off"] | "on" | — (переход в iddle при видео — системный флаг `ES_DISPLAY_REQUIRED`) |
-| `reset_work_time_in_idle` | Literal["on","off"] | "off" | — (сброс elapsed при входе в iddle_mode; off = существующая заморозка) |
+| `suspend_on_video` | Literal["on","off"] | "on" | — (переход в idle при видео — системный флаг `ES_DISPLAY_REQUIRED`) |
+| `reset_work_time_in_idle` | Literal["on","off"] | "off" | — (сброс elapsed при входе в idle_mode; off = существующая заморозка) |
 
 ## SystemSettingsData (константы, UPPER_SNAKE_CASE)
 

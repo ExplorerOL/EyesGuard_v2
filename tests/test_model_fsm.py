@@ -146,7 +146,7 @@ def test_wait_loop_switches_to_idle_and_back_when_activity_scripted(tmp_path, mo
     model, view, _, _, clock = make_model(tmp_path, monkeypatch, settings={'work_duration': 2}, inactive_reads=3)
 
     run_ticks_until_step_ends(model, clock)
-    idle_entered = any('iddle' in message for message, _ in view.notifications)
+    idle_entered = any('idle' in message for message, _ in view.notifications)
 
     assert model.current_state.current_step_type == StepType.work_mode
     assert idle_entered
@@ -165,12 +165,12 @@ def test_wait_loop_ends_work_step_by_duration(tmp_path, monkeypatch):
 def test_sequence_transition_from_idle_mode_returns_to_work(tmp_path, monkeypatch):
     """Regression for known issue 8: the transitions match must be exhaustive.
 
-    Entering set_new_step_in_sequence from iddle_mode must not raise
+    Entering set_new_step_in_sequence from idle_mode must not raise
     UnboundLocalError and must fall back to work_mode.
     """
     model, _, _, _, _ = make_model(tmp_path, monkeypatch)
 
-    model.set_step(new_step_type=StepType.iddle_mode)
+    model.set_step(new_step_type=StepType.idle_mode)
     model.set_new_step_in_sequence()
 
     assert model.current_state.current_step_type == StepType.work_mode
@@ -311,7 +311,7 @@ def test_idle_restores_work_notified_1_with_remaining_time(tmp_path, monkeypatch
     clock.advance(seconds=40)
 
     model.tick()
-    assert model.current_state.current_step_type == StepType.iddle_mode
+    assert model.current_state.current_step_type == StepType.idle_mode
 
     model.tick()
     assert model.current_state.current_step_type == StepType.work_notified_1
@@ -329,7 +329,7 @@ def test_idle_restores_work_mode_with_remaining_time(tmp_path, monkeypatch):
     clock.advance(seconds=10)
 
     model.tick()
-    assert model.current_state.current_step_type == StepType.iddle_mode
+    assert model.current_state.current_step_type == StepType.idle_mode
 
     model.tick()
     assert model.current_state.current_step_type == StepType.work_mode
@@ -347,7 +347,7 @@ def test_idle_restores_work_notified_2_with_remaining_time(tmp_path, monkeypatch
     clock.advance(seconds=2)
 
     model.tick()
-    assert model.current_state.current_step_type == StepType.iddle_mode
+    assert model.current_state.current_step_type == StepType.idle_mode
 
     model.tick()
     assert model.current_state.current_step_type == StepType.work_notified_2
@@ -364,7 +364,7 @@ def test_idle_with_reset_starts_fresh_work_step(tmp_path, monkeypatch):
     clock.advance(seconds=10)
 
     model.tick()
-    assert model.current_state.current_step_type == StepType.iddle_mode
+    assert model.current_state.current_step_type == StepType.idle_mode
 
     model.tick()
     assert model.current_state.current_step_type == StepType.work_mode
