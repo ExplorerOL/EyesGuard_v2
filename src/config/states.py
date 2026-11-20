@@ -1,8 +1,14 @@
+from __future__ import annotations
+
 import datetime
 from dataclasses import dataclass
 from enum import IntEnum
+from typing import TYPE_CHECKING
 
 from support.logger import logger
+
+if TYPE_CHECKING:
+    from config.settings import UserSettingsData
 
 
 class StepType(IntEnum):
@@ -14,7 +20,7 @@ class StepType(IntEnum):
     work_notified_1 = 3
     work_notified_2 = 4
     break_mode = 5
-    iddle_mode = 6
+    idle_mode = 6
     # break_notified = 4
 
 
@@ -39,17 +45,17 @@ class CurrentState:
         logger.debug(f'Init current state: {self}')
 
     def __self_to_dict(self) -> dict:
-        # convertation object to dict
+        # converting object to dict
         self_dict = {
-            '__step_type:': self.__step_type,
-            '__step_duration_dt': self.__step_duration_dt,
-            '__elapsed_time_dt': self.__elapsed_time_dt,
+            'step_type': self.__step_type,
+            'step_duration': self.__step_duration_dt,
+            'elapsed_time': self.__elapsed_time_dt,
         }
         return self_dict
 
-    def __repr__(self) -> dict:
-        """Object representation as dict."""
-        return self.__self_to_dict()
+    def __repr__(self) -> str:
+        """Object representation as string."""
+        return str(self.__self_to_dict())
 
     def __str__(self) -> str:
         """Object as string."""
@@ -91,5 +97,28 @@ class CurrentState:
         self.__elapsed_time_dt += time_delta
         logger.debug(f'__elapsed_time_dt: {self.__elapsed_time_dt}')
 
+    def set_elapsed_time(self, time_delta: datetime.timedelta):
+        """Set the elapsed time explicitly (e.g. clamp after Apply)."""
+        logger.trace('CurrentState: set_elapsed_time')
+        self.__elapsed_time_dt = time_delta
+
     def reset_elapsed_time(self):
         self.__elapsed_time_dt = datetime.timedelta(seconds=0)
+
+
+@dataclass(frozen=True)
+class ModelSnapshot:
+    """Immutable state snapshot published by the Model for the GUI thread.
+
+    The GUI polls snapshots in the Tk thread only: background threads never
+    touch widgets directly (known issue 3).
+    """
+
+    step_type: StepType
+    step_duration: datetime.timedelta
+    step_elapsed_time: datetime.timedelta
+    step_remaining_time: datetime.timedelta
+    remaining_working_time_to_display: datetime.timedelta
+    time_for_work_full: datetime.timedelta
+    break_step_duration: datetime.timedelta
+    user_settings: UserSettingsData

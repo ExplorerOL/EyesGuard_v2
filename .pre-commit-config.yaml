@@ -27,6 +27,49 @@ repos:
         args: [--config=./linter_ruff.toml]
         pass_filenames: false
 
+  - repo: local
+    hooks:
+      # wemake-python-styleguide (WPS) поверх flake8, конфиг .flake8,
+      # только WPS-коды (--select=WPS — документированный способ запуска).
+      # Зависимость — dev-group pyproject (wemake-python-styleguide==1.9.0).
+    # ---- COMMIT: changed files only ----
+      - id: wps-flake8-check
+        name: wps flake8 check (lint - changed files)
+        entry: uv run --no-sync flake8 --config=.flake8 --select=WPS
+        language: system
+        types: [python]
+        stages: [pre-commit]
+
+    # ---- PUSH: whole project ----
+      - id: wps-flake8-check-all
+        name: wps flake8 check (lint - all files)
+        entry: uv run --no-sync flake8 --config=.flake8 --select=WPS --count
+        language: system
+        types: [python]
+        stages: [pre-push]
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      # ty (Astral) — тайп-чекер, конфиг linter_ty.toml.
+      # Зависимость — dev-group pyproject (ty==0.0.107).
+    # ---- COMMIT: changed files only ----
+      - id: ty-check
+        name: ty type check (changed files)
+        entry: uv run --no-sync ty check --config-file linter_ty.toml
+        language: system
+        types: [python]
+        stages: [pre-commit]
+
+    # ---- PUSH: whole project ----
+      - id: ty-check-all
+        name: ty type check (all files)
+        entry: uv run --no-sync ty check --config-file linter_ty.toml --output-format concise
+        language: system
+        types: [python]
+        stages: [pre-push]
+        pass_filenames: false
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:

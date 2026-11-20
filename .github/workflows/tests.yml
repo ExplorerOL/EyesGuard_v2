@@ -4,6 +4,7 @@ on:
   push:
     branches: [master, dev]
   pull_request:
+  workflow_call:
 
 jobs:
   lint-and-tests:
@@ -18,11 +19,20 @@ jobs:
           enable-cache: true
           python-version: "3.11"
 
-      - name: Sync dependencies
-        run: uv sync
+      - name: Sync dependencies (locked)
+        run: uv sync --locked
 
-      - name: Lint (ruff)
-        run: uv run ruff check . --config=./linter_ruff.toml
+      - name: Lint (ruff check)
+        run: uv run --no-sync ruff check . --config=./linter_ruff.toml
+
+      - name: Format check (ruff format)
+        run: uv run --no-sync ruff format --check . --config=./linter_ruff.toml
+
+      - name: Lint (wemake-python-styleguide via flake8)
+        run: uv run --no-sync flake8 --config=.flake8 --select=WPS --count src tests
+
+      - name: Type check (ty)
+        run: uv run --no-sync ty check --config-file linter_ty.toml --output-format concise src tests
 
       - name: Tests (pytest)
-        run: uv run pytest
+        run: uv run --no-sync pytest

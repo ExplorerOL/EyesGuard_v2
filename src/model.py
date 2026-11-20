@@ -19,17 +19,24 @@ import datetime
 import time
 
 from config.settings import OnOffValue, Settings, UserSettingsData
-from config.states import CurrentState, StepData, StepType
+from config.states import CurrentState, ModelSnapshot, StepData, StepType
 from support.logger import logger
 
 SETTINGS_FILE = app_dir() / 'settings' / 'settings.json'
 
 
 class Model:
-    def __init__(self, settings_file: Path = SETTINGS_FILE):
+    def __init__(self, settings_file: Path = SETTINGS_FILE, clock=time.monotonic):
+        """Create the model.
+
+        `clock` is an injectable monotonic clock (known issue 24): step
+        timings are computed from the clock, sleep only paces the polling.
+        """
         self.__view: View
         self.__settings = Settings(settings_file)
         self.__current_state = CurrentState()
+        self.__clock = clock
+        self.__step_started_at = self.__clock()
 
         logger.info(f'User settings: = {self.__settings.user_settings}')
 
@@ -38,6 +45,8 @@ class Model:
 
         self.__remaining_time_to_display = datetime.timedelta(seconds=0)
         self.__time_for_work_full = datetime.timedelta(seconds=0)
+        # work step saved on entering idle to restore it on exit (known issue 21)
+        self.__idle_saved_step: tuple[StepType, datetime.timedelta] | None = None
         self.__user_activity_monitor = UserActivityMonitor(
             activity_timeout=datetime.timedelta(seconds=self.settings.user_settings.activity_timeout)
         )
@@ -48,6 +57,22 @@ class Model:
         logger.trace('Model: object was created')
 
     def __init_steps(self):
+        self.__build_steps()
+
+        # set initial step
+        logger.debug(f'Off mode: {self.__settings.user_settings.protection_status}')
+        logger.debug(f'Off value: {OnOffValue.off}')
+        if self.__settings.user_settings.protection_status == OnOffValue.off.value:
+            logger.debug('Model: init with off_mode')
+            self.set_step(new_step_type=StepType.off_mode)
+        else:
+            logger.debug('Model: init with work_mode')
+            self.set_step(new_step_type=StepType.work_mode)
+
+    def __build_steps(self):
+        """(Re)build steps_data_list and their durations; no step switch happens."""
+        # rebuild the list from scratch: repeated Apply must not grow it (known issue 12)
+        self.steps_data_list = []
         for step_type in StepType:
             self.steps_data_list.insert(step_type, StepData())
             self.steps_data_list[step_type].step_type = step_type
@@ -83,112 +108,118 @@ class Model:
             logger.info(f'{step.step_type=}')
             logger.info(step.step_duration_td)
 
-        # set initial step
-        logger.debug(f'Off mode: {self.__settings.user_settings.protection_status}')
-        logger.debug(f'Off value: {OnOffValue.off}')
-        if self.__settings.user_settings.protection_status == OnOffValue.off.value:
-            logger.debug('Model: init with off_mode')
-            self.set_step(new_step_type=StepType.off_mode)
-        else:
-            logger.debug('Model: init with work_mode')
-            self.set_step(new_step_type=StepType.work_mode)
-
-        self.__view.update_all_wnd_values(self.model)
-
     def __update_view(self):
         """View initialization with model data."""
-        logger.trace('Model: __init_view function')
+        logger.trace('Model: __update_view function')
         self.__init_steps()
+        self.__publish_snapshot()
 
-        if self.__view is not None:
-            self.__view.update_all_wnd_values(self.model)
+    def __publish_snapshot(self):
+        """Publish an immutable state snapshot for the GUI thread.
 
-    def __update_tray_icon_values(self):
-        """Updating tray icon values."""
-        logger.trace('Controller: __update_tray_icon_values')
-
-        self.__calculate_remaining_time_for_work()
-        self.__view.update_tray_icon_values(self.model)
-
-    def __update_wnd_status(self):
-        """Updating status window values."""
-        logger.trace('Controller: __update_wnd_status_values')
-
+        The Tk thread polls the snapshot queue itself: the Model never calls
+        Tk widgets from the controller thread (known issue 3).
+        """
+        logger.trace('Model: __publish_snapshot')
         self.__remaining_time_to_display = self.__calculate_remaining_time_for_work()
         self.__time_for_work_full = self.__calculate_time_for_work()
-        self.__view.update_wnd_status(self.model)
-
-    def __update_wnd_settings(self):
-        self.__view.update_wnd_settings(self.model)
-
-    def __update_wnd_break(self):
-        """Updating break window values."""
-        logger.trace('Controller: __update_wnd_break_values')
-        self.__view.update_wnd_break(self.model)
+        snapshot = ModelSnapshot(
+            step_type=self.__current_state.current_step_type,
+            step_duration=self.__current_state.current_step_duration,
+            step_elapsed_time=self.__current_state.current_step_elapsed_time,
+            step_remaining_time=self.__current_state.current_step_remaining_time,
+            remaining_working_time_to_display=self.__remaining_time_to_display,
+            time_for_work_full=self.__time_for_work_full,
+            break_step_duration=self.steps_data_list[StepType.break_mode].step_duration_td,
+            user_settings=self.__settings.get_settings_copy(),
+        )
+        self.__view.submit_snapshot(snapshot)
 
     def __calculate_remaining_time_for_work(self) -> datetime.timedelta:
-        remaining_time_actual: datetime.timedelta = self.model.__current_state.current_step_remaining_time
+        remaining_time_actual: datetime.timedelta = self.__current_state.current_step_remaining_time
         logger.debug(remaining_time_actual)
-        match self.model.__current_state.current_step_type:
+        match self.__current_state.current_step_type:
             case StepType.off_mode:
                 remaining_time_actual += (
-                    self.model.steps_data_list[StepType.work_mode].step_duration_td
-                    + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
-                    + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
+                    self.steps_data_list[StepType.work_mode].step_duration_td
+                    + self.steps_data_list[StepType.work_notified_1].step_duration_td
+                    + self.steps_data_list[StepType.work_notified_2].step_duration_td
                 )
 
-            case StepType.work_mode | StepType.iddle_mode:
+            case StepType.work_mode | StepType.idle_mode:
                 remaining_time_actual += (
-                    self.model.steps_data_list[StepType.work_notified_1].step_duration_td
-                    + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
+                    self.steps_data_list[StepType.work_notified_1].step_duration_td
+                    + self.steps_data_list[StepType.work_notified_2].step_duration_td
                 )
             case StepType.work_notified_1:
-                remaining_time_actual += self.model.steps_data_list[StepType.work_notified_2].step_duration_td
+                remaining_time_actual += self.steps_data_list[StepType.work_notified_2].step_duration_td
         return remaining_time_actual
 
     def __calculate_time_for_work(self) -> datetime.timedelta:
         time_for_work = (
-            self.model.steps_data_list[StepType.work_mode].step_duration_td
-            + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
-            + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
+            self.steps_data_list[StepType.work_mode].step_duration_td
+            + self.steps_data_list[StepType.work_notified_1].step_duration_td
+            + self.steps_data_list[StepType.work_notified_2].step_duration_td
         )
-        match self.model.__current_state.current_step_type:
+        match self.__current_state.current_step_type:
             case StepType.off_mode:
                 time_for_work = (
-                    self.model.steps_data_list[StepType.off_mode].step_duration_td
-                    + self.model.steps_data_list[StepType.work_mode].step_duration_td
-                    + self.model.steps_data_list[StepType.work_notified_1].step_duration_td
-                    + self.model.steps_data_list[StepType.work_notified_2].step_duration_td
+                    self.steps_data_list[StepType.off_mode].step_duration_td
+                    + self.steps_data_list[StepType.work_mode].step_duration_td
+                    + self.steps_data_list[StepType.work_notified_1].step_duration_td
+                    + self.steps_data_list[StepType.work_notified_2].step_duration_td
                 )
         return time_for_work
 
     def __set_current_step(self, step_type: StepType) -> None:
-        """Settind step data in current state by step type."""
+        """Setting step data in current state by step type."""
         logger.trace('Model: __set_current_step')
         logger.debug(f'Model: new step {step_type}')
         # drop the debounce memory: the new step must start with an honest video poll
         self.__video_activity_monitor.reset_debounce()
-        if step_type != StepType.iddle_mode and self.__current_state.current_step_type != StepType.iddle_mode:
-            self.__current_state.reset_elapsed_time()
-        if step_type == StepType.iddle_mode:
+        if step_type == StepType.idle_mode:
+            self.__save_work_step_for_idle_restore()
             if self.__settings.user_settings.reset_work_time_in_idle == OnOffValue.on.value:
-                logger.info('Model: reset work time on entering iddle mode')
+                logger.info('Model: reset work time on entering idle mode')
                 self.__current_state.reset_elapsed_time()
             self.__current_state.set_current_step_data(
                 step_type=step_type, step_duration=self.steps_data_list[StepType.work_mode].step_duration_td
             )
         else:
+            self.__idle_saved_step = None
+            self.__current_state.reset_elapsed_time()
             self.__current_state.set_current_step_data(
                 step_type=step_type, step_duration=self.steps_data_list[step_type].step_duration_td
             )
         logger.debug(f'Step_type: {self.__current_state.current_step_type}')
         logger.debug(f'Step_duration: {self.__current_state.current_step_duration}')
         logger.debug(f'Steps data list: {self.steps_data_list[step_type]}')
+        # the step timer is deadline-based: elapsed comes from the clock (known issue 24)
+        self.__step_started_at = self.__clock() - self.__current_state.current_step_elapsed_time.total_seconds()
 
-    @property
-    def model(self) -> Model:
-        logger.trace('Model: getting model data')
-        return self
+    def __save_work_step_for_idle_restore(self) -> None:
+        """Remember the work step interrupted by idle to restore it later."""
+        previous_step = self.__current_state.current_step_type
+        if (
+            self.__settings.user_settings.reset_work_time_in_idle != OnOffValue.on.value
+            and previous_step in (StepType.work_mode, StepType.work_notified_1, StepType.work_notified_2)
+            and self.__idle_saved_step is None
+        ):
+            self.__idle_saved_step = (previous_step, self.__current_state.current_step_remaining_time)
+            logger.debug(f'Model: saved work step for idle restore: {self.__idle_saved_step}')
+
+    def __exit_idle_mode(self) -> None:
+        """Leave idle: restore the saved work step with its remaining time."""
+        saved_step = self.__idle_saved_step or (StepType.work_mode, None)
+        saved_step_type, saved_remaining_time = saved_step
+        logger.info(f'Model: restoring {saved_step_type!r} from idle mode')
+        self.set_step(new_step_type=saved_step_type)
+        if saved_remaining_time is not None:
+            step_duration = self.steps_data_list[saved_step_type].step_duration_td
+            elapsed_time = max(step_duration - saved_remaining_time, datetime.timedelta(seconds=0))
+            self.__current_state.set_elapsed_time(time_delta=elapsed_time)
+            # keep the deadline consistent with the restored progress
+            self.__step_started_at = self.__clock() - elapsed_time.total_seconds()
 
     @property
     def remaining_working_time_to_display(self) -> datetime.timedelta:
@@ -209,10 +240,6 @@ class Model:
     def settings(self) -> Settings:
         logger.trace('Model: model_settings getter')
         return self.__settings
-
-    @settings.setter
-    def settings(self, settings: Settings) -> None:
-        logger.trace('Model: model_settings setter')
 
     @property
     def user_settings(self) -> UserSettingsData:
@@ -239,7 +266,7 @@ class Model:
         """
         logger.trace('Model: __process_screensaver_block')
         should_block = (
-            self.model.__current_state.current_step_type == StepType.break_mode
+            self.__current_state.current_step_type == StepType.break_mode
             and self.__settings.user_settings.screensaver_block == OnOffValue.on.value
         )
         if should_block:
@@ -254,7 +281,7 @@ class Model:
         logger.debug(f'Model: New step duration {self.__current_state.current_step_duration}')
         logger.debug(f'Model: New step remaining_time {self.__current_state.current_step_remaining_time}')
 
-        match self.model.__current_state.current_step_type:
+        match self.__current_state.current_step_type:
             case StepType.off_mode:
                 logger.trace('Model: off_mode actions')
                 self.__view.show_notification('Eyes Guard protection is off!', 'Attention!')
@@ -265,7 +292,7 @@ class Model:
 
             case StepType.break_mode:
                 logger.trace('Model: break_mode actions')
-                self.__update_wnd_break()
+                self.__publish_snapshot()
                 self.__sound_notificator.play_notification_break()
                 self.__user_activity_monitor.set_activity_offset()
 
@@ -283,78 +310,76 @@ class Model:
 
             case StepType.work_mode:
                 logger.trace('Model: work_mode actions')
-                self.__view.update_wnd_break(model=self.model)
+                self.__publish_snapshot()
                 self.__sound_notificator.play_notification_work()
                 self.__user_activity_monitor.set_activity_offset()
 
-            case StepType.iddle_mode:
-                logger.trace(f'Model: {StepType.iddle_mode!r} actions')
-                self.__view.show_notification('Eyes Guard switched to iddle mode!', 'Attention!')
+            case StepType.idle_mode:
+                logger.trace(f'Model: {StepType.idle_mode!r} actions')
+                self.__view.show_notification('Eyes Guard switched to idle mode!', 'Attention!')
                 self.__sound_notificator.play_notification_idle()
                 self.__user_activity_monitor.reset_activity_offset()
 
-    def wait_for_current_step_is_ended(self):
-        logger.trace('Model: __wait_for_current_step_is_ended')
-        while True:
-            logger.info(f'Current step type: {self.model.__current_state.current_step_type!r}')
-            logger.info(f'Step duration: {self.model.__current_state.current_step_duration}')
-            logger.info(f'Step elapsed time: {self.model.__current_state.current_step_elapsed_time}')
-            logger.info(f'User activity: {self.__user_activity_monitor.is_user_active!r}')
+    def tick(self) -> bool:
+        """Run a single wait-loop iteration for the current step.
 
-            # this loop runs in the controller thread only: safe for the thread-bound blocker
-            self.__process_screensaver_block()
+        Must be called from the controller thread only (the screensaver
+        blocker state is thread-bound). Pacing between ticks belongs to the
+        Controller: the Model never sleeps (known issue 11). Returns True
+        when the current step has ended.
+        """
+        logger.trace('Model: tick')
+        logger.debug(f'Current step type: {self.__current_state.current_step_type!r}')
+        logger.debug(f'Step duration: {self.__current_state.current_step_duration}')
+        logger.debug(f'Step elapsed time: {self.__current_state.current_step_elapsed_time}')
+        logger.debug(f'User activity: {self.__user_activity_monitor.is_user_active!r}')
 
-            if self.__current_state.current_step_type not in (StepType.off_mode, StepType.iddle_mode):
-                if (
-                    self.model.__current_state.current_step_elapsed_time
-                    < self.model.__current_state.current_step_duration
-                ):
-                    self.model.__current_state.increase_elapsed_time()
-                else:
-                    break
-            # video detection is skipped for break_mode: the break window is fullscreen
-            # itself and our own screensaver block raises ES_DISPLAY_REQUIRED
-            video_active = False
-            if self.__current_state.current_step_type in (
-                StepType.work_mode,
-                StepType.work_notified_1,
-                StepType.work_notified_2,
-                StepType.iddle_mode,
-            ):
-                video_active = (
-                    self.__settings.user_settings.suspend_on_video == OnOffValue.on.value
-                    and self.__video_activity_monitor.is_video_playing
-                )
-            if (
-                not self.__user_activity_monitor.is_user_active or video_active
-            ) and self.__current_state.current_step_type in (
-                StepType.work_mode,
-                StepType.work_notified_1,
-                StepType.work_notified_2,
-            ):
-                if video_active:
-                    logger.info('Switch to iddle mode on video playback')
-                else:
-                    logger.info('Switch to iddle mode from work mode')
-                self.set_step(new_step_type=StepType.iddle_mode)
-            elif (
-                self.__user_activity_monitor.is_user_active
-                and not video_active
-                and self.__current_state.current_step_type == StepType.iddle_mode
-            ):
-                logger.info('Switch to work mode from iddle mode')
-                self.set_step(new_step_type=StepType.work_mode)
+        # this code runs in the controller thread only: safe for the thread-bound blocker
+        self.__process_screensaver_block()
 
-            # actions during step is in progress
-            match self.model.__current_state.current_step_type:
-                case StepType.break_mode:
-                    self.__update_wnd_break()
+        if self.__current_state.current_step_type not in (StepType.off_mode, StepType.idle_mode):
+            # deadline-based timing: elapsed comes from the monotonic clock,
+            # so expensive iterations do not slow the step down (known issue 24)
+            elapsed_time = datetime.timedelta(seconds=self.__clock() - self.__step_started_at)
+            self.__current_state.set_elapsed_time(time_delta=elapsed_time)
+            if elapsed_time >= self.__current_state.current_step_duration:
+                return True
+        # video detection is skipped for break_mode: the break window is fullscreen
+        # itself and our own screensaver block raises ES_DISPLAY_REQUIRED
+        video_active = False
+        if self.__current_state.current_step_type in (
+            StepType.work_mode,
+            StepType.work_notified_1,
+            StepType.work_notified_2,
+            StepType.idle_mode,
+        ):
+            video_active = (
+                self.__settings.user_settings.suspend_on_video == OnOffValue.on.value
+                and self.__video_activity_monitor.is_video_playing
+            )
+        if (
+            not self.__user_activity_monitor.is_user_active or video_active
+        ) and self.__current_state.current_step_type in (
+            StepType.work_mode,
+            StepType.work_notified_1,
+            StepType.work_notified_2,
+        ):
+            if video_active:
+                logger.info('Switch to idle mode on video playback')
+            else:
+                logger.info('Switch to idle mode from work mode')
+            self.set_step(new_step_type=StepType.idle_mode)
+        elif (
+            self.__user_activity_monitor.is_user_active
+            and not video_active
+            and self.__current_state.current_step_type == StepType.idle_mode
+        ):
+            logger.info('Switch to work mode from idle mode')
+            self.__exit_idle_mode()
 
-                case _:
-                    self.__update_wnd_status()
-                    self.__update_tray_icon_values()
-
-            time.sleep(self.settings.system_settings.TIME_TICK_S)
+        # publish fresh state for the GUI during the step
+        self.__publish_snapshot()
+        return False
 
     def set_new_step_in_sequence(self):
         logger.trace('Controller: __set_new_step_in_sequence')
@@ -373,25 +398,60 @@ class Model:
                 new_step_type = StepType.break_mode
             case StepType.break_mode:
                 new_step_type = StepType.work_mode
+            case StepType.idle_mode:
+                new_step_type = StepType.work_mode
 
         logger.debug(f'Model: new step = {new_step_type}')
-        self.__set_current_step(new_step_type)
+        if new_step_type == self.__current_state.current_step_type:
+            logger.debug('Model: no transition, keeping the current step')
+            return
+        # full transition: state change + effects exactly once (known issue 14)
+        self.set_step(new_step_type)
 
     def apply_new_user_settings(self, user_settings: UserSettingsData) -> None:
+        """Apply new settings: recompute durations, keep the current step (known issue 13).
+
+        The current step and its progress survive an Apply unless the
+        protection status actually changes; progress above a shortened
+        duration is clamped so the step ends on the next tick.
+        """
         logger.trace('Model: apply_new_settings')
+        old_protection_status = self.__settings.user_settings.protection_status
         self.user_settings = user_settings
         self.__user_activity_monitor = UserActivityMonitor(
             activity_timeout=datetime.timedelta(seconds=self.settings.user_settings.activity_timeout)
         )
-        self.__init_steps()
+        self.__build_steps()
+
+        new_protection_status = self.__settings.user_settings.protection_status
+        if old_protection_status != new_protection_status:
+            if new_protection_status == OnOffValue.off.value:
+                self.set_step(new_step_type=StepType.off_mode)
+            else:
+                self.set_step(new_step_type=StepType.work_mode)
+        else:
+            self.__clamp_current_step_progress()
+        self.__publish_snapshot()
+
+    def __clamp_current_step_progress(self) -> None:
+        """Refresh the current step duration and clamp elapsed time to it."""
+        current_step_type = self.__current_state.current_step_type
+        if current_step_type in (StepType.off_mode, StepType.idle_mode):
+            return
+        step_duration = self.steps_data_list[current_step_type].step_duration_td
+        if self.__current_state.current_step_duration != step_duration:
+            # Apply may change durations: keep the step, refresh its duration
+            self.__current_state.set_current_step_data(step_type=current_step_type, step_duration=step_duration)
+        if self.__current_state.current_step_elapsed_time > step_duration:
+            self.__current_state.set_elapsed_time(time_delta=step_duration)
+        # keep the deadline consistent with the (possibly clamped) progress
+        self.__step_started_at = self.__clock() - self.__current_state.current_step_elapsed_time.total_seconds()
 
     def switch_suspended_state(self):
+        """Toggle suspended state; effects run once via set_step actions (known issue 14)."""
         logger.trace('Model: change_suspended_state')
         if self.current_state.current_step_type != StepType.suspended_mode:
             self.set_step(StepType.suspended_mode)
-            logger.debug('Model: show notification')
-            self.__view.show_notification('Eyes Guard protection suspended!', 'Attention!')
-
         else:
             self.set_step(StepType.work_mode)
 
@@ -399,6 +459,4 @@ class Model:
         logger.trace('Model: set_step')
         self.__set_current_step(new_step_type)
         self.do_current_step_actions()
-        self.__update_wnd_break()
-        self.__update_wnd_status()
-        self.__update_wnd_settings()
+        self.__publish_snapshot()

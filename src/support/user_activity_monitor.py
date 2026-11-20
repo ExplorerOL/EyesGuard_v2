@@ -9,6 +9,36 @@ import datetime
 
 from support.logger import logger
 
+_WINAPI_PROTOTYPES_CONFIGURED = False
+
+
+def _configure_winapi_prototypes() -> None:
+    """Set full WinAPI prototypes once (known issue 23).
+
+    Without restype, ctypes treats GetTickCount64 result as a signed C int;
+    LASTINPUTINFO.dwTime is an unsigned 32-bit counter wrapping every ~49.7
+    days. Must be called lazily: ctypes.windll does not exist on non-Windows.
+    """
+    global _WINAPI_PROTOTYPES_CONFIGURED
+    if _WINAPI_PROTOTYPES_CONFIGURED:
+        return
+    ctypes.windll.user32.GetLastInputInfo.argtypes = [ctypes.POINTER(LASTINPUTINFO)]
+    ctypes.windll.user32.GetLastInputInfo.restype = ctypes.c_int
+    ctypes.windll.kernel32.GetTickCount64.argtypes = []
+    ctypes.windll.kernel32.GetTickCount64.restype = ctypes.c_ulonglong
+    _WINAPI_PROTOTYPES_CONFIGURED = True
+
+
+def idle_time_from_ticks(tick_count: int, last_input_tick: int) -> datetime.timedelta:
+    """Wrap-safe idle time from GetTickCount64 and LASTINPUTINFO.dwTime.
+
+    dwTime is a 32-bit tick counter synchronized with the low 32 bits of
+    GetTickCount64: unsigned modulo-2**32 arithmetic stays correct across
+    both the 2**31 sign boundary and the 2**32 wraparound.
+    """
+    idle_ms = (tick_count - last_input_tick) & 0xFFFFFFFF
+    return datetime.timedelta(milliseconds=idle_ms)
+
 
 class LASTINPUTINFO(ctypes.Structure):
     """Structure for holding last input information from Windows API."""
@@ -44,6 +74,7 @@ class UserActivityMonitor:
             The time duration since the last user input event.
         """
         try:
+            _configure_winapi_prototypes()
             last_input_info = LASTINPUTINFO()
             last_input_info.cbSize = ctypes.sizeof(LASTINPUTINFO)
 
@@ -53,10 +84,9 @@ class UserActivityMonitor:
                 logger.warning('Failed to get last input info from Windows API')
                 return datetime.timedelta(seconds=0)
 
-            # Get system uptime using 64-bit function to avoid 49.7-day wraparound
+            # 64-bit tick count minus the 32-bit last input tick, wrap-safe
             tick_count = ctypes.windll.kernel32.GetTickCount64()
-            time_ms = tick_count - last_input_info.dwTime
-            idle_time = datetime.timedelta(milliseconds=time_ms)
+            idle_time = idle_time_from_ticks(tick_count=tick_count, last_input_tick=last_input_info.dwTime)
 
             logger.debug(f'User idle time: {idle_time}')
             return idle_time
@@ -75,6 +105,11 @@ class UserActivityMonitor:
             True if the user is active (idle time is less than timeout), False otherwise.
         """
         idle_time = self.__get_user_idle_time_from_os()
+        if idle_time < self._idle_time_offset:
+            # new real input arrived: the raw idle dropped below the offset
+            # (known issue 22: a stale offset must not extend the next timeout)
+            self._idle_time_offset = datetime.timedelta(seconds=0)
+            logger.debug('Activity offset reset: new user input detected')
         adjusted_idle_time = idle_time - self._idle_time_offset
         is_active = adjusted_idle_time <= self._activity_timeout
 

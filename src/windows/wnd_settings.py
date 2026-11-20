@@ -8,28 +8,34 @@ if TYPE_CHECKING:
     from view import View
 
 import re
-import time
 from tkinter import StringVar
 
 import customtkinter
 from PIL import ImageTk
 
 from config.app_constants import APP_VERSION, APP_YEAR
-from config.settings import Settings
-from config.states import StepType
-from model import Model
+from config.settings import UserSettingsData
+from config.states import ModelSnapshot, StepType
 from support.logger import logger
 from support.resourses import ResImages
+from windows.window_fade import fade_window
 
 
 class WndSettings(customtkinter.CTkToplevel):
     """Settings window."""
 
-    def __init__(self, view: View, settings: Settings, *args, **kwargs):
+    def __init__(self, view: View, settings: UserSettingsData, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.view = view
         self.settings = settings
+        # dirty form: unsaved user edits must not be overwritten by snapshots
+        # from the background engine (known issue 31)
+        self.__is_dirty = False
+        self.__updating_from_snapshot = False
+        # protection decoration cache: reconfigured only on an actual change
+        # (same pattern as the status window button cache, known issue 32)
+        self.__protection_decor: tuple | None = None
         wnd_width = 500
         wnd_height = 420
         border_x = 50
@@ -188,7 +194,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.lbl_work_duration.grid(row=0, column=0, padx=(20, 5), pady=10, sticky='w')
 
         self.work_duration_value = StringVar()
-        self.work_duration_value.set(self.settings.get_settings_copy().work_duration)
+        self.work_duration_value.set(self.settings.work_duration)
         verify_cmd_work_duration = (self.register(self.is_valid_duration_entry), '%P')
         self.entry_work_duration = customtkinter.CTkEntry(
             self.frame_time_settings,
@@ -207,7 +213,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.lbl_break_duration.grid(row=1, column=0, padx=(20, 5), pady=10, sticky='w')
 
         self.break_duration_value = StringVar()
-        self.break_duration_value.set(self.settings.get_settings_copy().break_duration)
+        self.break_duration_value.set(self.settings.break_duration)
         verify_cmd_break_duration = (self.register(self.is_valid_duration_entry), '%P')
         self.entry_break_duration = customtkinter.CTkEntry(
             self.frame_time_settings,
@@ -226,7 +232,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.lbl_activity_timeout.grid(row=2, column=0, padx=(20, 5), pady=10, sticky='w')
 
         self.activity_timeout_value = StringVar()
-        self.activity_timeout_value.set(self.settings.get_settings_copy().activity_timeout)
+        self.activity_timeout_value.set(self.settings.activity_timeout)
         verify_cmd_activity_timeout = (self.register(self.is_valid_activity_timeout_entry), '%P')
         self.entry_activity_timeout = customtkinter.CTkEntry(
             self.frame_time_settings,
@@ -239,9 +245,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.entry_activity_timeout.grid(row=2, column=1, padx=(5, 15), pady=10, sticky='w')
 
         # reset work time in idle mode setting
-        self.chbox_reset_work_time_in_idle_value = customtkinter.StringVar(
-            value=self.settings.get_settings_copy().reset_work_time_in_idle
-        )
+        self.chbox_reset_work_time_in_idle_value = customtkinter.StringVar(value=self.settings.reset_work_time_in_idle)
         self.chbox_reset_work_time_in_idle = customtkinter.CTkCheckBox(
             self.frame_time_settings,
             text='Reset working time in idle mode',
@@ -256,9 +260,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.frame_general_settings = customtkinter.CTkFrame(self, corner_radius=0, fg_color='transparent')
 
         # protextion status setting
-        self.chbox_protection_status_value = customtkinter.StringVar(
-            value=self.settings.get_settings_copy().protection_status
-        )
+        self.chbox_protection_status_value = customtkinter.StringVar(value=self.settings.protection_status)
         self.chbox_protection_status = customtkinter.CTkCheckBox(
             self.frame_general_settings,
             text='Protection status',
@@ -270,7 +272,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.chbox_protection_status.grid(row=0, column=0, padx=20, pady=10, sticky='ew')
 
         # notifications setting
-        self.chbox_notifications_value = customtkinter.StringVar(value=self.settings.get_settings_copy().notifications)
+        self.chbox_notifications_value = customtkinter.StringVar(value=self.settings.notifications)
         self.chbox_notifications = customtkinter.CTkCheckBox(
             self.frame_general_settings,
             text='Notifications enabled',
@@ -287,7 +289,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.frame_sounds_settings.grid_columnconfigure(1, weight=1)
 
         # sounds on/off setting (moved from the General tab)
-        self.chbox_sounds_value = customtkinter.StringVar(value=self.settings.get_settings_copy().sounds)
+        self.chbox_sounds_value = customtkinter.StringVar(value=self.settings.sounds)
         self.chbox_sounds = customtkinter.CTkCheckBox(
             self.frame_sounds_settings,
             text='Sounds enabled',
@@ -301,7 +303,7 @@ class WndSettings(customtkinter.CTkToplevel):
         # sounds volume setting
         self.lbl_volume = customtkinter.CTkLabel(
             self.frame_sounds_settings,
-            text=f'Volume: {self.settings.get_settings_copy().volume} %',
+            text=f'Volume: {self.settings.volume} %',
             font=('', 13),
         )
         self.lbl_volume.grid(row=1, column=0, padx=20, pady=10)
@@ -313,7 +315,7 @@ class WndSettings(customtkinter.CTkToplevel):
             number_of_steps=99,
             command=self.event_volume_slider_move,
         )
-        self.slider_volume.set(self.settings.get_settings_copy().volume)
+        self.slider_volume.set(self.settings.volume)
         self.slider_volume.grid(row=1, column=1, padx=20, pady=20, sticky='ew')
 
         # --- create display settings frame ---
@@ -321,9 +323,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.frame_display_settings.grid_columnconfigure(1, weight=1)
 
         # screensaver block setting
-        self.chbox_screensaver_block_value = customtkinter.StringVar(
-            value=self.settings.get_settings_copy().screensaver_block
-        )
+        self.chbox_screensaver_block_value = customtkinter.StringVar(value=self.settings.screensaver_block)
         self.chbox_screensaver_block = customtkinter.CTkCheckBox(
             self.frame_display_settings,
             text='Block screensaver during breaks',
@@ -335,9 +335,7 @@ class WndSettings(customtkinter.CTkToplevel):
         self.chbox_screensaver_block.grid(row=0, column=0, padx=20, pady=10, sticky='ew')
 
         # suspend on video playback setting
-        self.chbox_suspend_on_video_value = customtkinter.StringVar(
-            value=self.settings.get_settings_copy().suspend_on_video
-        )
+        self.chbox_suspend_on_video_value = customtkinter.StringVar(value=self.settings.suspend_on_video)
         self.chbox_suspend_on_video = customtkinter.CTkCheckBox(
             self.frame_display_settings,
             text='Switch to idle mode on video playback',
@@ -387,7 +385,28 @@ class WndSettings(customtkinter.CTkToplevel):
         self.bind('<FocusIn>', self.on_focus_in)
         self.protocol('WM_DELETE_WINDOW', self.hide)
         self.event_btn_time_settings_click()
+        self.__track_user_edits()
         self.withdraw()
+
+    def __track_user_edits(self) -> None:
+        """Mark the form dirty on any user edit (known issue 31)."""
+        variables = (
+            self.work_duration_value,
+            self.break_duration_value,
+            self.activity_timeout_value,
+            self.chbox_protection_status_value,
+            self.chbox_notifications_value,
+            self.chbox_sounds_value,
+            self.chbox_screensaver_block_value,
+            self.chbox_suspend_on_video_value,
+            self.chbox_reset_work_time_in_idle_value,
+        )
+        for variable in variables:
+            variable.trace_add('write', self.__mark_dirty)
+
+    def __mark_dirty(self, *args) -> None:
+        if not self.__updating_from_snapshot:
+            self.__is_dirty = True
 
     def on_focus_in(self, event):
         """Actions on focus at window."""
@@ -396,19 +415,14 @@ class WndSettings(customtkinter.CTkToplevel):
         """Actions on focus out of window."""
 
     def hide(self):
-        """Hide window."""
-        for i in range(100):
-            self.attributes('-alpha', 1 - i / 100)
-            time.sleep(0.006)
-        self.withdraw()
+        """Hide window with a non-blocking fade (known issue 17)."""
+        self.__is_dirty = False
+        fade_window(self, showing=False, on_done=self.withdraw)
 
     def show(self):
-        """Show window."""
+        """Show window with a non-blocking fade (known issue 17)."""
         self.deiconify()
-
-        for i in range(100):
-            self.attributes('-alpha', i / 100)
-            time.sleep(0.006)
+        fade_window(self, showing=True)
 
     def is_valid_duration_entry(self, value: str):
         result = re.match('^[1-9][0-9]{0,1}$|^$', value) is not None
@@ -418,39 +432,60 @@ class WndSettings(customtkinter.CTkToplevel):
         result = re.match('^[1-9][0-9]{0,2}$|^$', value) is not None
         return result
 
-    def update_protection_status_image(self, model: Model):
-        """Updating protection status at settings window."""
-        match model.current_state.current_step_type:
+    def update_protection_status_image(self, snapshot: ModelSnapshot):
+        """Updating protection status at settings window.
+
+        The decoration is reconfigured only when the protection state actually
+        changes (same cache pattern as the status window button, known issue 32).
+        """
+        logger.trace('Settings wnd: update_protection_status_image')
+        match snapshot.step_type:
             case StepType.off_mode:
-                self.navigation_frame_lbl_title.configure(image=self.img_eyes_protection_off)
-                self.navigation_frame_lbl_description.configure(text='Protection off!', text_color='Black')
+                decor = (self.img_eyes_protection_off, 'Protection off!', 'Black')
             case StepType.suspended_mode:
-                self.navigation_frame_lbl_title.configure(image=self.img_eyes_protection_suspended)
-                self.navigation_frame_lbl_description.configure(text='Protection suspended!', text_color='Tomato')
+                decor = (self.img_eyes_protection_suspended, 'Protection suspended!', 'Tomato')
             case _:
-                self.navigation_frame_lbl_title.configure(image=self.img_eyes_with_protection)
-                self.navigation_frame_lbl_description.configure(
-                    text='Cares about your vision', text_color='GreenYellow'
-                )
+                decor = (self.img_eyes_with_protection, 'Cares about your vision', 'GreenYellow')
+        if decor == self.__protection_decor:
+            return
+        self.__protection_decor = decor
+        image, description, text_color = decor
+        self.navigation_frame_lbl_title.configure(image=image)
+        self.navigation_frame_lbl_description.configure(text=description, text_color=text_color)
 
-    def update(self, model: Model):
-        """Updating status window elements states."""
+    def update(self, snapshot: ModelSnapshot):
+        """Updating settings window elements from a model snapshot.
+
+        A dirty form (unsaved user edits) is not overwritten by background
+        snapshots (known issue 31): only the protection decoration refreshes.
+        """
         logger.trace('Settings wnd: update function started')
-        logger.debug(f'Model settings: {model}')
+        logger.debug(f'Model settings: {snapshot.user_settings}')
 
-        self.work_duration_value.set(str(model.user_settings.work_duration))
-        self.break_duration_value.set(str(model.user_settings.break_duration))
-        self.activity_timeout_value.set(str(model.user_settings.activity_timeout))
-        self.slider_volume.set(model.user_settings.volume)
-        self.lbl_volume.configure(text=f'Volume: {model.user_settings.volume} %')
-        self.chbox_sounds_value.set(value=model.user_settings.sounds)
-        self.chbox_notifications_value.set(value=model.user_settings.notifications)
-        self.chbox_protection_status_value.set(value=model.user_settings.protection_status)
-        self.chbox_screensaver_block_value.set(value=model.user_settings.screensaver_block)
-        self.chbox_suspend_on_video_value.set(value=model.user_settings.suspend_on_video)
-        self.chbox_reset_work_time_in_idle_value.set(value=model.user_settings.reset_work_time_in_idle)
+        self.update_protection_status_image(snapshot)
+        if self.__is_dirty:
+            logger.debug('Settings wnd: form is dirty, skipping field refresh')
+            return
 
-        self.update_protection_status_image(model)
+        self.__updating_from_snapshot = True
+        try:
+            self.__update_fields(snapshot)
+        finally:
+            self.__updating_from_snapshot = False
+
+    def __update_fields(self, snapshot: ModelSnapshot) -> None:
+        user_settings = snapshot.user_settings
+        self.work_duration_value.set(str(user_settings.work_duration))
+        self.break_duration_value.set(str(user_settings.break_duration))
+        self.activity_timeout_value.set(str(user_settings.activity_timeout))
+        self.slider_volume.set(user_settings.volume)
+        self.lbl_volume.configure(text=f'Volume: {user_settings.volume} %')
+        self.chbox_sounds_value.set(value=user_settings.sounds)
+        self.chbox_notifications_value.set(value=user_settings.notifications)
+        self.chbox_protection_status_value.set(value=user_settings.protection_status)
+        self.chbox_screensaver_block_value.set(value=user_settings.screensaver_block)
+        self.chbox_suspend_on_video_value.set(value=user_settings.suspend_on_video)
+        self.chbox_reset_work_time_in_idle_value.set(value=user_settings.reset_work_time_in_idle)
 
     def select_frame_by_name(self, name: str) -> None:
         self.btn_time_settings.configure(fg_color='LightSteelBlue' if name == 'frame_time_settings' else 'transparent')
@@ -501,11 +536,13 @@ class WndSettings(customtkinter.CTkToplevel):
 
     def event_volume_slider_move(self, value: float) -> None:
         """Update the volume label while the slider is moving."""
+        self.__mark_dirty()
         self.lbl_volume.configure(text=f'Volume: {int(value)} %')
 
     def event_btn_about_click(self) -> None:
         self.select_frame_by_name('frame_about')
 
     def apply_ui_settings(self):
-        """Coll method of view for applying new settings."""
+        """Call method of view for applying new settings."""
+        self.__is_dirty = False
         self.view.apply_view_user_settings()

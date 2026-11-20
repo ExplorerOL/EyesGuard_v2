@@ -1,91 +1,151 @@
-import sys
-
-sys.path.insert(0, './src')
-
 from pathlib import Path
 
 import pytest
+from conftest import fixture_path
 
 from config.settings import Settings, UserSettingsData
 
-settings_default_str = (
-    "{'activity_timeout': 180, 'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', "
-    "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'on', 'suspend_on_video': 'on', "
-    "'volume': 100, 'work_duration': 45}"
-)
+settings_default = {
+    'work_duration': 45,
+    'break_duration': 15,
+    'activity_timeout': 180,
+    'volume': 100,
+    'sounds': 'on',
+    'notifications': 'on',
+    'protection_status': 'on',
+    'screensaver_block': 'on',
+    'suspend_on_video': 'on',
+    'reset_work_time_in_idle': 'off',
+}
 
 
 @pytest.mark.parametrize(
-    'settings_file_name, expected_settings_str',
+    'settings_file_name, expected_settings',
     [
         (
-            'tests/data/settings_valid_min_values.json',
-            '{'
-            "'activity_timeout': 30, 'break_duration': 1, 'notifications': 'off', 'protection_status': 'on', "
-            "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'off', "
-            "'suspend_on_video': 'on', 'volume': 1, 'work_duration': 1"
-            '}',
+            'settings_valid_min_values.json',
+            {
+                'work_duration': 1,
+                'break_duration': 1,
+                'activity_timeout': 30,
+                'volume': 1,
+                'sounds': 'off',
+                'notifications': 'off',
+                'protection_status': 'on',
+                'screensaver_block': 'on',
+                'suspend_on_video': 'on',
+                'reset_work_time_in_idle': 'off',
+            },
         ),
         (
-            'tests/data/settings_valid_mean_values.json',
-            '{'
-            "'activity_timeout': 315, 'break_duration': 50, 'notifications': 'on', 'protection_status': 'on', "
-            "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'off', "
-            "'suspend_on_video': 'on', 'volume': 50, 'work_duration': 50"
-            '}',
+            'settings_valid_mean_values.json',
+            {
+                'work_duration': 50,
+                'break_duration': 50,
+                'activity_timeout': 315,
+                'volume': 50,
+                'sounds': 'off',
+                'notifications': 'on',
+                'protection_status': 'on',
+                'screensaver_block': 'on',
+                'suspend_on_video': 'on',
+                'reset_work_time_in_idle': 'off',
+            },
         ),
         (
-            'tests/data/settings_valid_max_values.json',
-            '{'
-            "'activity_timeout': 600, 'break_duration': 100, 'notifications': 'on', 'protection_status': 'on', "
-            "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'on', "
-            "'suspend_on_video': 'on', 'volume': 100, 'work_duration': 100"
-            '}',
+            'settings_valid_max_values.json',
+            {
+                'work_duration': 100,
+                'break_duration': 100,
+                'activity_timeout': 600,
+                'volume': 100,
+                'sounds': 'on',
+                'notifications': 'on',
+                'protection_status': 'on',
+                'screensaver_block': 'on',
+                'suspend_on_video': 'on',
+                'reset_work_time_in_idle': 'off',
+            },
         ),
         (
-            'tests/data/settings_valid_empty.json',
-            '{'
-            "'activity_timeout': 180, 'break_duration': 15, 'notifications': 'on', 'protection_status': 'on', "
-            "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'on', "
-            "'suspend_on_video': 'on', 'volume': 100, 'work_duration': 45"
-            '}',
+            'settings_valid_empty.json',
+            {
+                'work_duration': 45,
+                'break_duration': 15,
+                'activity_timeout': 180,
+                'volume': 100,
+                'sounds': 'on',
+                'notifications': 'on',
+                'protection_status': 'on',
+                'screensaver_block': 'on',
+                'suspend_on_video': 'on',
+                'reset_work_time_in_idle': 'off',
+            },
         ),
         (
-            'tests/data/settings_valid_no_param.json',
-            '{'
-            "'activity_timeout': 180, 'break_duration': 15, 'notifications': 'off', 'protection_status': 'on', "
-            "'reset_work_time_in_idle': 'off', 'screensaver_block': 'on', 'sounds': 'off', "
-            "'suspend_on_video': 'on', 'volume': 100, 'work_duration': 1"
-            '}',
+            'settings_valid_no_param.json',
+            {
+                'work_duration': 1,
+                'break_duration': 15,
+                'activity_timeout': 180,
+                'volume': 100,
+                'sounds': 'off',
+                'notifications': 'off',
+                'protection_status': 'on',
+                'screensaver_block': 'on',
+                'suspend_on_video': 'on',
+                'reset_work_time_in_idle': 'off',
+            },
         ),
     ],
 )
-def test_read_settings_from_valid_file(settings_file_name, expected_settings_str):
-    settings = Settings(settings_file_name)
-    settings_str = str(settings)
-    assert settings_str == expected_settings_str
+def test_read_settings_from_valid_file(settings_file_name, expected_settings):
+    settings = Settings(fixture_path(settings_file_name))
+    assert settings.to_dict() == expected_settings
+
+
+def test_read_settings_from_missing_file_returns_defaults():
+    """A missing settings file must fall back to defaults (FileNotFoundError branch)."""
+    settings = Settings(fixture_path('settings_not_existing.json'))
+    assert settings.to_dict() == settings_default
+
+
+def test_read_settings_from_malformed_json_returns_defaults(tmp_path):
+    """JSON syntax error must go through ValidationError and keep all defaults.
+
+    The malformed content is generated at runtime: a broken JSON file must not
+    live in the repo (pre-commit check-json would reject it).
+    """
+    malformed_file = tmp_path / 'settings_malformed.json'
+    malformed_file.write_text('{"work_duration": asd", "sounds": "on"}', encoding='utf-8')
+    settings = Settings(malformed_file)
+    assert settings.to_dict() == settings_default
 
 
 @pytest.mark.parametrize(
     'settings_file_name',
     [
-        ('./adc.json'),
-        ('settings_invalid_not_invalid_json.json'),
+        # work_duration is a non-numeric string: int coercion fails
         ('settings_invalid_not_int.json'),
+        # sounds is an int instead of the on/off literal
         ('settings_invalid_not_string.json'),
     ],
 )
-def test_read_settings_from_invalid_file(settings_file_name):
-    settings = Settings(settings_file_name)
-    settings_str = str(settings)
-    assert settings_str == settings_default_str
+def test_read_settings_from_invalid_file_returns_defaults(settings_file_name):
+    """Invalid file content must be fully rejected: all fields keep defaults.
+
+    Policy: all-or-nothing — a file that fails validation does not partially
+    apply its valid fields.
+    """
+    settings = Settings(fixture_path(settings_file_name))
+    assert settings.to_dict() == settings_default
 
 
 @pytest.mark.parametrize(
     'settings_file_name, expected_activity_timeout',
     [
-        ('tests/data/settings_valid_activity_timeout_min.json', 30),
-        ('tests/data/settings_valid_activity_timeout_max.json', 600),
+        (fixture_path('settings_valid_activity_timeout_min.json'), 30),
+        (fixture_path('settings_valid_activity_timeout_max.json'), 600),
     ],
 )
 def test_read_activity_timeout_boundaries(settings_file_name, expected_activity_timeout):
@@ -96,8 +156,8 @@ def test_read_activity_timeout_boundaries(settings_file_name, expected_activity_
 @pytest.mark.parametrize(
     'settings_file_name',
     [
-        ('tests/data/settings_invalid_activity_timeout_low.json'),
-        ('tests/data/settings_invalid_activity_timeout_high.json'),
+        (fixture_path('settings_invalid_activity_timeout_low.json')),
+        (fixture_path('settings_invalid_activity_timeout_high.json')),
     ],
 )
 def test_read_settings_with_invalid_activity_timeout(settings_file_name):
@@ -108,8 +168,8 @@ def test_read_settings_with_invalid_activity_timeout(settings_file_name):
 @pytest.mark.parametrize(
     'settings_file_name, expected_volume',
     [
-        ('tests/data/settings_valid_volume_min.json', 1),
-        ('tests/data/settings_valid_volume_max.json', 100),
+        (fixture_path('settings_valid_volume_min.json'), 1),
+        (fixture_path('settings_valid_volume_max.json'), 100),
     ],
 )
 def test_read_volume_boundaries(settings_file_name, expected_volume):
@@ -120,8 +180,8 @@ def test_read_volume_boundaries(settings_file_name, expected_volume):
 @pytest.mark.parametrize(
     'settings_file_name',
     [
-        ('tests/data/settings_invalid_volume_low.json'),
-        ('tests/data/settings_invalid_volume_high.json'),
+        (fixture_path('settings_invalid_volume_low.json')),
+        (fixture_path('settings_invalid_volume_high.json')),
     ],
 )
 def test_read_settings_with_invalid_volume(settings_file_name):
@@ -129,58 +189,256 @@ def test_read_settings_with_invalid_volume(settings_file_name):
     assert settings.user_settings.volume == 100
 
 
-def test_write_default_user_settings_to_file():
-    file_to_write = 'tests/data/settings_written_file.json'
-    Path(file_to_write).unlink(missing_ok=True)
-
-    user_settings = UserSettingsData()
-    settings = Settings(file_to_write)
-    settings.apply_settings_from_ui(new_settings_data=user_settings)
-
-    settings.save_settings_to_file()
-
-    written_file_content = Path(file_to_write).read_text(encoding='utf-8')
-
-    expected_file_content = (
-        '{\n    "work_duration": 45,\n    "break_duration": 15,\n    "activity_timeout": 180,\n'
-        '    "volume": 100,\n    "sounds": "on",\n    "notifications": "on",\n    "protection_status": "on",\n'
-        '    "screensaver_block": "on",\n    "suspend_on_video": "on",\n    "reset_work_time_in_idle": "off"\n}'
-    )
-    assert written_file_content == expected_file_content, 'Written content and expected content are not same!'
+expected_file_content_default = (
+    '{\n    "work_duration": 45,\n    "break_duration": 15,\n    "activity_timeout": 180,\n'
+    '    "volume": 100,\n    "sounds": "on",\n    "notifications": "on",\n    "protection_status": "on",\n'
+    '    "screensaver_block": "on",\n    "suspend_on_video": "on",\n    "reset_work_time_in_idle": "off"\n}'
+)
 
 
-def test_write_invalid_settings_to_file():
-    file_to_write = 'tests/data/settings_written_file.json'
-    Path(file_to_write).unlink(missing_ok=True)
+def test_apply_settings_from_ui_saves_to_file(tmp_path):
+    """Apply from UI must persist settings itself, without an extra save call."""
+    settings_file = tmp_path / 'settings.json'
+    settings = Settings(settings_file)
 
-    user_settings = UserSettingsData()
-    user_settings.work_duration = 111
-    user_settings.break_duration = 91
-    user_settings.sounds = 'off'
-    user_settings.notifications = 'off'
-    settings = Settings(file_to_write)
-    settings.apply_settings_from_ui(new_settings_data=user_settings)
+    settings.apply_settings_from_ui(new_settings_data=UserSettingsData())
+
+    written_file_content = settings_file.read_text(encoding='utf-8')
+    assert written_file_content == expected_file_content_default
+
+
+def test_save_settings_to_file_writes_valid_json(tmp_path):
+    """Direct save of valid current settings must write the canonical JSON."""
+    settings_file = tmp_path / 'settings.json'
+    settings = Settings(settings_file)
 
     settings.save_settings_to_file()
 
-    written_file_content = Path(file_to_write).read_text(encoding='utf-8')
-    expected_file_content = (
-        '{\n    "work_duration": 45,\n    "break_duration": 15,\n    "activity_timeout": 180,\n'
-        '    "volume": 100,\n    "sounds": "on",\n    "notifications": "on",\n    "protection_status": "on",\n'
-        '    "screensaver_block": "on",\n    "suspend_on_video": "on",\n    "reset_work_time_in_idle": "off"\n}'
-    )
-    assert written_file_content == expected_file_content, 'Written content and expected content are not same!'
+    written_file_content = settings_file.read_text(encoding='utf-8')
+    assert written_file_content == expected_file_content_default
+
+
+def test_apply_invalid_settings_from_ui_keeps_previous_file(tmp_path):
+    """Rejected UI settings must not overwrite the previously saved valid file."""
+    settings_file = tmp_path / 'settings.json'
+    settings = Settings(settings_file)
+    valid_settings = UserSettingsData()
+    valid_settings.work_duration = 30
+    valid_settings.break_duration = 10
+    settings.apply_settings_from_ui(new_settings_data=valid_settings)
+    content_before = settings_file.read_text(encoding='utf-8')
+
+    invalid_settings = UserSettingsData()
+    invalid_settings.work_duration = 111
+    invalid_settings.break_duration = 91
+    settings.apply_settings_from_ui(new_settings_data=invalid_settings)
+
+    assert settings_file.read_text(encoding='utf-8') == content_before
 
 
 def test_read_display_settings_from_valid_file():
-    settings = Settings('tests/data/settings_valid_display_fields.json')
+    settings = Settings(fixture_path('settings_valid_display_fields.json'))
     assert settings.user_settings.screensaver_block == 'off'
     assert settings.user_settings.suspend_on_video == 'off'
     assert settings.user_settings.reset_work_time_in_idle == 'on'
 
 
 def test_read_settings_with_invalid_new_field_value():
-    settings = Settings('tests/data/settings_invalid_new_field_value.json')
+    settings = Settings(fixture_path('settings_invalid_new_field_value.json'))
     assert settings.user_settings.screensaver_block == 'on'
     assert settings.user_settings.suspend_on_video == 'on'
     assert settings.user_settings.reset_work_time_in_idle == 'off'
+
+
+def test_user_settings_constructor_accepts_all_fields():
+    settings = UserSettingsData(
+        work_duration=30,
+        break_duration=10,
+        activity_timeout=60,
+        volume=42,
+        sounds='off',
+        notifications='off',
+        protection_status='off',
+        screensaver_block='off',
+        suspend_on_video='off',
+        reset_work_time_in_idle='on',
+    )
+    assert settings.work_duration == 30
+    assert settings.volume == 42
+    assert settings.sounds == 'off'
+    assert settings.protection_status == 'off'
+    assert settings.reset_work_time_in_idle == 'on'
+
+
+def test_user_settings_equality_covers_all_fields():
+    """Regression for known issue 27: non-annotated fields used to be ignored by ==."""
+    base = UserSettingsData()
+    same = UserSettingsData()
+    changed_sounds = UserSettingsData()
+    changed_sounds.sounds = 'off'
+
+    assert base == same
+    assert base != changed_sounds
+
+
+def test_user_settings_to_dict_roundtrip():
+    settings = UserSettingsData()
+    settings.work_duration = 33
+    settings.suspend_on_video = 'off'
+
+    as_dict = settings.to_dict()
+
+    assert as_dict['work_duration'] == 33
+    assert as_dict['suspend_on_video'] == 'off'
+    assert len(as_dict) == 10
+    restored = UserSettingsData(**as_dict)
+    assert restored == settings
+
+
+def test_settings_repr_is_string(tmp_path):
+    """Regression for known issue 19: __repr__ must return a string."""
+    settings = Settings(tmp_path / 'settings.json')
+
+    representation = repr(settings)
+
+    assert isinstance(representation, str)
+    assert "'work_duration': 45" in representation
+
+
+def test_read_settings_from_directory_returns_defaults(tmp_path):
+    """Regression for known issue 25: a directory instead of the file must not crash."""
+    settings_dir = tmp_path / 'settings.json'
+    settings_dir.mkdir()
+
+    settings = Settings(settings_dir)
+
+    assert settings.to_dict() == settings_default
+
+
+def test_read_settings_unreadable_file_returns_defaults(tmp_path, monkeypatch):
+    settings_file = tmp_path / 'settings.json'
+    settings_file.write_text('{}', encoding='utf-8')
+
+    def deny_read(self, *args, **kwargs):
+        raise PermissionError('read denied')
+
+    monkeypatch.setattr(Path, 'read_text', deny_read)
+    settings = Settings(settings_file)
+
+    assert settings.to_dict() == settings_default
+
+
+def test_save_settings_failure_preserves_old_file_and_returns_false(tmp_path, monkeypatch):
+    """Regression for known issue 25: failed save must not damage the previous file."""
+    settings_file = tmp_path / 'settings.json'
+    settings = Settings(settings_file)
+    settings.apply_settings_from_ui(new_settings_data=UserSettingsData())
+    old_content = settings_file.read_text(encoding='utf-8')
+
+    def fail_replace(self, target):
+        raise OSError('replace denied')
+
+    monkeypatch.setattr(Path, 'replace', fail_replace)
+    assert settings.save_settings_to_file() is False
+
+    assert settings_file.read_text(encoding='utf-8') == old_content
+    # no temporary artifacts left behind
+    assert list(tmp_path.iterdir()) == [settings_file]
+
+
+def test_save_settings_creates_missing_parent_directories(tmp_path):
+    settings_file = tmp_path / 'nested' / 'dir' / 'settings.json'
+    settings = Settings(settings_file)
+
+    assert settings.save_settings_to_file() is True
+    assert settings_file.exists()
+
+
+def test_save_settings_returns_true_on_success(tmp_path):
+    settings = Settings(tmp_path / 'settings.json')
+
+    assert settings.save_settings_to_file() is True
+
+
+def test_settings_requires_file_path():
+    """Regression for known issue 26: no pathless Settings objects with broken save."""
+    with pytest.raises(TypeError):
+        Settings()
+
+
+def test_user_settings_property_returns_copy(tmp_path):
+    """Regression for known issue 28: external mutation must not bypass validation."""
+    settings = Settings(tmp_path / 'settings.json')
+
+    exposed = settings.user_settings
+    exposed.work_duration = 999
+
+    assert settings.user_settings.work_duration == 45
+
+
+def test_apply_settings_from_ui_returns_result(tmp_path):
+    settings = Settings(tmp_path / 'settings.json')
+
+    valid = UserSettingsData()
+    invalid = UserSettingsData()
+    invalid.work_duration = 999
+
+    assert settings.apply_settings_from_ui(new_settings_data=valid) is True
+    assert settings.apply_settings_from_ui(new_settings_data=invalid) is False
+    assert settings.user_settings.work_duration == 45
+
+
+@pytest.mark.parametrize(
+    'file_content, expected_volume',
+    [
+        # documented coercion: quoted numbers and integral floats are accepted
+        ('{"volume": "55"}', 55),
+        ('{"volume": 55.0}', 55),
+    ],
+)
+def test_settings_coercion_contract_accepts_number_like_values(tmp_path, file_content, expected_volume):
+    settings_file = tmp_path / 'settings.json'
+    settings_file.write_text(file_content, encoding='utf-8')
+
+    settings = Settings(settings_file)
+
+    assert settings.user_settings.volume == expected_volume
+
+
+@pytest.mark.parametrize(
+    'file_content',
+    [
+        # fractional floats, nulls and wrong literal types are rejected
+        ('{"volume": 55.5}'),
+        ('{"volume": null}'),
+        ('{"sounds": 1}'),
+    ],
+)
+def test_settings_coercion_contract_rejects_wrong_types(tmp_path, file_content):
+    settings_file = tmp_path / 'settings.json'
+    settings_file.write_text(file_content, encoding='utf-8')
+
+    settings = Settings(settings_file)
+
+    assert settings.user_settings.volume == 100
+
+
+def test_settings_unknown_fields_are_ignored(tmp_path):
+    settings_file = tmp_path / 'settings.json'
+    settings_file.write_text('{"unknown_field": 1, "volume": 55}', encoding='utf-8')
+
+    settings = Settings(settings_file)
+
+    assert settings.user_settings.volume == 55
+    assert not hasattr(settings.user_settings, 'unknown_field')
+
+
+def test_settings_mixed_file_with_one_invalid_field_is_rejected_as_a_whole(tmp_path):
+    """Policy: all-or-nothing — valid fields of a partially invalid file are not applied."""
+    settings_file = tmp_path / 'settings.json'
+    settings_file.write_text('{"volume": 55, "work_duration": 999}', encoding='utf-8')
+
+    settings = Settings(settings_file)
+
+    assert settings.user_settings.volume == 100
+    assert settings.user_settings.work_duration == 45

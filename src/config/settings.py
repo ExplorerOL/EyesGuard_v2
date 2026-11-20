@@ -1,6 +1,7 @@
 """Module for settings management in application."""
 
 import copy
+import dataclasses
 import datetime
 from dataclasses import dataclass
 from enum import Enum
@@ -29,40 +30,49 @@ class SystemSettingsData:
 
 @dataclass
 class UserSettingsData:
-    """class for storing user settings."""
+    """class for storing user settings.
+
+    All fields are annotated dataclass fields (known issue 27): the generated
+    constructor and equality cover every setting.
+    """
 
     work_duration: int = 45
     break_duration: int = 15
     activity_timeout: int = 180
     volume: int = 100
-    sounds = OnOffValue.on.value
-    notifications = OnOffValue.on.value
-    protection_status = OnOffValue.on.value
-    screensaver_block = OnOffValue.on.value
-    suspend_on_video = OnOffValue.on.value
-    reset_work_time_in_idle = OnOffValue.off.value
+    sounds: str = OnOffValue.on.value
+    notifications: str = OnOffValue.on.value
+    protection_status: str = OnOffValue.on.value
+    screensaver_block: str = OnOffValue.on.value
+    suspend_on_video: str = OnOffValue.on.value
+    reset_work_time_in_idle: str = OnOffValue.off.value
 
-    def _settings_to_dict(self) -> dict:
-        # convertation object to dict
-        logger.trace('UserSettingsData: __settings_to_dict')
-        settings_dict = {}
-        for attr in dir(self):
-            if not attr.startswith('_'):
-                settings_dict[attr] = getattr(self, attr)
+    def to_dict(self) -> dict:
+        """Convert the object to a plain dict covering all dataclass fields."""
+        logger.trace('UserSettingsData: to_dict')
+        settings_dict = dataclasses.asdict(self)
         logger.debug(f'UserSettingsData: {settings_dict}')
         return settings_dict
 
-    def __repr__(self) -> dict:
-        """Object representation as dict."""
-        return self._settings_to_dict()
+    def __repr__(self) -> str:
+        """Object representation as string."""
+        return str(self.to_dict())
 
     def __str__(self) -> str:
         """Object as string."""
-        return str(self._settings_to_dict())
+        return str(self.to_dict())
 
 
 class SettingsDataValidator(BaseModel):
-    """Validation model for settings."""
+    """Validation model for settings.
+
+    Type contract (known issue 37): validation is intentionally NON-STRICT
+    (pydantic lax mode) so a hand-edited settings.json survives — quoted
+    numbers ("45") and integral floats (45.0) are coerced to int. Fractional
+    floats, nulls and wrong literal types are rejected; a file with at least
+    one invalid field is rejected as a whole (defaults are kept). Unknown
+    fields are ignored and dropped on the next save.
+    """
 
     work_duration: int = Field(default=45, gt=0, lt=101)
     break_duration: int = Field(default=15, gt=0, lt=101)
@@ -77,30 +87,29 @@ class SettingsDataValidator(BaseModel):
 
 
 class Settings:
-    """class for managing user settings."""
+    """class for managing user settings.
 
-    def __init__(self, file_name: str | Path | None = None):
+    The settings file path is required (known issue 26): a pathless object
+    used to break on save with AttributeError.
+    """
+
+    def __init__(self, file_name: str | Path):
         self.__user_settings = UserSettingsData()
         self.__system_settings = SystemSettingsData()
-        if file_name is not None:
-            self.__settings_file = Path(file_name)
-            self.apply_settings_from_file()
+        self.__settings_file = Path(file_name)
+        self.apply_settings_from_file()
 
-    def _settings_to_dict(self) -> dict:
+    def to_dict(self) -> dict:
         """Convertation settings object to dict."""
-        settings_dict = {}
-        for attr in dir(self.__user_settings):
-            if not attr.startswith('_'):
-                settings_dict[attr] = getattr(self.__user_settings, attr)
-        return settings_dict
+        return self.__user_settings.to_dict()
 
-    def __repr__(self) -> dict:
+    def __repr__(self) -> str:
         """Convertation settings object to view in terminal."""
-        return self._settings_to_dict()
+        return str(self.to_dict())
 
     def __str__(self) -> str:
         """Convertation object to string."""
-        return str(self._settings_to_dict())
+        return str(self.to_dict())
 
     def __read_settings_from_file(self) -> str | None:
         """Reading settings from file on disk."""
@@ -114,6 +123,11 @@ class Settings:
         except ValueError as error:
             logger.error(error)
             logger.error(type(error))
+            return None
+        # any other filesystem problem (PermissionError, IsADirectoryError,
+        # OSError) must not crash the app: keep defaults (known issue 25)
+        except OSError as error:
+            logger.error(f'Failed to read settings file {self.__settings_file}: {error!r}')
             return None
         return settings_str
 
@@ -134,11 +148,9 @@ class Settings:
     def __apply_settings(self, validated_settings: SettingsDataValidator) -> None:
         """Apply given settings to the app."""
         if validated_settings is not None:
-            for attr in dir(self.__user_settings):
-                if not attr.startswith('_'):
-                    logger.debug(f'Settings: get attr: {attr}')
-                    setattr(self.__user_settings, attr, getattr(validated_settings, attr))
-                    logger.debug(getattr(self.__user_settings, attr))
+            # iterate validated fields explicitly: dir() would catch methods too (known issue 19)
+            for field_name, field_value in validated_settings.model_dump().items():
+                setattr(self.__user_settings, field_name, field_value)
 
     def apply_settings_from_file(self):
         """Read, validate and apply settings from file."""
@@ -148,35 +160,47 @@ class Settings:
         logger.debug(f'Settings from file {settings_validated}')
         self.__apply_settings(settings_validated)
 
-    def apply_settings_from_ui(self, new_settings_data: UserSettingsData):
-        """Validate settings and write them to file."""
+    def apply_settings_from_ui(self, new_settings_data: UserSettingsData) -> bool:
+        """Validate settings and write them to file. Returns True on success."""
         logger.debug(f'New settings from ui to apply: {new_settings_data}')
         logger.debug(type(new_settings_data))
         try:
-            settings_validated = SettingsDataValidator.model_validate(new_settings_data.__repr__())
+            settings_validated = SettingsDataValidator.model_validate(new_settings_data.to_dict())
         except ValidationError as error:
             logger.error(error)
             logger.error(type(error))
-            return
+            return False
         self.__apply_settings(settings_validated)
-        self.save_settings_to_file()
+        return self.save_settings_to_file()
 
-    def save_settings_to_file(self):
-        """Save settings to file."""
+    def save_settings_to_file(self) -> bool:
+        """Save settings to file atomically.
+
+        Writes a temporary file in the same directory and replaces the target
+        with it: a failed write never damages the previous valid file
+        (known issue 25). Returns True on success.
+        """
         logger.trace('Settings: save_settings_to_file')
-        settings_dict = self._settings_to_dict()
+        settings_dict = self.to_dict()
         logger.debug(settings_dict)
-        logger.debug(type(settings_dict))
         try:
             settings_validated = SettingsDataValidator.model_validate(settings_dict)
         except ValidationError as error:
             logger.error(error)
             logger.error(type(error))
-            return
+            return False
         settings_json = settings_validated.model_dump_json(indent=4)
         logger.debug(f'Settings to file {settings_json}')
-        self.__settings_file.parent.mkdir(parents=True, exist_ok=True)
-        self.__settings_file.write_text(settings_json, encoding='utf-8')
+        temp_file = self.__settings_file.with_suffix(self.__settings_file.suffix + '.tmp')
+        try:
+            self.__settings_file.parent.mkdir(parents=True, exist_ok=True)
+            temp_file.write_text(settings_json, encoding='utf-8')
+            temp_file.replace(self.__settings_file)
+        except OSError as error:
+            logger.error(f'Failed to save settings file {self.__settings_file}: {error!r}')
+            temp_file.unlink(missing_ok=True)
+            return False
+        return True
 
     def get_settings_copy(self) -> UserSettingsData:
         """Return copy of settings object."""
@@ -184,8 +208,8 @@ class Settings:
 
     @property
     def user_settings(self) -> UserSettingsData:
-        """User settings object."""
-        return self.__user_settings
+        """User settings object (a copy: external changes cannot bypass validation)."""
+        return copy.copy(self.__user_settings)
 
     @property
     def system_settings(self) -> SystemSettingsData:

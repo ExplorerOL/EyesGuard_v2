@@ -8,15 +8,15 @@ if TYPE_CHECKING:
     from view import View
 
 import datetime
-import time
 
 import customtkinter
 
 from config.app_constants import APP_VERSION
-from config.states import StepType
-from model import Model
+from config.states import ModelSnapshot, StepType
 from support.logger import logger
 from support.resourses import ResImages
+from support.time_format import format_timedelta
+from windows.window_fade import fade_window
 
 
 class WndStatus(customtkinter.CTkToplevel):
@@ -45,6 +45,14 @@ class WndStatus(customtkinter.CTkToplevel):
         self.img_protection_active = ResImages.img_protection_active
         self.img_protection_suspended = ResImages.img_protection_suspended
         self.img_check_mark = ResImages.img_check_mark
+        # cached button images: created once, reused across updates (known issue 32)
+        self.img_btn_protection_active = customtkinter.CTkImage(light_image=self.img_protection_active, size=(30, 30))
+        self.img_btn_protection_suspended = customtkinter.CTkImage(
+            light_image=self.img_protection_suspended, size=(30, 30)
+        )
+        self.img_btn_protection_off = customtkinter.CTkImage(light_image=self.view.image_protection_off, size=(30, 30))
+        # current protection button state: None until the first update
+        self.__btn_state: str | None = None
 
         self.grid_columnconfigure((0), weight=1)
 
@@ -95,23 +103,17 @@ class WndStatus(customtkinter.CTkToplevel):
         self.withdraw()
 
     def on_focus_out(self, event):
-        """Action in calse of loosing focus."""
+        """Action in case of losing focus."""
         self.hide()
 
     def hide(self):
-        """Hide window."""
-        for i in range(100):
-            self.attributes('-alpha', 1 - i / 100)
-            time.sleep(0.006)
-        self.withdraw()
+        """Hide window with a non-blocking fade (known issue 17)."""
+        fade_window(self, showing=False, on_done=self.withdraw)
 
     def show(self):
-        """Show window."""
+        """Show window with a non-blocking fade (known issue 17)."""
         self.deiconify()
-
-        for i in range(100):
-            self.attributes('-alpha', i / 100)
-            time.sleep(0.006)
+        fade_window(self, showing=True)
 
     def __btn_change_protection_state_action(self):
         """Action for pressing changeing protection state button."""
@@ -122,54 +124,67 @@ class WndStatus(customtkinter.CTkToplevel):
         logger.trace('Wnd_status: __btn_take_break_action')
         self.view.set_step(StepType.break_mode)
 
-    def update(self, model: Model):
-        """Updating status window elements states."""
+    def update(self, snapshot: ModelSnapshot):
+        """Updating status window elements states.
+
+        The timer text updates on every snapshot; the protection button is
+        reconfigured only when its state actually changes (known issue 32).
+        """
         logger.trace('Wnd status: update')
-        if model.time_for_work_full > datetime.timedelta(seconds=0):
-            pbar_value = 1 - model.remaining_working_time_to_display / model.time_for_work_full
+        if snapshot.time_for_work_full > datetime.timedelta(seconds=0):
+            pbar_value = 1 - snapshot.remaining_working_time_to_display / snapshot.time_for_work_full
         else:
             pbar_value = 0
         self.pbar_time_until_break.set(value=pbar_value)
 
-        match model.current_state.current_step_type:
+        match snapshot.step_type:
             case StepType.off_mode:
-                if self.btn_change_suspended_state.cget('state') != 'disabled':
-                    self.btn_take_break.configure(state='disabled')
-                    self.lbl_time_until_break.configure(text='Time until break: ∞ : ∞ : ∞')
-                    self.btn_change_suspended_state.configure(
-                        text='Protection off',
-                        image=customtkinter.CTkImage(light_image=self.view.image_protection_off, size=(30, 30)),
-                        require_redraw=True,
-                        state='disabled',
-                    )
-                    self.pbar_time_until_break.set(0)
+                self.lbl_time_until_break.configure(text='Time until break: ∞ : ∞ : ∞')
+                self.pbar_time_until_break.set(0)
+                self.__configure_button_state('off')
 
             case StepType.suspended_mode:
-                if self.btn_take_break.cget('state') != 'disabled':
-                    self.btn_take_break.configure(state='disabled')
-
-                    self.btn_change_suspended_state.configure(
-                        text='Protection suspended',
-                        text_color='Tomato',
-                        image=customtkinter.CTkImage(light_image=self.view.image_protection_suspended, size=(30, 30)),
-                        require_redraw=True,
-                    )
                 self.lbl_time_until_break.configure(
-                    text=(
-                        f'Time until normal mode: '
-                        f'{model.current_state.current_step_duration - model.current_state.current_step_elapsed_time}'
-                    )
+                    text=f'Time until normal mode: {format_timedelta(snapshot.step_remaining_time)}'
                 )
+                self.__configure_button_state('suspended')
+
             case _:
-                self.lbl_time_until_break.configure(text=f'Time until break: {model.remaining_working_time_to_display}')
+                self.lbl_time_until_break.configure(
+                    text=f'Time until break: {format_timedelta(snapshot.remaining_working_time_to_display)}'
+                )
+                self.__configure_button_state('active')
+
+    def __configure_button_state(self, button_state: str) -> None:
+        """Reconfigure the protection button only on an actual state change."""
+        if button_state == self.__btn_state:
+            return
+        self.__btn_state = button_state
+        match button_state:
+            case 'off':
+                self.btn_take_break.configure(state='disabled')
+                self.btn_change_suspended_state.configure(
+                    text='Protection off',
+                    image=self.img_btn_protection_off,
+                    require_redraw=True,
+                    state='disabled',
+                )
+
+            case 'suspended':
+                self.btn_take_break.configure(state='disabled')
+                self.btn_change_suspended_state.configure(
+                    text='Protection suspended',
+                    text_color='Tomato',
+                    image=self.img_btn_protection_suspended,
+                    require_redraw=True,
+                )
+
+            case 'active':
+                self.btn_take_break.configure(state='normal')
                 self.btn_change_suspended_state.configure(
                     text='Protection active',
                     text_color='GreenYellow',
-                    image=customtkinter.CTkImage(light_image=self.view.image_protection_active, size=(30, 30)),
+                    image=self.img_btn_protection_active,
                     require_redraw=True,
+                    state='normal',
                 )
-                if self.btn_take_break.cget('state') != 'normal':
-                    self.btn_take_break.configure(state='normal')
-
-                if self.btn_change_suspended_state.cget('state') != 'normal':
-                    self.btn_change_suspended_state.configure(state='normal')

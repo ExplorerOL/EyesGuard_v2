@@ -1,6 +1,6 @@
 [project]
 name = "eyeguard"
-version = "2.3.0"
+version = "2.3.1"
 description = "EyesGuard: desktop reminders to take breaks during PC work (Windows 10)"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -19,6 +19,8 @@ dev = [
     "pytest==7.4.0",
     # версия синхронизирована с rev в .pre-commit-config.yaml (ruff-pre-commit)
     "ruff==0.16.4",
+    "ty==0.0.107",
+    "wemake-python-styleguide==1.9.0",
 ]
 
 [tool.pytest.ini_options]
