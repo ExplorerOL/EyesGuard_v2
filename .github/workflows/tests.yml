@@ -28,5 +28,8 @@ jobs:
       - name: Format check (ruff format)
         run: uv run --no-sync ruff format --check . --config=./linter_ruff.toml
 
+      - name: Lint (wemake-python-styleguide via flake8)
+        run: uv run --no-sync flake8 --config=.flake8 --select=WPS --count src tests
+
       - name: Tests (pytest)
         run: uv run --no-sync pytest

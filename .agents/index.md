@@ -48,6 +48,7 @@
 | `memory/app/settings.md` | Настройки: модель, валидация, файл settings.json |
 | `memory/prj/style.md` | Стиль кода проекта — обязательное чтение перед правками |
 | `memory/prj/known-issues.md` | Известные проблемы, ловушки, технический долг |
+| `memory/prj/known-wps-linter-problems.md` | Реестр нарушений WPS-линтера (подавлены в `.flake8`), план исправления |
 | `memory/prj/getting-started/installation.md` | Установка и запуск |
 | `memory/prj/getting-started/running-tests.md` | Прогон тестов |
 

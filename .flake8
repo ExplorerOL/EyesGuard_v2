@@ -1,0 +1,79 @@
+# .flake8 — конфиг линтера wemake-python-styleguide (WPS) поверх flake8.
+# flake8 не читает pyproject.toml, поэтому конфиг отдельный от ruff (linter_ruff.toml).
+# Запуск из корня проекта (документированный способ, только WPS-коды):
+#   uv run --no-sync flake8 --config=.flake8 --select=WPS src tests
+# select ниже — страховка: даже запуск без --select=WPS не включит дефолтные
+# плагины flake8 (E/W/F/C), чтобы не дублировать проверки ruff.
+# ВНИМАНИЕ: flake8 читает конфиг через configparser — инлайн-комментарии после значений
+# ломают разбор, пояснения пишутся только отдельными строками.
+
+[flake8]
+select = WPS
+max-line-length = 120
+# Прогон flake8 без списка файлов (pre-push хук, CI) сканирует cwd рекурсивно —
+# исключаем непроектный код: venv, артефакты PyInstaller, заметки/скрипты агента
+# (тот же набор, что в linter_ruff.toml extend-exclude)
+extend-exclude =
+    .venv,
+    build,
+    dist,
+    .agents
+
+# --- Лимиты сложности: подняты от дефолтов WPS под специфику Tk-GUI и pytest-именования.
+# Правила остаются активными — новые нарушения сверх лимитов будут ловиться.
+# WPS118: длинные описательные имена pytest-тестов (макс. факт 46)
+max-name-length = 80
+# WPS201: импорты Tk/ctypes (макс. факт 15)
+max-imports = 15
+# WPS214: формы настроек/статуса (макс. факт 13)
+max-methods = 14
+# WPS213: GUI-инициализация (макс. факт вне legacy-выбросов 14)
+max-expressions = 14
+# WPS218: тесты (макс. факт 7)
+max-asserts = 7
+# WPS210: макс. факт 9
+max-local-variables = 9
+# WPS236: макс. факт 5
+max-tuple-unpack-length = 5
+# WPS226: Tk-строки 'on'/'disabled' (макс. факт вне windows/tests 6)
+max-string-usages = 6
+# WPS229: дефолт WPS = 1, слишком строг для WinAPI-обёрток
+max-try-body-length = 5
+# WPS221: большинство фактов 15; после исправлений затянуть до 14
+max-jones-score = 16
+# WPS231: макс. факт вне legacy-выбросов 14
+max-cognitive-score = 14
+# Точечные noqa-комментарии разрешены (дефолт WPS = 0)
+max-noqa-comments = 5
+
+# --- Постоянные отключения: конфликт с конвенцией проекта
+# (см. AGENTS.md, .agents/memory/prj/style.md, .agents/memory/prj/known-wps-linter-problems.md)
+# WPS112 — приватные поля self.__name: конвенция проекта (WPS требует _name)
+# WPS120 — ctypes _fields_: обязательная идиома WinAPI-прототипов
+# WPS230 — много публичных атрибутов: норма для Tk-форм (WndSettings: 53 виджета)
+# WPS365 — match -> if: конвенция «состояния только через StepType + match/case»
+ignore =
+    WPS112,
+    WPS120,
+    WPS230,
+    WPS365
+
+# --- Временные исключения для существующего кода (до исправления в будущих релизах).
+# Полный реестр нарушений: .agents/memory/prj/known-wps-linter-problems.md
+per-file-ignores =
+    src/config/settings.py:WPS114,WPS115,WPS336,WPS338,WPS432,WPS458
+    src/config/states.py:WPS114,WPS338,WPS404
+    src/controller.py:WPS115,WPS220,WPS338,WPS420,WPS604,WPS615
+    src/model.py:WPS114,WPS213,WPS214,WPS237,WPS338,WPS504,WPS615
+    src/view.py:WPS214,WPS229,WPS338,WPS615
+    src/support/display/windows/screensaver_blocker.py:WPS339
+    src/support/display/windows/video_activity_monitor.py:WPS111,WPS229,WPS338,WPS339
+    src/support/paths.py:WPS229,WPS420
+    src/support/sound/windows/sound_player.py:WPS111,WPS221,WPS229,WPS237,WPS458,WPS505
+    src/support/time_format.py:WPS110,WPS237,WPS432
+    src/support/user_activity_monitor.py:WPS110,WPS111,WPS122,WPS229,WPS338,WPS404,WPS420,WPS432
+    src/windows/window_fade.py:WPS221,WPS358,WPS430
+    src/windows/wnd_break.py:WPS213,WPS221,WPS432
+    src/windows/wnd_settings.py:WPS110,WPS204,WPS213,WPS214,WPS221,WPS226,WPS237,WPS338,WPS432,WPS501
+    src/windows/wnd_status.py:WPS213,WPS221,WPS237,WPS338,WPS432
+    tests/*:WPS110,WPS114,WPS115,WPS202,WPS204,WPS221,WPS226,WPS231,WPS301,WPS358,WPS430,WPS432,WPS459,WPS501

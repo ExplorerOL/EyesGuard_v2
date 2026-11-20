@@ -66,10 +66,15 @@ Python 3.11, GUI на CustomTkinter, трей на pystray, настройки �
 - `--config=./linter_ruff.toml` обязателен: ruff-конфиг вынесен из pyproject.toml в отдельный файл
   и без явного `--config` применяются дефолты ruff (другой набор правил — ложные ошибки).
 - Версия ruff зафиксирована (pyproject `==0.16.4` = rev в `.pre-commit-config.yaml`) — менять только синхронно.
+- WPS (wemake-python-styleguide, поверх flake8): `uv run --no-sync flake8 --config=.flake8 --select=WPS <файлы>`;
+  `--select=WPS` — документированный способ запуска (только WPS-коды, без пересечений с ruff);
+  конфиг `.flake8`; прогон на весь проект обязателен зелёным —
+  существующие нарушения подавлены в `.flake8`, реестр и план исправления:
+  @.agents/memory/prj/known-wps-linter-problems.md.
 - Запуск check без списка файлов на всём проекте допускается только в CI и pre-push хуке.
 
 **Git-хуки (prek — Rust-альтернатива pre-commit):**
-- `.pre-commit-config.yaml`: на commit — ruff check --fix и ruff format по изменённым файлам;
+- `.pre-commit-config.yaml`: на commit — ruff check --fix, ruff format и WPS flake8 по изменённым файлам;
   на push — по всему проекту; плюс check-yaml/json, large-files, merge-conflict, name-tests-test.
 - Хук формата переформатирует изменённые файлы при коммите — это ожидаемо, не откатывать его правки.
 - Активация после клонирования: `prek install && prek install --hook-type pre-push`.
