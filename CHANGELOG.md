@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-11-20
+
 ### Fixed
 - GUI windows and tray actions are now handled only in the main UI thread via a snapshot queue, preventing rare freezes and redraw glitches
 - Application now shuts down gracefully (stopped controller thread, tray icon) instead of force-killing the process
