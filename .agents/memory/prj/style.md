@@ -11,6 +11,10 @@
 - WPS-линтер (`wemake-python-styleguide` поверх flake8, конфиг `.flake8`): прогон обязателен зелёным;
   существующие нарушения подавлены в `.flake8` и зарегистрированы в
   [known-wps-linter-problems.md](known-wps-linter-problems.md) — новые нарушения в коде недопустимы.
+- Тайп-чекер ty (конфиг `linter_ty.toml`, platform win32, `--config-file` обязателен): прогон
+  обязателен зелёным; существующие ошибки
+  заглушены и зарегистрированы в [known-ty-linter-problems.md](known-ty-linter-problems.md);
+  новые ошибки типизации в коде недопустимы.
 - Вызовы — с именованными аргументами там, где это улучшает читаемость: `set_step(new_step_type=StepType.work_mode)`.
 - Приватные поля класса — с двойным подчёркиванием: `self.__settings`; «защищённые» — с одним: `self._activity_timeout`.
 

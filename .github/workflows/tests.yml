@@ -31,5 +31,8 @@ jobs:
       - name: Lint (wemake-python-styleguide via flake8)
         run: uv run --no-sync flake8 --config=.flake8 --select=WPS --count src tests
 
+      - name: Type check (ty)
+        run: uv run --no-sync ty check --config-file linter_ty.toml --output-format concise src tests
+
       - name: Tests (pytest)
         run: uv run --no-sync pytest

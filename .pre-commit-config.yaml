@@ -49,6 +49,27 @@ repos:
         stages: [pre-push]
         pass_filenames: false
 
+  - repo: local
+    hooks:
+      # ty (Astral) — тайп-чекер, конфиг linter_ty.toml.
+      # Зависимость — dev-group pyproject (ty==0.0.107).
+    # ---- COMMIT: changed files only ----
+      - id: ty-check
+        name: ty type check (changed files)
+        entry: uv run --no-sync ty check --config-file linter_ty.toml
+        language: system
+        types: [python]
+        stages: [pre-commit]
+
+    # ---- PUSH: whole project ----
+      - id: ty-check-all
+        name: ty type check (all files)
+        entry: uv run --no-sync ty check --config-file linter_ty.toml --output-format concise
+        language: system
+        types: [python]
+        stages: [pre-push]
+        pass_filenames: false
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - wemake-python-styleguide linting (WPS via flake8, `.flake8`) with pre-commit hooks and CI gate; existing violations suppressed and tracked in `.agents/memory/prj/known-wps-linter-problems.md`
+- ty type checking (Astral, `linter_ty.toml`, win32 platform) with pre-commit hooks and CI gate; existing diagnostics suppressed and tracked with required fixes in `.agents/memory/prj/known-ty-linter-problems.md`
 
 ## [2.3.1] - 2026-11-20
 

@@ -1,0 +1,66 @@
+# linter_ty.toml — конфиг тайп-чекера ty (Astral). ty 0.0.x (beta), dev-зависимость pyproject.
+# ВАЖНО: нестандартное имя — ty автообнаруживает только ty.toml/pyproject,
+# поэтому флаг --config-file обязателен во всех командах.
+# Запуск из корня проекта: uv run --no-sync ty check --config-file linter_ty.toml src tests
+# Реестр подавленных ошибок и требуемых исправлений:
+#   .agents/memory/prj/known-ty-linter-problems.md
+
+[src]
+include = ["src", "tests"]
+
+[environment]
+# Приложение целится в Windows 10: stubs typeshed для win32 (ctypes.windll и т.п.)
+python-platform = "win32"
+python-version = "3.11"
+
+# --- Временные заглушки существующих ошибок (по одной на файл, как per-file-ignores во flake8).
+# По мере исправления кода секции удаляются, см. реестр required-fixes.
+[[overrides]]
+include = ["src/config/settings.py"]
+
+[overrides.rules]
+# Settings допускает file_name=None, но публичные методы ждут str (бывший контракт in-memory режима)
+invalid-argument-type = "ignore"
+
+[[overrides]]
+include = ["src/windows/wnd_break.py", "src/windows/wnd_settings.py", "src/windows/wnd_status.py"]
+
+[overrides.rules]
+# update(model) коллирует Tk Misc.update() — требуется переименование метода
+incompatible-method-override = "ignore"
+
+[[overrides]]
+include = ["src/windows/wnd_settings.py"]
+
+[overrides.rules]
+# StringVar.set(int) и wm_iconphoto(PhotoImage) — обернуть в str()/уточнить тип
+invalid-argument-type = "ignore"
+
+[[overrides]]
+include = ["tests/conftest.py"]
+
+[overrides.rules]
+# FakeView передаётся в Model.set_view(View) — нужен typing.Protocol
+invalid-argument-type = "ignore"
+
+[[overrides]]
+include = ["tests/test_controller.py"]
+
+[overrides.rules]
+# FakeModel/NeverEndingModel в Controller.set_model(Model) и thread: Thread | None без narrowing
+invalid-argument-type = "ignore"
+missing-union-attribute = "ignore"
+
+[[overrides]]
+include = ["tests/test_settings.py"]
+
+[overrides.rules]
+# Settings() без обязательного file_name
+missing-argument = "ignore"
+
+[[overrides]]
+include = ["tests/test_window_fade.py"]
+
+[overrides.rules]
+# Индексация Optional-результата без guard
+not-subscriptable = "ignore"
